@@ -97,7 +97,15 @@ Save state: `{ "phase": "execute", "scaffoldComplete": true }`
 
 ## Phase 3 — EXECUTE
 
-> **Design-first for UI:** For any task that creates/changes UI, a design artifact MUST exist before `@frontend-worker` runs — a spec `docs/design/YYYY-MM-DD-{feature}.md` **and** a sketch under `docs/design/sketches/{feature}/`. If it's missing, dispatch `@designer-worker` (phase `design`) FIRST to produce the spec + sketch with taste-design/imagegen skills, then dispatch `@frontend-worker` to ship from it. Skip the design step only for non-visual frontend work (note "no new UI"). This mirrors the `<DESIGN-GATE>` in `frontend-worker`.
+> **Design-first for UI:** For any task that creates/changes UI, a design artifact MUST exist before `@frontend-worker` runs — a spec `docs/design/YYYY-MM-DD-{feature}.md` **and** sketches under `docs/design/sketches/{feature}/`.
+>
+> **Branding / visual UI also needs an asset pack** — not sketches alone. When the UI ships logos, icons, or backgrounds (landing, hero, branded marketing, identity), `@designer-worker` MUST also produce:
+> 1. **UI section sketches** → `docs/design/sketches/{feature}/`
+> 2. **Background assets** (raster PNG/JPG/WebP) → `docs/design/assets/{feature}/backgrounds/`
+> 3. **Logo / icon SVG assets** → `docs/design/assets/{feature}/logos/` and `.../icons/`
+> 4. An **Asset Mapping** table in the design spec (which file → which section/component)
+>
+> If any of the above is missing for a branding UI task, dispatch `@designer-worker` (phase `design`) FIRST with keywords including `asset,background,logo,svg,icon,brandkit,imagegen`, then dispatch `@frontend-worker` to implement from the mapping (copy/import mapped files — do not invent placeholders). Skip the design step only for non-visual frontend work (note "no new UI"). This mirrors the `<DESIGN-GATE>` in `frontend-worker`.
 
 **Dispatch workers in parallel** based on the task table in the plan:
 
@@ -105,14 +113,14 @@ Save state: `{ "phase": "execute", "scaffoldComplete": true }`
 |---|---|---|
 | New module/feature scaffold | `@scaffold-agent` | `scaffold` |
 | Backend / API | `@backend-worker` | `implement-backend` |
-| UI design (spec + sketch) — before any new UI | `@designer-worker` | `design` |
+| UI design (spec + sketches + **asset pack** + Asset Mapping) — before any new UI | `@designer-worker` | `design` |
 | Frontend / UI | `@frontend-worker` | `implement-frontend` |
 | Database / schema | `@database-worker` | `database` |
 | AI/LLM integration | `@ai-worker` | `implement-backend` |
 | Auth / security | `@security-worker` | `implement-backend` |
 | DevOps / infra | `@devops-worker` | `devops` |
 
-Each worker starts with a handoff packet from the plan. Frontend tasks receive the design spec + sketch paths in their packet.
+Each worker starts with a handoff packet from the plan. Frontend tasks receive the design spec, sketch paths, **asset pack path**, and Asset Mapping reference in their packet.
 
 Save state: `{ "phase": "test" }`
 

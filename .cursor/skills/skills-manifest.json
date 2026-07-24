@@ -191,7 +191,18 @@
         "hero",
         "marketing",
         "branded",
-        "premium"
+        "premium",
+        "asset",
+        "assets",
+        "asset-pack",
+        "background",
+        "logo",
+        "svg",
+        "icon",
+        "brandkit",
+        "imagegen",
+        "imagery",
+        "brand"
       ],
       "refKeywords": {
         "taste-skill/SKILL.md": ["design", "landing", "premium", "hero", "taste", "anti-slop", "marketing"],
@@ -202,10 +213,43 @@
         "gpt-tasteskill/SKILL.md": ["gpt-taste", "ai-design", "taste", "slop"],
         "stitch-skill/SKILL.md": ["stitch", "combine", "collage", "reference"],
         "image-to-code-skill/SKILL.md": ["image-to-code", "screenshot", "figma", "design-to-code"],
-        "brandkit/SKILL.md": ["brand", "brandkit", "identity", "logo", "palette", "token"],
-        "imagegen-frontend-web/SKILL.md": ["imagegen", "generate-image", "web-image", "sketch", "mockup", "wireframe"],
+        "brandkit/SKILL.md": [
+          "brand",
+          "brandkit",
+          "identity",
+          "logo",
+          "svg",
+          "icon",
+          "palette",
+          "token",
+          "asset",
+          "assets"
+        ],
+        "imagegen-frontend-web/SKILL.md": [
+          "imagegen",
+          "generate-image",
+          "web-image",
+          "sketch",
+          "mockup",
+          "wireframe",
+          "background",
+          "hero",
+          "imagery",
+          "asset",
+          "asset-pack",
+          "section"
+        ],
         "imagegen-frontend-mobile/SKILL.md": ["imagegen-mobile", "mobile-image", "generate-mobile", "sketch", "mockup"],
-        "output-skill/SKILL.md": ["output", "code-output", "file-output"]
+        "output-skill/SKILL.md": [
+          "output",
+          "code-output",
+          "file-output",
+          "complete",
+          "exhaustive",
+          "multi-image",
+          "asset-pack",
+          "unabridged"
+        ]
       }
     },
     {

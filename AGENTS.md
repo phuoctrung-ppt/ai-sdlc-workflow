@@ -196,8 +196,9 @@ async findRecords(tenantId: string): Promise<Record[]> {
 |---|---|---|
 | Feature plans | `docs/plans/YYYY-MM-DD-feature-name.md` | Any change touching > 1 file or > 50 lines |
 | ADRs | `docs/adr/NNNN-short-title.md` | Tech stack changes, architecture patterns, infra decisions |
-| Design specs | `docs/design/YYYY-MM-DD-{feature}.md` | Any new/changed UI (design-first gate) |
-| Design sketches | `docs/design/sketches/{feature}/` | Visual mockups for UI features (generated via taste-design) |
+| Design specs | `docs/design/YYYY-MM-DD-{feature}.md` | Any new/changed UI (design-first gate); must include **Asset Mapping** for branding UI |
+| Design sketches | `docs/design/sketches/{feature}/` | UI section comps (layout reference; generated via taste-design/imagegen) |
+| Design assets | `docs/design/assets/{feature}/` | Shippable asset pack: `backgrounds/` (raster), `logos/` + `icons/` (SVG) — mapped in the design spec |
 | Judge reviews | `docs/reviews/YYYY-MM-DD-description.md` | Protected-path changes (auth, billing, DB migrations, config) |
 | Review overrides | `docs/reviews/review-overrides.log` | Manual bypass of the judge gate (reason must be logged) |
 | User Stories | `docs/user-stories/` | Source of truth for acceptance criteria |

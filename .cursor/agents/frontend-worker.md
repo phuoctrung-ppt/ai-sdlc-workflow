@@ -18,17 +18,22 @@ Any task that creates or changes UI (page, component, layout, visual, styling) R
 - **Design spec:** `docs/design/YYYY-MM-DD-{feature}.md` (a "design.md")
 - **Sketch:** at least one mockup image under `docs/design/sketches/{feature}/` (or a figma/image ref in the handoff packet)
 
-1. Check whether BOTH exist for this feature.
-2. **If both exist** → read them and proceed to Step 1 (implement to match).
-3. **If either is missing** → STOP. Do not implement yet. Get the design produced first:
-   - **Preferred:** hand off to `@designer-worker` to create the spec + sketch using the taste-design (and imagegen) skills, then resume once they exist.
+**Visual branding / imagery tasks** (landing, hero, branded marketing, logo/nav identity, background-led sections — keywords like `asset`, `background`, `logo`, `svg`, `icon`, `brandkit`, `imagegen`, `brand`) additionally REQUIRE:
+- **Asset Mapping** section in the design spec (table: asset file → section/component → usage notes)
+- **Asset pack paths** listed in that mapping for any logo/SVG/background the UI will ship (typically under `docs/design/assets/{feature}/`)
+
+1. Check whether the required artifacts exist for this feature.
+2. **If all required artifacts exist** → read the spec, sketches, **and Asset Mapping**; copy/import mapped files into the app asset path; proceed to Step 1 (implement to match). Do **not** invent placeholder images for files already mapped.
+3. **If any required artifact is missing** → STOP. Do not implement yet. Get the design produced first:
+   - **Preferred:** hand off to `@designer-worker` to create the spec + sketches + **asset pack** (backgrounds + logo/icon SVGs) + Asset Mapping using taste-design / imagegen / brandkit skills, then resume once they exist.
    - **Solo fallback (no sub-agent dispatch available):** run the design phase yourself before shipping —
      ```bash
      python3 .cursor/skills/scripts/skill-loader.py --phase design --task "$TASK" --agent designer-worker \
-       --keywords "design,ui,ux,sketch,mockup,layout,typography,color,$STYLE_KEYWORDS"
+       --keywords "design,ui,ux,sketch,mockup,layout,typography,color,asset,background,logo,svg,icon,brandkit,imagegen,$STYLE_KEYWORDS"
      ```
-     Read the loaded `taste-design` skill (+ the matching style sub-skill + an `imagegen-frontend-*` skill), write `docs/design/YYYY-MM-DD-{feature}.md`, generate the sketch image(s) into `docs/design/sketches/{feature}/`, THEN implement.
+     Read the loaded `taste-design` skill (+ style sub-skill + `imagegen-frontend-*` and/or `brandkit`), write `docs/design/YYYY-MM-DD-{feature}.md` with **Asset Mapping**, generate sketches under `docs/design/sketches/{feature}/` and usable assets under `docs/design/assets/{feature}/`, THEN implement.
 4. **Skip only for non-visual work** (pure data-fetching, logic, state, or bugfix with NO new/changed UI). Record `DESIGN-GATE: skipped — no new UI` in your summary.
+5. **Skip asset pack only when** the UI has no branding imagery (no logo/svg/background to ship). Record `DESIGN-GATE: asset-pack N/A — no branding imagery` and still require spec + sketch for visual UI.
 </DESIGN-GATE>
 
 ---
@@ -63,8 +68,9 @@ python3 .cursor/skills/scripts/skill-loader.py \
 | Streaming / Suspense | `streaming,suspense,concurrent` |
 | Custom hooks | `hook,custom-hook,useeffect,usestate` |
 | HOC / composition patterns | `hoc,higher-order,composition,compound` |
-| Image generation / image-to-code | `imagegen,generate-image,image-to-code,figma` |
-| Brand / design tokens | `brand,brandkit,identity,palette,token` |
+| Image generation / image-to-code | `imagegen,generate-image,image-to-code,figma,asset,background` |
+| Brand / design tokens / logo SVG | `brand,brandkit,identity,palette,token,logo,svg,icon,asset` |
+| Asset pack / backgrounds / hero imagery | `asset,asset-pack,background,logo,svg,icon,imagegen,imagery` |
 | AI / chat UI | `ai,copilot,chat,streaming-ui,llm-ui` |
 | Static / SSG pages | `static,ssg,prerender,build-time` |
 | Testing E2E / component tests | `e2e,playwright,hook,mock,component-test` |
@@ -109,6 +115,7 @@ Read `AGENTS.md §2` for the exact framework decisions. Common defaults:
 ## Step 4 — Implementation Checklist
 
 - [ ] Loaded and read all `referenceFiles[]` from skill-loader before starting
+- [ ] Design spec + sketches read; for branding UI, **Asset Mapping** followed (files copied/imported — no invented placeholders for mapped assets)
 - [ ] Shared validation schemas from the shared types package (see `AGENTS.md §3`)
 - [ ] Loading state: skeleton matching final layout shape (not spinner-only)
 - [ ] Error boundary or error state in place for every async section
@@ -123,6 +130,7 @@ Read `AGENTS.md §2` for the exact framework decisions. Common defaults:
 - [ ] Did NOT default to: AI-purple gradient, centered hero + 3 cards, generic glassmorphism, Inter + slate-900
 - [ ] Typography: chose a deliberate type system matching the aesthetic (not browser default)
 - [ ] Colors: curated palette, not generic Tailwind presets
+- [ ] Logo/icon assets are SVG; backgrounds/hero imagery are raster (PNG/JPG/WebP) per design naming `{feature}-{purpose}.{ext}`
 
 ---
 
