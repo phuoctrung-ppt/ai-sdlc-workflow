@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Inject workflow context at session start
+# Inject minimal workflow context at session start (keep short — always-on cost).
 set -euo pipefail
 
 jq -n '{
-  "additional_context": "Agentic Planner-Worker-Judge workflow active. Read AGENTS.md for project identity, tech stack, scope, and compliance requirements. Run skill-loader before coding tasks: python3 .cursor/skills/scripts/skill-loader.py --phase <phase> --task \"<task>\" --agent <agent>. Use handoff packets between agents. Write plans to docs/plans/, reviews to docs/reviews/. Protected changes require current plan/review artifacts before completion; low-risk changes need a brief rationale."
+  "additional_context": "Workflow repo: read AGENTS.md for domain facts. Hotfix in chat is fine. Features: /dev-module or /plan-feature. Skills via skill-loader only — do not bulk-read .cursor/skills. Protected edits need docs/plans + docs/reviews (or logged review-override)."
 }'

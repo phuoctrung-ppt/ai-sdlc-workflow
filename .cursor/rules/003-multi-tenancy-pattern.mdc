@@ -1,7 +1,7 @@
 ---
-description: Soft multi-tenancy — tenant_id rules, TenantContextGuard, application-level isolation
+description: EXAMPLE soft multi-tenancy — enable only after replacing with real tenancy model
 globs: "apps/{api,admin}/**/*.ts"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Soft Multi-Tenancy (MVP)
@@ -12,6 +12,9 @@ alwaysApply: true
 > describe the current project. **Agents: ignore the domain specifics below until this
 > file is replaced** with the real tenancy model for `<PROJECT>` (see `AGENTS.md §4`).
 > Delete or rewrite on port.
+>
+> `alwaysApply: false` on purpose — example domain must not tax every chat turn.
+> Set `alwaysApply: true` only after this file is rewritten for the real project.
 
 Details: `AGENTS.md` §4. Application-level isolation, no RLS in MVP.
 

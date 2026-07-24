@@ -26,23 +26,29 @@ reads that file to learn your tech stack, structure, and compliance rules.
 
 ---
 
+
+
 ## 1. Core idea
 
-| Role | Who | Does | Can edit |
-|---|---|---|---|
-| **Planner** | `architect-planner` | Brainstorm, ADRs, task breakdown, syncs `AGENTS.md` | `docs/**`, `.cursor/**`, `AGENTS.md` |
-| **Workers** | `backend-`, `frontend-`, `designer-`, `database-`, `ai-`, `devops-`, `security-`, `admin-`, `scaffold-`, `qa-` | Implement inside a narrow scope | only their configured paths |
-| **Judge** | `judge-agent` | Read-only review of **plans** and **code** | `docs/reviews/**` |
+
+| Role        | Who                                                                                                            | Does                                                | Can edit                             |
+| ----------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------ |
+| **Planner** | `architect-planner`                                                                                            | Brainstorm, ADRs, task breakdown, syncs `AGENTS.md` | `docs/`**, `.cursor/**`, `AGENTS.md` |
+| **Workers** | `backend-`, `frontend-`, `designer-`, `database-`, `ai-`, `devops-`, `security-`, `admin-`, `scaffold-`, `qa-` | Implement inside a narrow scope                     | only their configured paths          |
+| **Judge**   | `judge-agent`                                                                                                  | Read-only review of **plans** and **code**          | `docs/reviews/`**                    |
+
 
 Key principles:
 
-- **`AGENTS.md` is the single source of truth** for domain facts (stack, structure, compliance).
-  The `.cursor/` machinery never needs editing to change domains.
+- `AGENTS.md` **is the single source of truth** for domain facts (stack, structure, compliance).
+The `.cursor/` machinery never needs editing to change domains.
 - **Nothing is claimed "done" from intent alone** — completion requires evidence (build/tests/artifacts).
 - **Protected changes** (auth, migrations, config, `AGENTS.md`, …) require a plan + a review artifact.
 - **Workers ship; they don't freelance** — planning and design happen upstream.
 
 ---
+
+
 
 ## 2. Quick start (new idea → shipped module)
 
@@ -67,13 +73,18 @@ If you already have a project and just want to add one feature, you can skip str
 
 ---
 
+
+
 ## 3. The two workflows
+
+
 
 ### A. `/architecture-plan` — idea → system (planning)
 
 Two modes, auto-selected by whether you pass an idea:
 
 **GENESIS** — `/architecture-plan brainstorming {idea}`
+
 1. **Brainstorm** (chat-only HARD-GATE) — concept brief, MVP vs Later, 2–3 approaches. *Waits for your approval.*
 2. **Standardize domain** — fills the `AGENTS.md` template with real values for the approved idea.
 3. **Architecture + ADRs** — creates `docs/architecture.md` and `docs/adr/NNNN-*.md`.
@@ -81,8 +92,11 @@ Two modes, auto-selected by whether you pass an idea:
 5. **Judge Plan Review** — verifies feature coverage + no leftover placeholders → `PLAN_APPROVED`.
 
 **BREAKDOWN** — `/architecture-plan` (no idea; an approved roadmap exists)
+
 1. Expands each roadmap module into executable tasks (real paths, owner agent, testable acceptance, ordered deps, handoff packets).
 2. **Judge Plan Review** — every MVP feature maps to ≥1 task → `PLAN_APPROVED` → ready for `/dev-module`.
+
+
 
 ### B. `/dev-module {name}` — plan → shipped (execution)
 
@@ -101,55 +115,65 @@ Phase 6  Done ✅
 ```
 
 The final judge review enforces: **build error-free**, **no missing features vs the plan**,
-and **coverage meets `AGENTS.md` targets**.
+and **coverage meets** `AGENTS.md` **targets**.
 
 ---
+
+
 
 ## 4. Commands
 
 Type these as slash-commands in Cursor. Located in `.cursor/commands/`.
 
-| Command | Purpose |
-|---|---|
-| `/architecture-plan brainstorming {idea}` | GENESIS: idea → `AGENTS.md` + architecture + roadmap |
-| `/architecture-plan` | BREAKDOWN: roadmap → executable tasks |
-| `/dev-module {name}` | Full per-module execution loop with judge gate + fix loop |
-| `/plan-feature {desc}` | Lightweight single-feature planning (subset of GENESIS) |
-| `/generate-module {name}` | Scaffold a backend feature module (stack from `AGENTS.md §2`) |
-| `/generate-migration` | Create a DB migration (up + down) |
-| `/generate-test` | Generate unit/integration/E2E tests |
-| `/workflow-eval {target}` | Judge review that always persists a `docs/reviews/` artifact |
-| `/security-audit` | Security-focused review pass |
-| `/ai-cost-check` | *(AI/LLM projects only)* verify cost tracking + human-in-the-loop |
-| `/tenant-context-check` | *(multi-tenant projects only)* audit tenant isolation |
+
+| Command                                   | Purpose                                                           |
+| ----------------------------------------- | ----------------------------------------------------------------- |
+| `/architecture-plan brainstorming {idea}` | GENESIS: idea → `AGENTS.md` + architecture + roadmap              |
+| `/architecture-plan`                      | BREAKDOWN: roadmap → executable tasks                             |
+| `/dev-module {name}`                      | Full per-module execution loop with judge gate + fix loop         |
+| `/plan-feature {desc}`                    | Lightweight single-feature planning (subset of GENESIS)           |
+| `/generate-module {name}`                 | Scaffold a backend feature module (stack from `AGENTS.md §2`)     |
+| `/generate-migration`                     | Create a DB migration (up + down)                                 |
+| `/generate-test`                          | Generate unit/integration/E2E tests                               |
+| `/workflow-eval {target}`                 | Judge review that always persists a `docs/reviews/` artifact      |
+| `/security-audit`                         | Security-focused review pass                                      |
+| `/ai-cost-check`                          | *(AI/LLM projects only)* verify cost tracking + human-in-the-loop |
+| `/tenant-context-check`                   | *(multi-tenant projects only)* audit tenant isolation             |
+
 
 > Commands tagged *(… only)* are domain examples; they're inert for projects that don't use those features.
 
 ---
+
+
 
 ## 5. Agents
 
 Defined in `.cursor/agents/`. Invoke with `@agent-name`. Each reads `AGENTS.md` first and loads
 skills via the skill-loader.
 
-| Agent | Role |
-|---|---|
-| `architect-planner` | Plans, ADRs, task breakdown, syncs domain config |
-| `scaffold-agent` | Creates empty module/page shells (no logic) |
-| `designer-worker` | Design specs + sketches (taste-design + imagegen skills) |
-| `frontend-worker` | UI components/pages (design-first — see §8) |
-| `backend-worker` | API modules, services, DTOs, guards |
-| `database-worker` | Migrations, entities, query optimization |
-| `ai-worker` | LLM/embeddings/cost tracking (if the stack has AI) |
-| `security-worker` | Auth, RBAC, encryption, rate limiting |
-| `devops-worker` | Docker, CI/CD, infra |
-| `admin-worker` | Admin / control-plane elevated features (if any) |
-| `qa-worker` | Unit / integration / E2E tests |
-| `judge-agent` | Read-only quality gate (plan + code review) |
+
+| Agent               | Role                                                     |
+| ------------------- | -------------------------------------------------------- |
+| `architect-planner` | Plans, ADRs, task breakdown, syncs domain config         |
+| `scaffold-agent`    | Creates empty module/page shells (no logic)              |
+| `designer-worker`   | Design specs + sketches (taste-design + imagegen skills) |
+| `frontend-worker`   | UI components/pages (design-first — see §8)              |
+| `backend-worker`    | API modules, services, DTOs, guards                      |
+| `database-worker`   | Migrations, entities, query optimization                 |
+| `ai-worker`         | LLM/embeddings/cost tracking (if the stack has AI)       |
+| `security-worker`   | Auth, RBAC, encryption, rate limiting                    |
+| `devops-worker`     | Docker, CI/CD, infra                                     |
+| `admin-worker`      | Admin / control-plane elevated features (if any)         |
+| `qa-worker`         | Unit / integration / E2E tests                           |
+| `judge-agent`       | Read-only quality gate (plan + code review)              |
+
 
 Each agent may only edit the paths configured in `.cursor/config/worker-scopes.json`.
 
 ---
+
+
 
 ## 6. Skills & the skill-loader
 
@@ -165,6 +189,7 @@ python3 .cursor/skills/scripts/skill-loader.py \
 ```
 
 It returns JSON with:
+
 - `matchedSkills[]` → the `SKILL.md` files to read for top-level rules.
 - `referenceFiles[]` → deeper reference docs to open **only when needed**.
 
@@ -176,23 +201,33 @@ stack calls for them.
 
 ---
 
+
+
 ## 7. Gates & guardrails
+
+### Chat vs `/dev-module` (cost)
+
+- **Hotfix / small fix:** plain chat with scoped `@` files is fine. Only a slim always-on rule (`006`) is injected every turn; rules `001`–`005` attach by file globs when you edit matching code.
+- **New module / multi-layer / protected:** use `/dev-module` (or `/plan-feature` then workers). Expect roughly **~8×** more *input* tokens than a 3-turn chat for a CRUD+UI module — you pay for plan, design, tests, and judge. Re-run the estimator: `py -3 .cursor/skills/scripts/benchmark-module-tokens.py`.
 
 Enforced automatically by hooks (`.cursor/hooks.json` → `.cursor/hooks/`):
 
-| Hook | When | What it does |
-|---|---|---|
-| `session-start` | session start | Loads workflow context |
-| `enforce-worker-scope` | before Write/Edit | Blocks edits outside the agent's configured scope |
-| `record-file-edit` | after each edit | Records touched files for stop-hook classification |
-| `block-destructive-shell` | before shell | Blocks dangerous commands |
-| `require-protected-review` | on stop | Blocks completion of **protected** changes without a current plan + review artifact |
+
+| Hook                       | When              | What it does                                                                        |
+| -------------------------- | ----------------- | ----------------------------------------------------------------------------------- |
+| `session-start`            | session start     | Loads workflow context                                                              |
+| `enforce-worker-scope`     | before Write/Edit | Blocks edits outside the agent's configured scope                                   |
+| `record-file-edit`         | after each edit   | Records touched files for stop-hook classification                                  |
+| `block-destructive-shell`  | before shell      | Blocks dangerous commands                                                           |
+| `require-protected-review` | on stop           | Blocks completion of **protected** changes without a current plan + review artifact |
+
 
 **Protected changes** are classified mechanically by `.cursor/config/protected-paths.json`
 (globs + keywords + a multi-file threshold), not by agent self-report. Protected work **fails
 closed** (must have artifacts); standard work **fails open** (so a broken hook never locks the team out).
 
-To bypass a gate deliberately (rare), log it:
+To bypass a gate deliberately (rare++)++, log it:
+
 ```bash
 .cursor/hooks/review-override.sh --skip-review "reason"
 ```
@@ -202,22 +237,26 @@ The judge outputs one of: `PLAN_APPROVED | PLAN_CHANGES_REQUESTED`,
 
 ---
 
+
+
 ## 8. Design-first frontend
 
 UI work cannot start without a design artifact. `frontend-worker` has a **DESIGN-GATE** (Step 0):
 
 1. It checks for a spec `docs/design/YYYY-MM-DD-{feature}.md` **and** a sketch under
-   `docs/design/sketches/{feature}/`.
+  `docs/design/sketches/{feature}/`.
 2. If both exist → implement to match.
 3. If either is missing → hand off to `@designer-worker`, who uses the `taste-design` +
-   `imagegen-frontend-*` skills to produce the spec + sketch first.
+  `imagegen-frontend-*` skills to produce the spec + sketch first.
 4. Skipped only for non-visual work (logic/data/bugfix with no new UI), recorded as
-   `DESIGN-GATE: skipped — no new UI`.
+  `DESIGN-GATE: skipped — no new UI`.
 
 `/dev-module` Phase 3 mirrors this: it dispatches `@designer-worker` before `@frontend-worker`
 for any new UI, and the judge checks that shipped UI traces back to a design artifact.
 
 ---
+
+
 
 ## 9. Directory map
 
@@ -236,7 +275,7 @@ for any new UI, and the judge checks that shipped UI traces back to a design art
 └── .cursor/
     ├── agents/                  # agent role definitions
     ├── commands/                # slash-commands
-    ├── rules/                   # always-applied rules (001–006)
+    ├── rules/                   # 006 always-on (slim); 001–005 glob-scoped
     ├── skills/                  # skills + skills-manifest.json + scripts/skill-loader.py
     ├── config/                  # worker-scopes.json, protected-paths.json, workflow-policy.json
     ├── hooks.json + hooks/      # enforcement hooks
@@ -245,14 +284,16 @@ for any new UI, and the judge checks that shipped UI traces back to a design art
 
 ---
 
+
+
 ## 10. Porting to another repo
 
 1. Copy `.cursor/` and `AGENTS.md` into the new repo (and optionally `docs/` scaffolding).
 2. Fill in `AGENTS.md` §1–§15 — replace every `<PLACEHOLDER>` and delete `_EXAMPLE_` blocks.
-   (Or just run `/architecture-plan brainstorming {idea}`, which fills it for you.)
+  (Or just run `/architecture-plan brainstorming {idea}`, which fills it for you.)
 3. Edit `.cursor/config/protected-paths.json` → `projectProtectedGlobs` for your sensitive paths.
 4. Tighten `.cursor/config/worker-scopes.json` → `agents{}` to your real folders from `AGENTS.md §3`.
-   (They ship as portable globs that work everywhere; tightening is optional but recommended.)
+  (They ship as portable globs that work everywhere; tightening is optional but recommended.)
 5. Add/remove domain skills in `.cursor/skills/skills-manifest.json`.
 
 No changes are needed to the hooks, `workflow-guard.py`, `skill-loader.py`, or generic rules.
@@ -263,16 +304,20 @@ No changes are needed to the hooks, `workflow-guard.py`, `skill-loader.py`, or g
 
 ---
 
+
+
 ## 11. Troubleshooting
 
-| Symptom | Cause / fix |
-|---|---|
-| Edit blocked "outside scope" | The agent's `worker-scopes.json` entry doesn't include that path. Request scope expansion from the orchestrator or use the right agent. |
-| Stop hook blocks completion | It's a protected change without a current plan/review. Produce the plan + run `/workflow-eval`, or override with `review-override.sh` and a logged reason. |
-| Judge says `PLAN_CHANGES_REQUESTED` | Leftover `<PLACEHOLDER>` in `AGENTS.md`, a feature with no task, or non-executable tasks. Fix and re-review. |
-| `skill-loader.py` returns no skills | Check `--phase`/`--agent`/`--keywords`; confirm the skill is registered in `skills-manifest.json`. |
-| Frontend worker refuses to code | DESIGN-GATE: no spec/sketch. Run `@designer-worker` first (or note "no new UI"). |
-| Plans come out vague on a smaller model | Read `.cursor/skills/planning/references/planning-with-lower-models.md` — grounding, one section at a time, no placeholders, self-verify. |
+
+| Symptom                                 | Cause / fix                                                                                                                                                |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Edit blocked "outside scope"            | The agent's `worker-scopes.json` entry doesn't include that path. Request scope expansion from the orchestrator or use the right agent.                    |
+| Stop hook blocks completion             | It's a protected change without a current plan/review. Produce the plan + run `/workflow-eval`, or override with `review-override.sh` and a logged reason. |
+| Judge says `PLAN_CHANGES_REQUESTED`     | Leftover `<PLACEHOLDER>` in `AGENTS.md`, a feature with no task, or non-executable tasks. Fix and re-review.                                               |
+| `skill-loader.py` returns no skills     | Check `--phase`/`--agent`/`--keywords`; confirm the skill is registered in `skills-manifest.json`.                                                         |
+| Frontend worker refuses to code         | DESIGN-GATE: no spec/sketch. Run `@designer-worker` first (or note "no new UI").                                                                           |
+| Plans come out vague on a smaller model | Read `.cursor/skills/planning/references/planning-with-lower-models.md` — grounding, one section at a time, no placeholders, self-verify.                  |
+
 
 ---
 

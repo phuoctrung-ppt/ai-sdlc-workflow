@@ -1,7 +1,7 @@
 ---
 description: Logging, error envelopes, testing coverage, performance conventions
 globs: "**/*.{ts,tsx}"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Code Quality
@@ -28,3 +28,6 @@ Details: `AGENTS.md` §5 (code quality) and §12 (forbidden patterns).
 
 - `next/image` + `next/font` (Inter); colors from `config-tailwind`; `lucide-react` only
 - Cursor pagination for large lists; offset only for small admin lists
+
+## Tracking
+- Always track request by x-correctlation-id

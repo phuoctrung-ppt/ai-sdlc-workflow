@@ -1,0 +1,13 @@
+---
+description: Minimal workflow reminder — full Planner-Worker-Judge lives in commands/agents
+globs: "**/*.{md,ts,tsx,json,yml,yaml}"
+alwaysApply: true
+---
+
+# Agentic Workflow (minimal)
+
+- Domain facts: `AGENTS.md`. Do **not** bulk-read `.cursor/skills/**`.
+- Simple chat/hotfix: implement directly with scoped `@` files; skip plan unless asked.
+- Feature / protected work: use `/plan-feature` or `/dev-module`, then workers + `/workflow-eval`.
+- Protected paths (`.cursor/config/protected-paths.json`): need current `docs/plans/*` + `docs/reviews/*`, or logged `review-override.sh --skip-review "reason"`.
+- Skills: run `skill-loader.py` only for the active phase; read matched `SKILL.md` only; open references one-at-a-time.

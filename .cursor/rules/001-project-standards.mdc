@@ -1,7 +1,7 @@
 ---
-description: Project coding standards — read AGENTS.md for tech stack specifics. These are universal code quality guardrails.
+description: Project coding standards — read AGENTS.md for tech stack specifics
 globs: "**/*.{ts,tsx,js,jsx,py,go,json}"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Project Standards
