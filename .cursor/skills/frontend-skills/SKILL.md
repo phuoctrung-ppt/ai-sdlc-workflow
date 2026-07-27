@@ -1,101 +1,145 @@
 ---
 name: frontend-skills
-description: Teaches frontend skills for building modern web applications. Use when you want to learn how to create responsive, interactive, and performant user interfaces with React and related technologies.
-paths:
-  - "**/*.tsx"
-  - "**/*.jsx"
+description: React/Next.js frontend patterns — RSC, hooks, data fetching, forms, performance. Covers ~90% of UI tasks. Load advanced/ via context-builder --expand-ref only.
 license: MIT
-
+metadata:
+  version: "2.0.0"
+  consolidation: "2026-07-27"
 ---
 
+# Frontend Skills (Consolidated)
 
----
+Use for React, Next.js App Router, components, data fetching, and forms. **Tier 4:** `.cursor/skills/frontend-skills/advanced/*.md`
 
-# 🌐 Frontend Rules (Modern Standard - Agent-Optimized)
+## Architecture
 
-## 1. Project Architecture & Organization
-- **Strict Feature-based Structure:**
-    - Domain-specific code: `src/features/[feature-name]/...` (includes components, hooks, types, api).
-    - Global UI: `src/components/[atom|molecule|organism]` for project-wide reusable components (Button, Modal, Input).
-- **Logic Decoupling:**
-    - UI Components must be **Presentational** only.
-    - **Constraint:** All data fetching, complex calculations, and state orchestration must be extracted to **Custom Hooks**.
+- Feature-based: `src/features/[name]/{components,hooks,api,types}`
+- Global UI: `src/components/{atoms,molecules,organisms}`
+- **Presentational components** — data/orchestration in custom hooks
+- Shared types from `@shared/types` or Zod schemas — never duplicate DTOs
 
-## 2. TypeScript & Data Integrity
-- **Strict Typing:**
-    - **Forbidden:** Explicit `any`. Use `unknown` or specific `Interfaces/Types`.
-    - **Component Props:** Every component must have an explicit `Props` interface.
-- **DTO Synchronization:** Align Frontend `Interfaces` with `@shared/type`. Use shared types or automated type generation where possible.
+## TypeScript
 
-## 3. State & Data Flow
-- **Server State (TanStack Query/SWR):**
-    - **Mandatory:** Use for all API-driven data. 
-    - **Implementation:** Utilize `isLoading`, `isError`, and `data` objects. Set `staleTime` and `gcTime` (cacheTime) based on resource volatility.
-- **Client State Rules:**
-    - **Local State:** Use `useState` / `useReducer` by default.
-    - **Global State (Zustand/Redux):** Use only for cross-cutting concerns (Auth, Theme, User Settings).
-    - **Derived State:** **Forbidden** to create new state for values calculable from existing props or state. Use `useMemo` for heavy derivations.
+- No `any` — use `unknown` + guards or explicit interfaces
+- Every component has a `Props` interface
+- Align form schemas with backend validation (Zod + shared package)
 
-## 4. Networking & API Integration
-- **Centralized Client:** Use a single `Axios` instance or `fetch` wrapper.
-- **Interceptors Logic:**
-    - **Request:** Automatically attach `Authorization: Bearer <token>`.
-    - **Response:** Handle `401 Unauthorized` globally (trigger logout/redirect).
-- **Environment Management:** Use `NEXT_PUBLIC_` or environment-specific prefixes for API Base URLs.
+## React Server Components (default in App Router)
 
-## 5. Forms & Validation
-- **Schema-driven:** Use `React Hook Form` integrated with `Zod` or `Yup`.
-- **Backend Parity:** UI validation schemas must mirror Backend `class-validator` constraints.
-- **Submission UI:** 
-    - **Rule:** Submit buttons must be `disabled` during `isSubmitting` state.
-    - Show specific field errors immediately after validation failure.
+- Server Components: **no directive** — async components, server data fetch, zero client bundle for heavy libs
+- Client Components: `'use client'` only for state, effects, event handlers, browser APIs
+- Server Actions: `'use server'` for mutations — not for marking server components
 
-## 6. Performance Optimization
-- **Asset Handling:**
-    - Use Framework-specific Image components (e.g., `next/image`).
-    - **Constraint:** Images must be `.webp` and lazy-loaded by default.
-- **Efficiency:**
-    - **Code Splitting:** Use `React.lazy()` or `dynamic()` for heavy components and routes.
-    - **Memoization:** Apply `useMemo` and `useCallback` only for expensive computations or to prevent broken dependency chains in hooks.
+```tsx
+// app/users/page.tsx — Server Component
+export default async function UsersPage() {
+  const users = await fetchUsers(); // server-only
+  return <UserList initialUsers={users} />;
+}
 
-## 7. Security & Compliance
-- **Injection Protection:** Sanitize all inputs. Avoid `dangerouslySetInnerHTML` unless explicitly sanitized.
-- **Auth Storage:** Store JWTs in `HttpOnly Cookies` or `In-Memory` (avoid `localStorage` for sensitive tokens).
-- **Env Hygiene:** Never expose Private Keys or Secrets to the client bundle.
+// UserList.client.tsx
+'use client';
+export function UserList({ initialUsers }: { initialUsers: User[] }) {
+  const { data } = useQuery({
+    queryKey: ['users'],
+    queryFn: fetchUsers,
+    initialData: initialUsers,
+  });
+  return <ul>{data.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
 
-## 8. UI/UX & Styling Standards
-- **Design Consistency:** Strictly follow the Design System (Color palette, Spacing scale, Typography).
-- **Responsiveness:** Adopt a **Mobile-first** approach.
-- **Error Resilience:** Wrap major feature modules in `Error Boundaries`.
-- **User Feedback:**
-    - **Latency:** Show `Skeleton` loaders for any task > 200ms.
-    - **Interactivity:** All interactive elements must have `:hover` states and `cursor: pointer`.
+**Don't:** use `window`, `localStorage`, or `useState` in Server Components.
 
-## 9. Testing & Quality Control
-- **Logic Coverage:** Write **Unit Tests** (Vitest/Jest) for utility functions and complex hook logic.
-- **Interaction Testing:** Use `React Testing Library` for critical user flows.
-- **Linting & Formatting:** 
-    - Enforce `ESLint` (Airbnb/Recommended) and `Prettier`.
-    - **Git Hooks:** Use `Husky` to block commits failing `lint-staged` or `type-check`.
+## Custom Hooks
 
-## 10. Development Workflow
-- **Commit Format:** Use **Conventional Commits** (`feat:`, `fix:`, `refactor:`, `chore:`).
-- **Documentation:** Use **Storybook** for UI components to ensure visual consistency and documentation.
+- Prefix with `use`; call only at top level of React functions
+- Extract: data fetching, form logic, subscriptions, side effects
+- Avoid unnecessary `useEffect` — derive state in render; use `useMemo` only for expensive work
 
-## 11. Architecture Patterns
+```tsx
+function useToggle(initial = false) {
+  const [on, setOn] = useState(initial);
+  return { on, toggle: () => setOn(v => !v), setOn };
+}
+```
 
-Before implementing any task, load the relevant frontend implementation
-knowledge using the Frontend Skills Matcher.
+## Data Fetching
 
-The matcher should receive:
+### Server (RSC)
 
-- current task description
-- implementation plan
-- additional keywords (optional)
+- Fetch in Server Components or route handlers
+- Use `React.cache()` for per-request dedup (primitive args only)
+- Parallelize: `Promise.all([fetchA(), fetchB()])`
 
-The matcher returns
+### Client (TanStack Query recommended)
 
-- matched atomic skills
-- architecture references
-- implementation best practices
----
+```tsx
+const { data, isLoading, isError } = useQuery({
+  queryKey: ['user', userId],
+  queryFn: () => api.getUser(userId),
+  staleTime: 60_000,
+});
+```
+
+- **Never** raw `useEffect` + `fetch` without caching
+- Avoid waterfalls: fetch siblings in parallel, not parent→child chains
+- Prefetch on hover/focus for navigation
+- Optimistic updates for predictable mutations
+- Pass `initialData` from RSC to client query to avoid double fetch
+
+## Forms
+
+- React Hook Form + `zodResolver` + shared Zod schema
+- Disable submit during `isSubmitting`
+- Show field errors after validation failure
+
+## Performance
+
+- `next/image` + WebP; lazy load below fold
+- `dynamic()` / `React.lazy()` for heavy routes
+- Memoize only when profiling shows benefit
+- Passive listeners for scroll/touch when not calling `preventDefault()`
+
+## Security
+
+- No secrets in client bundle
+- JWT in HTTP-only cookies or in-memory — not localStorage
+- Sanitize HTML; avoid `dangerouslySetInnerHTML` unless DOMPurify
+- `NEXT_PUBLIC_` only for truly public env vars
+
+## UI/UX
+
+- Mobile-first responsive layout
+- Skeleton loaders for async sections (>200ms)
+- Error boundaries around feature modules
+- Loading + error state on every async boundary
+- WCAG AA contrast; honor `prefers-reduced-motion`
+
+## Testing
+
+- Unit: hooks and utilities (Vitest/Jest)
+- Integration: React Testing Library for flows
+- E2E: Playwright for critical paths
+
+## Decision Tree
+
+| Task | Pattern |
+|------|---------|
+| Static marketing page | Server Component only |
+| Interactive form | Client Component + RHF + Zod |
+| Dashboard data | RSC fetch + client TanStack Query with initialData |
+| List + detail nav | Prefetch on hover; parallel queries |
+| AI chat UI | See `advanced/ai-ui-patterns.md` |
+| Streaming page | See `advanced/streaming-ssr.md` |
+
+## Advanced Topics (lazy load)
+
+| File | When |
+|------|------|
+| `advanced/streaming-ssr.md` | Suspense streaming, progressive hydration |
+| `advanced/composition-patterns.md` | HOC, render props, compound components |
+| `advanced/ai-ui-patterns.md` | Chat, streaming LLM UI |
+| `advanced/rendering-modes.md` | SSG, CSR, ISR tradeoffs |
+
+Legacy refs: `references/` (deprecated — do not bulk-read)

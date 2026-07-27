@@ -256,7 +256,7 @@
       "id": "frontend-skills",
       "portable": true,
       "entry": "frontend-skills/SKILL.md",
-      "referencesDir": "frontend-skills/references",
+      "referencesDir": "frontend-skills",
       "phases": ["implement-frontend", "design"],
       "agents": ["designer-worker", "frontend-worker"],
       "keywords": [
@@ -278,22 +278,15 @@
         "page"
       ],
       "refKeywords": {
-        "react-server-components.md": ["rsc", "server-component", "server", "rsc-pattern"],
-        "react-data-fetching.md": ["fetch", "tanstack", "query", "swr", "data-fetching"],
-        "server-side-rendering.md": ["ssr", "server-side", "getServerSideProps"],
-        "streaming-ssr.md": ["streaming", "suspense", "concurrent"],
-        "hooks-pattern.md": ["hook", "custom-hook", "useeffect", "usestate", "usecallback", "usememo"],
-        "ai-ui-patterns.md": ["ai", "copilot", "chat", "streaming-ui", "llm-ui"],
-        "react-composition-2026.md": ["composition", "compound", "slot"],
-        "presentational-container-pattern.md": ["presentational", "container", "smart", "dumb"],
-        "react-render-optimization.md": ["optimization", "performance", "memo", "render", "rerender", "expensive"],
-        "react-2026.md": ["react", "concurrent", "modern", "latest", "best-practice"],
-        "compound-pattern.md": ["compound", "slot", "context", "provider"],
-        "hoc-pattern.md": ["hoc", "higher-order", "wrap", "decorator"],
-        "progressive-hydration.md": ["hydration", "progressive", "island"],
-        "static-rendering.md": ["static", "ssg", "prerender", "build-time"],
-        "client-side-rendering.md": ["csr", "spa", "client-side", "single-page"],
-        "render-props-pattern.md": ["render-props", "children-function", "render-prop"]
+        "advanced/streaming-ssr.md": ["streaming", "suspense", "ssr", "concurrent", "progressive", "hydration"],
+        "advanced/composition-patterns.md": ["hoc", "higher-order", "compound", "render-props", "composition", "slot"],
+        "advanced/ai-ui-patterns.md": ["ai", "copilot", "chat", "streaming-ui", "llm-ui"],
+        "advanced/rendering-modes.md": ["static", "ssg", "csr", "isr", "prerender", "spa", "client-side"]
+      },
+      "consolidation": {
+        "v2SkillMd": "frontend-skills/SKILL.md",
+        "advancedDir": "frontend-skills/advanced",
+        "legacyReferencesDir": "frontend-skills/references"
       }
     },
     {
@@ -419,7 +412,7 @@
       "domainTag": "nestjs",
       "note": "Domain skill for NestJS projects. Activate when AGENTS.md §2 backend framework is NestJS.",
       "entry": "nestjs-skills/SKILL.md",
-      "referencesDir": "nestjs-skills/references",
+      "referencesDir": "nestjs-skills",
       "phases": ["implement-backend", "review"],
       "agents": [
         "backend-worker",
@@ -446,39 +439,16 @@
         "filter"
       ],
       "refKeywords": {
-        "security-auth-jwt.md": ["jwt", "auth", "login", "token", "refresh"],
-        "security-use-guards.md": ["guard", "authorization", "rbac", "roles", "permission"],
-        "security-validate-all-input.md": ["validation", "input", "class-validator", "pipe", "dto"],
-        "security-rate-limiting.md": ["rate-limit", "throttle", "limit"],
-        "security-sanitize-output.md": ["sanitize", "xss", "serialization", "output"],
-        "api-use-dto-serialization.md": ["dto", "serialization", "response", "create", "update", "request"],
-        "api-use-pipes.md": ["pipe", "transform", "validation", "parse"],
-        "api-use-interceptors.md": ["interceptor", "logging", "mapping", "transform"],
-        "api-versioning.md": ["versioning", "version", "v1", "v2"],
-        "arch-feature-modules.md": ["module", "feature", "structure", "api", "service", "controller", "backend", "scaffold"],
-        "arch-use-repository-pattern.md": ["repository", "data-access", "crud", "database"],
-        "arch-use-events.md": ["event", "emitter", "decoupling", "pub-sub"],
-        "arch-avoid-circular-deps.md": ["circular", "dependency", "import"],
-        "arch-module-sharing.md": ["shared", "common", "global-module"],
-        "arch-single-responsibility.md": ["srp", "responsibility", "clean"],
-        "db-use-transactions.md": ["transaction", "atomicity", "rollback"],
-        "db-use-migrations.md": ["migration", "schema-change", "typeorm"],
-        "db-avoid-n-plus-one.md": ["n-plus-one", "orm", "query", "eager", "lazy"],
-        "di-prefer-constructor-injection.md": ["injection", "di", "constructor", "provider", "injectable"],
-        "di-use-interfaces-tokens.md": ["token", "interface", "provider", "abstract"],
-        "micro-use-queues.md": ["queue", "bull", "bullmq", "job", "background", "worker"],
-        "devops-use-logging.md": ["logging", "logger", "winston", "log", "debug"],
-        "devops-use-config-module.md": ["config", "env", "environment", "configuration"],
-        "devops-graceful-shutdown.md": ["shutdown", "graceful", "lifecycle", "terminate"],
-        "error-use-exception-filters.md": ["error", "exception", "filter", "http-exception"],
-        "error-throw-http-exceptions.md": ["exception", "http", "400", "401", "403", "404"],
-        "error-handle-async-errors.md": ["async", "promise", "error-handling", "try-catch"],
-        "perf-use-caching.md": ["cache", "redis", "caching", "performance"],
-        "perf-optimize-database.md": ["performance", "optimize", "slow", "index"],
-        "perf-lazy-loading.md": ["lazy", "lazy-loading", "startup", "load-time"],
-        "test-use-testing-module.md": ["unit-test", "testing-module", "jest", "spec"],
-        "test-e2e-supertest.md": ["e2e", "supertest", "integration", "api-test"],
-        "test-mock-external-services.md": ["mock", "stub", "external", "spy"]
+        "advanced/microservices.md": ["queue", "bull", "bullmq", "job", "background", "worker", "microservice", "health"],
+        "advanced/event-driven.md": ["event", "emitter", "decoupling", "pub-sub"],
+        "advanced/api-versioning.md": ["versioning", "version", "v1", "v2"],
+        "advanced/performance-deep.md": ["cache", "redis", "lazy", "performance", "optimize", "caching"],
+        "advanced/di-advanced.md": ["injection", "token", "scope", "interface", "isp", "lsp", "provider"]
+      },
+      "consolidation": {
+        "v2SkillMd": "nestjs-skills/SKILL.md",
+        "advancedDir": "nestjs-skills/advanced",
+        "legacyReferencesDir": "nestjs-skills/references"
       }
     },
     {
@@ -648,7 +618,7 @@
       "domainTag": "nestjs-scaffold",
       "note": "Scaffolding skill for NestJS modules + Next.js pages. Activate for scaffold-agent tasks.",
       "entry": "nestjs-skills/SKILL.md",
-      "referencesDir": "nestjs-skills/references",
+      "referencesDir": "nestjs-skills",
       "phases": ["scaffold", "implement-backend"],
       "agents": ["scaffold-agent", "backend-worker"],
       "keywords": [
@@ -671,7 +641,7 @@
           "controller",
           "backend"
         ],
-        "db-use-migrations.md": ["migration", "schema-change", "typeorm"]
+        "advanced/microservices.md": ["queue", "bullmq", "migration"]
       }
     }
   ]

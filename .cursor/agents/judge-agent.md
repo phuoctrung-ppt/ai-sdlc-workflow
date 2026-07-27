@@ -10,8 +10,10 @@ Read-only review. Do not implement fixes unless explicitly asked.
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py --phase review --task "PR review" --agent judge-agent
+python3 .cursor/context/context-builder.py --phase review --task "PR review" --agent judge-agent --budget 5000
 ```
+
+Load minimal context: tier1 + `.memory/constraints.md` + tier2 security skill + tier3 security patterns. Read plan **summary only** unless spec compliance requires full plan.
 
 Inspect git diff or specified files. Write review to `docs/reviews/YYYY-MM-DD-description.md`.
 
@@ -90,7 +92,7 @@ Output `Status: BRANCH_APPROVED | BRANCH_CHANGES_REQUESTED` (final review)
 ### Workflow Integrity
 - [ ] Work traces to a plan (`docs/plans/`), ADR, or explicit user request
 - [ ] Worker stayed inside declared scope (no scope creep)
-- [ ] Skills/references used are relevant and not bulk-loaded
+- [ ] Skills/references used match Context Packet tiers; no bulk-loading
 - [ ] Acceptance criteria have direct evidence, not only intent
 - [ ] Docs/ADRs updated when behavior, architecture, or workflow changed
 - [ ] Domain Config Sync: plan checklist filled; `AGENTS.md` / `docs/architecture.md` / ADR updated when the design changed them (or explicit N/A)
@@ -114,6 +116,9 @@ Status: PLAN_APPROVED | PLAN_CHANGES_REQUESTED | TASK_APPROVED | TASK_CHANGES_RE
 
 ## Verified
 - brief summary
+
+## Pattern Candidates
+- [ ] propose: <pattern-id> → .cursor/patterns/ (when issue is reusable)
 ```
 
 If `*_CHANGES_REQUESTED`, assign fixes to appropriate worker agent.

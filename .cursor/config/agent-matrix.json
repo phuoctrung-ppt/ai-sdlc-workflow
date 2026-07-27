@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "description": "Dynamic agent activation rules for Workflow V2 context builder.",
+  "rules": [
+    {
+      "id": "react-button-fix",
+      "when": {
+        "domains": ["frontend"],
+        "complexity": ["low", "medium"],
+        "keywords": ["button", "fix", "disabled", "click", "submit"]
+      },
+      "agents": ["frontend-worker"],
+      "reviewer": null,
+      "reviewMode": "optional",
+      "maxSkills": 1
+    },
+    {
+      "id": "frontend-ui",
+      "when": {
+        "domains": ["frontend"],
+        "complexity": ["medium", "high"]
+      },
+      "agents": ["frontend-worker"],
+      "reviewer": "judge-agent",
+      "reviewMode": "optional",
+      "maxSkills": 2
+    },
+    {
+      "id": "frontend-with-design",
+      "when": {
+        "domains": ["frontend", "design"],
+        "complexity": ["medium", "high"]
+      },
+      "agents": ["designer-worker", "frontend-worker"],
+      "sequence": ["designer-worker", "frontend-worker"],
+      "reviewer": "judge-agent",
+      "reviewMode": "optional",
+      "maxSkills": 2
+    },
+    {
+      "id": "backend-module",
+      "when": {
+        "domains": ["backend"],
+        "complexity": ["medium"]
+      },
+      "agents": ["backend-worker"],
+      "reviewer": "judge-agent",
+      "reviewMode": "optional",
+      "maxSkills": 2
+    },
+    {
+      "id": "nestjs-auth",
+      "when": {
+        "domains": ["backend", "security"],
+        "keywords": ["auth", "jwt", "login", "guard", "token"]
+      },
+      "agents": ["architect-planner", "database-worker", "backend-worker", "security-worker"],
+      "sequence": ["architect-planner", "database-worker", "backend-worker", "security-worker"],
+      "reviewer": "judge-agent",
+      "reviewMode": "required",
+      "maxSkills": 3
+    },
+    {
+      "id": "database-migration",
+      "when": {
+        "domains": ["database"],
+        "keywords": ["migration", "schema", "index", "table"]
+      },
+      "agents": ["database-worker"],
+      "reviewer": "judge-agent",
+      "reviewMode": "required",
+      "maxSkills": 2
+    },
+    {
+      "id": "devops-infra",
+      "when": {
+        "domains": ["devops"]
+      },
+      "agents": ["devops-worker"],
+      "reviewer": "judge-agent",
+      "reviewMode": "optional",
+      "maxSkills": 1
+    },
+    {
+      "id": "qa-testing",
+      "when": {
+        "domains": ["qa"]
+      },
+      "agents": ["qa-worker"],
+      "reviewer": null,
+      "reviewMode": "optional",
+      "maxSkills": 2
+    },
+    {
+      "id": "plan-feature",
+      "when": {
+        "domains": [],
+        "keywords": ["plan", "architect", "adr", "roadmap", "breakdown"]
+      },
+      "agents": ["architect-planner"],
+      "reviewer": "judge-agent",
+      "reviewMode": "optional",
+      "maxSkills": 2
+    },
+    {
+      "id": "protected-default",
+      "when": {
+        "protected": true
+      },
+      "agents": ["architect-planner"],
+      "sequence": ["architect-planner"],
+      "reviewer": "judge-agent",
+      "reviewMode": "required",
+      "maxSkills": 2
+    }
+  ]
+}

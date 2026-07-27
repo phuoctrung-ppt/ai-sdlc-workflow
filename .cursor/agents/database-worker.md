@@ -10,9 +10,12 @@ Scope: determined by `AGENTS.md §3` — typically migration directories, databa
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
-  --phase database --task "$TASK" --agent database-worker
+python3 .cursor/context/context-builder.py \
+  --phase database --task "$TASK" --agent database-worker \
+  --keywords "migration,schema,postgres,sql,index,database"
 ```
+
+Obey Context Packet tiers — read tier2 `databases` SKILL.md; tier3 patterns when listed.
 
 Primary skill: `databases`. Check `AGENTS.md §2` for the database type (PostgreSQL, MySQL, MongoDB, etc.) and ORM to select the right reference files.
 
@@ -28,7 +31,7 @@ Primary skill: `databases`. Check `AGENTS.md §2` for the database type (Postgre
 
 ## Scripts
 
-Available in the databases skill — check skill-loader output for available commands:
+Available in the databases skill — check Context Packet tier2 `scripts` or skill manifest:
 ```bash
 python3 .cursor/skills/databases/scripts/db_performance_check.py
 python3 .cursor/skills/databases/scripts/db_migrate.py

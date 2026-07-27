@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "description": "Token budget ceilings for Workflow V2 context tiers.",
+  "defaultTokenBudget": 8000,
+  "tierCeilings": {
+    "tier1": 1200,
+    "tier2": 4000,
+    "tier3": 800,
+    "tier4": 2000
+  },
+  "maxSkillsByComplexity": {
+    "low": 1,
+    "medium": 2,
+    "high": 4
+  },
+  "maxPatternsByComplexity": {
+    "low": 0,
+    "medium": 1,
+    "high": 2
+  }
+}

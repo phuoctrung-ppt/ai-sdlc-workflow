@@ -1,130 +1,218 @@
 ---
 name: nestjs-best-practices
-description: NestJS best practices and architecture patterns for building production-ready applications. This skill should be used when writing, reviewing, or refactoring NestJS code to ensure proper patterns for modules, dependency injection, security, and performance.
+description: NestJS production patterns — modules, DI, security, DB, API, testing. Covers ~90% of backend tasks. Load advanced/ via context-builder --expand-ref only.
 license: MIT
 metadata:
-  author: Kadajett
-  version: "1.1.0"
+  version: "2.0.0"
+  consolidation: "2026-07-27"
 ---
 
-# NestJS Best Practices
+# NestJS Best Practices (Consolidated)
 
-Comprehensive best practices guide for NestJS applications. Contains 40 rules across 10 categories, prioritized by impact to guide automated refactoring and code generation.
+Use this skill for modules, controllers, services, auth, migrations, and API work. **Tier 4 only:** `.cursor/skills/nestjs-skills/advanced/*.md`
 
-## When to Apply
+## Module Structure (CRITICAL)
 
-Reference these guidelines when:
-
-- Writing new NestJS modules, controllers, or services
-- Implementing authentication and authorization
-- Reviewing code for architecture and security issues
-- Refactoring existing NestJS codebases
-- Optimizing performance or database queries
-- Building microservices architectures
-
-## Rule Categories by Priority
-
-| Priority | Category | Impact | Prefix |
-|----------|----------|--------|--------|
-| 1 | Architecture | CRITICAL | `arch-` |
-| 2 | Dependency Injection | CRITICAL | `di-` |
-| 3 | Error Handling | HIGH | `error-` |
-| 4 | Security | HIGH | `security-` |
-| 5 | Performance | HIGH | `perf-` |
-| 6 | Testing | MEDIUM-HIGH | `test-` |
-| 7 | Database & ORM | MEDIUM-HIGH | `db-` |
-| 8 | API Design | MEDIUM | `api-` |
-| 9 | Microservices | MEDIUM | `micro-` |
-| 10 | DevOps & Deployment | LOW-MEDIUM | `devops-` |
-
-## Quick Reference
-
-### 1. Architecture (CRITICAL)
-
-- `arch-avoid-circular-deps` - Avoid circular module dependencies
-- `arch-feature-modules` - Organize by feature, not technical layer
-- `arch-module-sharing` - Proper module exports/imports, avoid duplicate providers
-- `arch-single-responsibility` - Focused services over "god services"
-- `arch-use-repository-pattern` - Abstract database logic for testability
-- `arch-use-events` - Event-driven architecture for decoupling
-
-### 2. Dependency Injection (CRITICAL)
-
-- `di-avoid-service-locator` - Avoid service locator anti-pattern
-- `di-interface-segregation` - Interface Segregation Principle (ISP)
-- `di-liskov-substitution` - Liskov Substitution Principle (LSP)
-- `di-prefer-constructor-injection` - Constructor over property injection
-- `di-scope-awareness` - Understand singleton/request/transient scopes
-- `di-use-interfaces-tokens` - Use injection tokens for interfaces
-
-### 3. Error Handling (HIGH)
-
-- `error-use-exception-filters` - Centralized exception handling
-- `error-throw-http-exceptions` - Use NestJS HTTP exceptions
-- `error-handle-async-errors` - Handle async errors properly
-
-### 4. Security (HIGH)
-
-- `security-auth-jwt` - Secure JWT authentication
-- `security-validate-all-input` - Validate with class-validator
-- `security-use-guards` - Authentication and authorization guards
-- `security-sanitize-output` - Prevent XSS attacks
-- `security-rate-limiting` - Implement rate limiting
-
-### 5. Performance (HIGH)
-
-- `perf-async-hooks` - Proper async lifecycle hooks
-- `perf-use-caching` - Implement caching strategies
-- `perf-optimize-database` - Optimize database queries
-- `perf-lazy-loading` - Lazy load modules for faster startup
-
-### 6. Testing (MEDIUM-HIGH)
-
-- `test-use-testing-module` - Use NestJS testing utilities
-- `test-e2e-supertest` - E2E testing with Supertest
-- `test-mock-external-services` - Mock external dependencies
-
-### 7. Database & ORM (MEDIUM-HIGH)
-
-- `db-use-transactions` - Transaction management
-- `db-avoid-n-plus-one` - Avoid N+1 query problems
-- `db-use-migrations` - Use migrations for schema changes
-
-### 8. API Design (MEDIUM)
-
-- `api-use-dto-serialization` - DTO and response serialization
-- `api-use-interceptors` - Cross-cutting concerns
-- `api-versioning` - API versioning strategies
-- `api-use-pipes` - Input transformation with pipes
-
-### 9. Microservices (MEDIUM)
-
-- `micro-use-patterns` - Message and event patterns
-- `micro-use-health-checks` - Health checks for orchestration
-- `micro-use-queues` - Background job processing
-
-### 10. DevOps & Deployment (LOW-MEDIUM)
-
-- `devops-use-config-module` - Environment configuration
-- `devops-use-logging` - Structured logging
-- `devops-graceful-shutdown` - Zero-downtime deployments
-
-## How to Use
-
-Read individual rule files for detailed explanations and code examples:
+Organize by **feature**, not technical layer:
 
 ```
-rules/arch-avoid-circular-deps.md
-rules/security-validate-all-input.md
-rules/_sections.md
+src/modules/{feature}/
+├── dto/
+├── entities/
+├── {feature}.controller.ts
+├── {feature}.service.ts
+├── {feature}.repository.ts   # optional
+├── {feature}.module.ts
+└── index.ts
 ```
 
-Each rule file contains:
-- Brief explanation of why it matters
-- Incorrect code example with explanation
-- Correct code example with explanation
-- Additional context and references
+```typescript
+@Module({
+  imports: [TypeOrmModule.forFeature([User])],
+  controllers: [UsersController],
+  providers: [UsersService, UsersRepository],
+  exports: [UsersService], // export only what others need
+})
+export class UsersModule {}
+```
 
-## Full Compiled Document
+- Avoid circular imports — extract shared providers to `SharedModule`
+- One service = one responsibility; no god services
+- Use repository pattern when DB logic needs mocking
 
-For the complete guide with all rules expanded: `AGENTS.md`
+## Dependency Injection (CRITICAL)
+
+- **Constructor injection only** — never service locator
+- Use injection tokens for interfaces: `@Inject(USER_REPO) private repo: UserRepository`
+- Default scope is singleton; use request scope only when needed
+
+```typescript
+@Injectable()
+export class UsersService {
+  constructor(
+    private readonly usersRepo: UsersRepository,
+    private readonly logger: Logger,
+  ) {}
+}
+```
+
+## Controllers & Services
+
+- Controller: validate input, delegate to service, return DTO
+- Service: business logic, transactions, domain rules
+- Never put business logic in controllers
+
+```typescript
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Post()
+  create(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
+    return this.usersService.create(dto);
+  }
+}
+```
+
+## Input Validation & DTOs
+
+- Validate at boundary with `ValidationPipe` globally
+- Use `class-validator` + `class-transformer` on DTOs
+- Separate create/update/response DTOs; never return entities directly
+
+```typescript
+export class CreateUserDto {
+  @IsEmail()
+  email: string;
+
+  @MinLength(8)
+  password: string;
+}
+```
+
+## Error Handling
+
+- Use `@UseFilters(HttpExceptionFilter)` or global filter
+- Throw typed HTTP exceptions: `BadRequestException`, `UnauthorizedException`, etc.
+- Wrap async handlers; never leave unhandled promise rejections
+
+```typescript
+@Catch()
+export class AllExceptionsFilter implements ExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost) {
+    // log structured JSON; return { data, meta, error } envelope
+  }
+}
+```
+
+## Security (HIGH)
+
+### Guards — default protected, explicit public
+
+```typescript
+export const Public = () => SetMetadata('isPublic', true);
+export const Roles = (...roles: Role[]) => SetMetadata('roles', roles);
+
+@Module({
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
+})
+export class AppModule {}
+```
+
+- `@Public()` on routes that skip auth
+- RBAC via `@Roles()` + `RolesGuard`
+- Rate-limit sensitive endpoints (auth, password reset)
+
+### JWT Auth
+
+- Secrets from `ConfigService` — never hardcode
+- Access token: ~15m; refresh token: ~7d in HTTP-only cookie
+- Minimal payload: `sub`, `roles` — no passwords or PII
+- Validate user still active in `JwtStrategy.validate()`
+
+### Output & Input
+
+- Sanitize serialized output (prevent XSS in API responses)
+- Never log tokens, passwords, or API keys
+
+## Database & Migrations
+
+- **`synchronize: false` in production** — migrations only
+- Every migration: both `up()` and `down()`
+- Index FK and filter columns
+- Use transactions for multi-step writes
+- Avoid N+1: eager load / joins / batch queries; explicit `select` columns
+
+```typescript
+export class AddUserAge1705312800000 implements MigrationInterface {
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`ALTER TABLE "users" ADD "age" integer DEFAULT 0`);
+    await queryRunner.query(`CREATE INDEX "IDX_users_age" ON "users" ("age")`);
+  }
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP INDEX "IDX_users_age"`);
+    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN "age"`);
+  }
+}
+```
+
+## API Design
+
+- **Pipes:** transform + validate (`ParseUUIDPipe`, custom pipes)
+- **Interceptors:** logging, response mapping, timeout
+- **DTO serialization:** `@Exclude()`, `@Expose()` on response DTOs
+- Version via URL prefix (`/v1/`) when needed — see `advanced/api-versioning.md`
+
+## Performance
+
+- Cache read-heavy endpoints (Redis) with TTL
+- Optimize queries: EXPLAIN, indexes, avoid SELECT *
+- Lazy-load heavy modules at startup when appropriate
+
+## Testing
+
+```typescript
+const module = await Test.createTestingModule({
+  providers: [
+    UsersService,
+    { provide: UsersRepository, useValue: mockRepo },
+  ],
+}).compile();
+```
+
+- Unit test services with mocked repositories
+- E2E: `supertest` + test DB or mocks
+- Mock all external APIs (Stripe, SendGrid, OpenAI)
+
+## DevOps Essentials
+
+- `ConfigModule.forRoot({ isGlobal: true })` — env validation at boot
+- Structured logging (Winston/Pino) — JSON with correlationId
+- Graceful shutdown: `app.enableShutdownHooks()`
+
+## Decision Tree
+
+| Task | Do |
+|------|-----|
+| New CRUD feature | Feature module + DTOs + service + migration if schema change |
+| Auth endpoint | JwtModule.registerAsync + guards + security skill |
+| Background job | BullMQ skill + `advanced/microservices.md` if cross-service |
+| Slow query | Index + eager load; see `db-avoid-n-plus-one` pattern |
+| Circular deps | Extract shared module or interface token |
+
+## Advanced Topics (lazy load)
+
+Load only when task requires:
+
+| File | When |
+|------|------|
+| `advanced/microservices.md` | Queues, health checks, message patterns |
+| `advanced/event-driven.md` | EventEmitter, decoupling modules |
+| `advanced/api-versioning.md` | URL/header versioning strategies |
+| `advanced/performance-deep.md` | Caching patterns, lazy modules, async hooks |
+| `advanced/di-advanced.md` | ISP, LSP, scope awareness |
+
+Legacy detailed refs: `references/` (deprecated — do not bulk-read)

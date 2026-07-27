@@ -61,7 +61,9 @@ Do not claim completion from intent or a file edit alone. Completion requires ev
 
 ## Context Control
 
-- Read `SKILL.md` files only for selected skills.
-- Load reference files one at a time only when needed.
-- Do not bulk-read entire `references/` folders.
+- Run `context-builder.py` before coding; obey Context Packet tiers (see `.cursor/rules/000-core.mdc`).
+- Read `SKILL.md` files only for tier2 skills.
+- Load tier4 references one at a time via `--expand-ref`.
+- Use `.memory/` instead of full `AGENTS.md` on every turn.
 - Write durable decisions to `docs/plans/`, `docs/adr/`, or `docs/reviews/`.
+- Extract reusable review findings to `.cursor/patterns/` (not injected as raw reviews).

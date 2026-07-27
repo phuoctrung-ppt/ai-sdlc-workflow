@@ -10,10 +10,12 @@ Scope: `**/*.spec.*`, `**/*.test.*`, `**/*.e2e.*`, `tests/**`, `docs/reviews/**`
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase test --task "$TASK" --agent qa-worker \
   --keywords "test,jest,playwright,e2e,mock,coverage,vitest"
 ```
+
+Obey Context Packet tiers — read tier2 `testing-qa` SKILL.md only.
 
 Check `AGENTS.md §2` for the project's test tools (Jest, Vitest, Playwright, Cypress, etc.).
 

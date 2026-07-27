@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Universal phase-based skill loader for the agent framework.
+"""DEPRECATED — use context-builder.py instead.
 
-Every agent calls this script at the start of a task. It reads
-`.cursor/skills/skills-manifest.json`, filters skills by execution phase
+Legacy phase-based skill loader. Kept for `--use-legacy-loader` fallback only.
+New code and agents should call:
+
+  python3 .cursor/context/context-builder.py --task "..." --agent <agent>
+
+This script reads `.cursor/skills/skills-manifest.json`, filters skills by execution phase
 (and optionally agent), scores them against task keywords, and returns:
 
   - matched skill ENTRY PATHS (SKILL.md) — agent reads only what it needs
@@ -145,6 +149,11 @@ def main() -> None:
 
     if args.phase not in manifest.get("phases", []):
         sys.exit(f"error: unknown phase '{args.phase}'. Valid: {manifest.get('phases')}")
+
+    print(
+        "warning: skill-loader.py is deprecated — use .cursor/context/context-builder.py",
+        file=sys.stderr,
+    )
 
     keyword_list = [k.strip() for k in args.keywords.split(",") if k.strip()]
     terms = tokenize(args.task) | {k.lower().replace("_", "-") for k in keyword_list}

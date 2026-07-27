@@ -20,14 +20,13 @@ If an idea is present → run GENESIS. Otherwise → run BREAKDOWN against `docs
 
 Input: **{idea}**
 
-## Step 0 — Load skills
+## Step 0 — Build context
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py --phase brainstorm --task "{idea}" --agent architect-planner
-python3 .cursor/skills/scripts/skill-loader.py --phase plan --task "{idea}" --agent architect-planner
+python3 .cursor/context/context-builder.py --phase brainstorm --task "{idea}" --agent architect-planner
+python3 .cursor/context/context-builder.py --phase plan --task "{idea}" --agent architect-planner
 ```
-Read the matched `planning` + `agentic-workflow` SKILLs. If plans tend to come out
-vague/truncated (e.g. on a smaller model), also read
-`.cursor/skills/planning/references/planning-with-lower-models.md` and follow it.
+Obey Context Packet tiers. For lower-capability models, expand-ref:
+`python3 .cursor/context/context-builder.py --expand-ref ".cursor/skills/planning/references/planning-with-lower-models.md" --reason "compact plan quality gate"`
 
 ## Step 1 — BRAINSTORM (HARD-GATE, chat only)
 <HARD-GATE>
@@ -71,7 +70,7 @@ Set `docs/plans/.active-plan` to this plan.
 
 ## Step 5 — JUDGE PLAN REVIEW (gate)
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py --phase review --task "genesis plan {slug}" --agent judge-agent --keywords "workflow,judge,plan"
+python3 .cursor/context/context-builder.py --phase review --task "genesis plan {slug}" --agent judge-agent --keywords "workflow,judge,plan" --budget 5000
 ```
 `@judge-agent` runs **Plan Review** over `AGENTS.md` + `docs/architecture.md` + the roadmap:
 feature coverage (every MVP feature mapped), domain standardization (no leftover raw
@@ -86,9 +85,9 @@ Writes `docs/reviews/YYYY-MM-DD-{slug}-plan.md` with `PLAN_APPROVED | PLAN_CHANG
 
 Operates on `docs/plans/.active-plan` (the approved roadmap).
 
-## Step 0 — Load skills
+## Step 0 — Build context
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py --phase plan --task "breakdown $(cat docs/plans/.active-plan)" --agent architect-planner
+python3 .cursor/context/context-builder.py --phase plan --task "breakdown $(cat docs/plans/.active-plan)" --agent architect-planner --handoff docs/plans/.active-plan
 ```
 
 ## Step 1 — EXPAND TO EXECUTABLE TASKS
@@ -98,7 +97,7 @@ For each module in the roadmap, `@architect-planner` produces a concrete task br
 - Testable acceptance criteria (not "works")
 - Dependencies / ordering (DB → API → Frontend)
 - A filled **Handoff Packet** (objective, in/out-of-scope paths, required skills, acceptance, required checks)
-Follow `planning-with-lower-models.md` (one section at a time, no placeholders) when on a smaller model.
+Follow compact plan output standards. For lower-capability models, use context-builder `--expand-ref` on `planning/references/planning-with-lower-models.md` when needed.
 
 ## Step 2 — JUDGE PLAN REVIEW (gate)
 `@judge-agent` Plan Review verifies: every roadmap/MVP feature maps to ≥1 task with acceptance (**no missing features**), tasks are concrete, owners/skills/scopes valid, dependencies ordered. Writes `docs/reviews/YYYY-MM-DD-{slug}-breakdown.md` with `PLAN_APPROVED | PLAN_CHANGES_REQUESTED`.

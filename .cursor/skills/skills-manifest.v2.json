@@ -1,0 +1,1618 @@
+{
+  "manifestSchema": "2.0",
+  "version": "4.0",
+  "description": "Phase-based skill manifest. portableSkills are framework/domain agnostic and can be copied to any project. domainSkills are project-specific tech-stack skills \u2014 add/remove based on AGENTS.md \u00a72. (V2: token budgets + lazy refs)",
+  "skillsRoot": ".cursor/skills",
+  "phases": [
+    "brainstorm",
+    "plan",
+    "design",
+    "implement-frontend",
+    "implement-backend",
+    "database",
+    "devops",
+    "skill-authoring",
+    "test",
+    "fix",
+    "review",
+    "scaffold",
+    "dev-module",
+    "create-landing-page",
+    "parallax",
+    "interactive-3d"
+  ],
+  "agents": [
+    "architect-planner",
+    "designer-worker",
+    "backend-worker",
+    "admin-worker",
+    "frontend-worker",
+    "database-worker",
+    "ai-worker",
+    "devops-worker",
+    "qa-worker",
+    "security-worker",
+    "judge-agent",
+    "scaffold-agent"
+  ],
+  "defaultTokenBudget": 8000,
+  "tierCeilings": {
+    "tier1": 1200,
+    "tier2": 4000,
+    "tier3": 800,
+    "tier4": 2000
+  },
+  "maxSkillsByComplexity": {
+    "low": 1,
+    "medium": 2,
+    "high": 4
+  },
+  "portableSkills": [
+    {
+      "id": "agentic-workflow",
+      "portable": true,
+      "entry": "agentic-workflow/SKILL.md",
+      "referencesDir": "agentic-workflow/references",
+      "phases": [
+        "brainstorm",
+        "plan",
+        "design",
+        "dev-module",
+        "review"
+      ],
+      "agents": [
+        "architect-planner",
+        "judge-agent",
+        "scaffold-agent"
+      ],
+      "keywords": [
+        "orchestrator",
+        "workflow",
+        "planner",
+        "worker",
+        "judge",
+        "multi-agent",
+        "phase",
+        "adr",
+        "plan",
+        "portable",
+        "generic",
+        "handoff",
+        "protected-change"
+      ],
+      "refKeywords": {
+        "workflow-phases.md": [
+          "phase",
+          "workflow",
+          "parallel",
+          "brainstorm",
+          "plan"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 20,
+      "estimatedTokens": 1035,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "workflow-phases.md",
+            "triggers": [
+              "phase",
+              "workflow",
+              "parallel",
+              "brainstorm",
+              "plan"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "agentic-workflow/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "security",
+      "portable": true,
+      "entry": "security/SKILL.md",
+      "referencesDir": "security/references",
+      "phases": [
+        "implement-backend",
+        "implement-frontend",
+        "review",
+        "fix",
+        "test",
+        "design"
+      ],
+      "agents": [
+        "security-worker",
+        "judge-agent",
+        "backend-worker",
+        "architect-planner"
+      ],
+      "keywords": [
+        "security",
+        "auth",
+        "authentication",
+        "authorization",
+        "jwt",
+        "oauth",
+        "session",
+        "rbac",
+        "permission",
+        "owasp",
+        "xss",
+        "csrf",
+        "injection",
+        "sql-injection",
+        "encryption",
+        "secret",
+        "password",
+        "rate-limit",
+        "cors",
+        "vulnerability",
+        "audit",
+        "compliance",
+        "guard",
+        "token",
+        "refresh-token"
+      ],
+      "refKeywords": {
+        "owasp-top10.md": [
+          "owasp",
+          "xss",
+          "csrf",
+          "injection",
+          "ssrf",
+          "vulnerability",
+          "broken-access",
+          "misconfiguration"
+        ],
+        "auth-patterns.md": [
+          "auth",
+          "jwt",
+          "token",
+          "session",
+          "refresh",
+          "login",
+          "password",
+          "mfa",
+          "oauth",
+          "guard"
+        ],
+        "secrets-management.md": [
+          "secret",
+          "env",
+          "api-key",
+          "credential",
+          "rotation",
+          "vault",
+          "encryption",
+          "key"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 12,
+      "estimatedTokens": 1542,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "owasp-top10.md",
+            "triggers": [
+              "owasp",
+              "xss",
+              "csrf",
+              "injection",
+              "ssrf",
+              "vulnerability",
+              "broken-access",
+              "misconfiguration"
+            ]
+          },
+          {
+            "path": "auth-patterns.md",
+            "triggers": [
+              "auth",
+              "jwt",
+              "token",
+              "session",
+              "refresh",
+              "login",
+              "password",
+              "mfa",
+              "oauth",
+              "guard"
+            ]
+          },
+          {
+            "path": "secrets-management.md",
+            "triggers": [
+              "secret",
+              "env",
+              "api-key",
+              "credential",
+              "rotation",
+              "vault",
+              "encryption",
+              "key"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "security/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    }
+  ],
+  "skills": [
+    {
+      "id": "taste-design",
+      "portable": true,
+      "entry": "taste-design/taste-skill/SKILL.md",
+      "referencesDir": "taste-design",
+      "phases": [
+        "brainstorm",
+        "plan",
+        "design",
+        "implement-frontend",
+        "create-landing-page",
+        "parallax",
+        "interactive-3d"
+      ],
+      "agents": [
+        "designer-worker",
+        "frontend-worker"
+      ],
+      "keywords": [
+        "design",
+        "ui",
+        "ux",
+        "sketch",
+        "mockup",
+        "wireframe",
+        "landing",
+        "portfolio",
+        "redesign",
+        "visual",
+        "layout",
+        "typography",
+        "color",
+        "motion",
+        "animation",
+        "aesthetic",
+        "component",
+        "taste",
+        "slop",
+        "anti-slop",
+        "glassmorphism",
+        "bento",
+        "hero",
+        "marketing",
+        "branded",
+        "premium",
+        "asset",
+        "assets",
+        "asset-pack",
+        "background",
+        "logo",
+        "svg",
+        "icon",
+        "brandkit",
+        "imagegen",
+        "imagery",
+        "brand"
+      ],
+      "refKeywords": {
+        "taste-skill/SKILL.md": [
+          "design",
+          "landing",
+          "premium",
+          "hero",
+          "taste",
+          "anti-slop",
+          "marketing"
+        ],
+        "brutalist-skill/SKILL.md": [
+          "brutalist",
+          "raw",
+          "bold",
+          "stark",
+          "experimental",
+          "editorial"
+        ],
+        "minimalist-skill/SKILL.md": [
+          "minimalist",
+          "minimal",
+          "clean",
+          "calm",
+          "linear",
+          "simple",
+          "zen"
+        ],
+        "soft-skill/SKILL.md": [
+          "soft",
+          "gentle",
+          "pastel",
+          "warm",
+          "friendly",
+          "playful",
+          "rounded"
+        ],
+        "redesign-skill/SKILL.md": [
+          "redesign",
+          "overhaul",
+          "refactor-ui",
+          "redo",
+          "rebrand"
+        ],
+        "gpt-tasteskill/SKILL.md": [
+          "gpt-taste",
+          "ai-design",
+          "taste",
+          "slop"
+        ],
+        "stitch-skill/SKILL.md": [
+          "stitch",
+          "combine",
+          "collage",
+          "reference"
+        ],
+        "image-to-code-skill/SKILL.md": [
+          "image-to-code",
+          "screenshot",
+          "figma",
+          "design-to-code"
+        ],
+        "brandkit/SKILL.md": [
+          "brand",
+          "brandkit",
+          "identity",
+          "logo",
+          "svg",
+          "icon",
+          "palette",
+          "token",
+          "asset",
+          "assets"
+        ],
+        "imagegen-frontend-web/SKILL.md": [
+          "imagegen",
+          "generate-image",
+          "web-image",
+          "sketch",
+          "mockup",
+          "wireframe",
+          "background",
+          "hero",
+          "imagery",
+          "asset",
+          "asset-pack",
+          "section"
+        ],
+        "imagegen-frontend-mobile/SKILL.md": [
+          "imagegen-mobile",
+          "mobile-image",
+          "generate-mobile",
+          "sketch",
+          "mockup"
+        ],
+        "output-skill/SKILL.md": [
+          "output",
+          "code-output",
+          "file-output",
+          "complete",
+          "exhaustive",
+          "multi-image",
+          "asset-pack",
+          "unabridged"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 8,
+      "estimatedTokens": 21781,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "taste-skill/SKILL.md",
+            "triggers": [
+              "design",
+              "landing",
+              "premium",
+              "hero",
+              "taste",
+              "anti-slop",
+              "marketing"
+            ]
+          },
+          {
+            "path": "brutalist-skill/SKILL.md",
+            "triggers": [
+              "brutalist",
+              "raw",
+              "bold",
+              "stark",
+              "experimental",
+              "editorial"
+            ]
+          },
+          {
+            "path": "minimalist-skill/SKILL.md",
+            "triggers": [
+              "minimalist",
+              "minimal",
+              "clean",
+              "calm",
+              "linear",
+              "simple",
+              "zen"
+            ]
+          },
+          {
+            "path": "soft-skill/SKILL.md",
+            "triggers": [
+              "soft",
+              "gentle",
+              "pastel",
+              "warm",
+              "friendly",
+              "playful",
+              "rounded"
+            ]
+          },
+          {
+            "path": "redesign-skill/SKILL.md",
+            "triggers": [
+              "redesign",
+              "overhaul",
+              "refactor-ui",
+              "redo",
+              "rebrand"
+            ]
+          },
+          {
+            "path": "gpt-tasteskill/SKILL.md",
+            "triggers": [
+              "gpt-taste",
+              "ai-design",
+              "taste",
+              "slop"
+            ]
+          },
+          {
+            "path": "stitch-skill/SKILL.md",
+            "triggers": [
+              "stitch",
+              "combine",
+              "collage",
+              "reference"
+            ]
+          },
+          {
+            "path": "image-to-code-skill/SKILL.md",
+            "triggers": [
+              "image-to-code",
+              "screenshot",
+              "figma",
+              "design-to-code"
+            ]
+          },
+          {
+            "path": "brandkit/SKILL.md",
+            "triggers": [
+              "brand",
+              "brandkit",
+              "identity",
+              "logo",
+              "svg",
+              "icon",
+              "palette",
+              "token",
+              "asset",
+              "assets"
+            ]
+          },
+          {
+            "path": "imagegen-frontend-web/SKILL.md",
+            "triggers": [
+              "imagegen",
+              "generate-image",
+              "web-image",
+              "sketch",
+              "mockup",
+              "wireframe",
+              "background",
+              "hero",
+              "imagery",
+              "asset",
+              "asset-pack",
+              "section"
+            ]
+          },
+          {
+            "path": "imagegen-frontend-mobile/SKILL.md",
+            "triggers": [
+              "imagegen-mobile",
+              "mobile-image",
+              "generate-mobile",
+              "sketch",
+              "mockup"
+            ]
+          },
+          {
+            "path": "output-skill/SKILL.md",
+            "triggers": [
+              "output",
+              "code-output",
+              "file-output",
+              "complete",
+              "exhaustive",
+              "multi-image",
+              "asset-pack",
+              "unabridged"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "taste-design",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "frontend-skills",
+      "portable": true,
+      "entry": "frontend-skills/SKILL.md",
+      "referencesDir": "frontend-skills/references",
+      "phases": [
+        "implement-frontend",
+        "design"
+      ],
+      "agents": [
+        "designer-worker",
+        "frontend-worker"
+      ],
+      "keywords": [
+        "frontend",
+        "react",
+        "nextjs",
+        "next",
+        "rsc",
+        "server-component",
+        "client-component",
+        "tanstack",
+        "query",
+        "ui",
+        "dashboard",
+        "form",
+        "ssr",
+        "streaming",
+        "component",
+        "page"
+      ],
+      "refKeywords": {
+        "advanced/streaming-ssr.md": [
+          "streaming",
+          "suspense",
+          "ssr",
+          "concurrent",
+          "progressive",
+          "hydration"
+        ],
+        "advanced/composition-patterns.md": [
+          "hoc",
+          "higher-order",
+          "compound",
+          "render-props",
+          "composition",
+          "slot"
+        ],
+        "advanced/ai-ui-patterns.md": [
+          "ai",
+          "copilot",
+          "chat",
+          "streaming-ui",
+          "llm-ui"
+        ],
+        "advanced/rendering-modes.md": [
+          "static",
+          "ssg",
+          "csr",
+          "isr",
+          "prerender",
+          "spa",
+          "client-side"
+        ]
+      },
+      "consolidation": {
+        "v2SkillMd": "frontend-skills/SKILL.md",
+        "advancedDir": "frontend-skills/advanced",
+        "legacyReferencesDir": "frontend-skills/references"
+      },
+      "manifestSchema": "2.0",
+      "priority": 10,
+      "estimatedTokens": 1160,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "advanced/streaming-ssr.md",
+            "triggers": [
+              "streaming",
+              "suspense",
+              "ssr",
+              "concurrent",
+              "progressive",
+              "hydration"
+            ]
+          },
+          {
+            "path": "advanced/composition-patterns.md",
+            "triggers": [
+              "hoc",
+              "higher-order",
+              "compound",
+              "render-props",
+              "composition",
+              "slot"
+            ]
+          },
+          {
+            "path": "advanced/ai-ui-patterns.md",
+            "triggers": [
+              "ai",
+              "copilot",
+              "chat",
+              "streaming-ui",
+              "llm-ui"
+            ]
+          },
+          {
+            "path": "advanced/rendering-modes.md",
+            "triggers": [
+              "static",
+              "ssg",
+              "csr",
+              "isr",
+              "prerender",
+              "spa",
+              "client-side"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "databases",
+      "portable": true,
+      "entry": "databases/SKILL.md",
+      "referencesDir": "databases/references",
+      "phases": [
+        "database",
+        "design",
+        "implement-backend"
+      ],
+      "agents": [
+        "database-worker",
+        "backend-worker",
+        "architect-planner"
+      ],
+      "keywords": [
+        "database",
+        "postgres",
+        "postgresql",
+        "mongodb",
+        "sql",
+        "schema",
+        "index",
+        "migration",
+        "query",
+        "backup",
+        "pgvector",
+        "vector",
+        "tenant",
+        "multi-tenancy"
+      ],
+      "refKeywords": {
+        "postgresql-queries.md": [
+          "sql",
+          "select",
+          "join",
+          "cte",
+          "window"
+        ],
+        "postgresql-performance.md": [
+          "explain",
+          "analyze",
+          "index",
+          "vacuum",
+          "slow-query"
+        ],
+        "postgresql-administration.md": [
+          "backup",
+          "restore",
+          "roles",
+          "permissions"
+        ],
+        "postgresql-psql-cli.md": [
+          "psql",
+          "cli"
+        ]
+      },
+      "scripts": [
+        {
+          "purpose": "Performance diagnostics",
+          "command": "python3 .cursor/skills/databases/scripts/db_performance_check.py"
+        },
+        {
+          "purpose": "Migration helper",
+          "command": "python3 .cursor/skills/databases/scripts/db_migrate.py"
+        },
+        {
+          "purpose": "Backup helper",
+          "command": "python3 .cursor/skills/databases/scripts/db_backup.py"
+        }
+      ],
+      "manifestSchema": "2.0",
+      "priority": 10,
+      "estimatedTokens": 1917,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "postgresql-queries.md",
+            "triggers": [
+              "sql",
+              "select",
+              "join",
+              "cte",
+              "window"
+            ]
+          },
+          {
+            "path": "postgresql-performance.md",
+            "triggers": [
+              "explain",
+              "analyze",
+              "index",
+              "vacuum",
+              "slow-query"
+            ]
+          },
+          {
+            "path": "postgresql-administration.md",
+            "triggers": [
+              "backup",
+              "restore",
+              "roles",
+              "permissions"
+            ]
+          },
+          {
+            "path": "postgresql-psql-cli.md",
+            "triggers": [
+              "psql",
+              "cli"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "databases/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "testing-qa",
+      "portable": true,
+      "entry": "testing-qa/SKILL.md",
+      "referencesDir": "testing-qa/references",
+      "phases": [
+        "test",
+        "fix",
+        "review",
+        "implement-backend",
+        "implement-frontend",
+        "scaffold"
+      ],
+      "agents": [
+        "qa-worker",
+        "judge-agent",
+        "backend-worker",
+        "frontend-worker",
+        "scaffold-agent"
+      ],
+      "keywords": [
+        "test",
+        "jest",
+        "vitest",
+        "playwright",
+        "e2e",
+        "mock",
+        "coverage",
+        "supertest",
+        "msw",
+        "spec"
+      ],
+      "refKeywords": {
+        "jest-setup.md": [
+          "jest",
+          "unit",
+          "mock",
+          "repository"
+        ],
+        "playwright-e2e.md": [
+          "playwright",
+          "e2e",
+          "browser"
+        ],
+        "mocking-patterns.md": [
+          "mock",
+          "openai",
+          "msw",
+          "stripe"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 8,
+      "estimatedTokens": 319,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "jest-setup.md",
+            "triggers": [
+              "jest",
+              "unit",
+              "mock",
+              "repository"
+            ]
+          },
+          {
+            "path": "playwright-e2e.md",
+            "triggers": [
+              "playwright",
+              "e2e",
+              "browser"
+            ]
+          },
+          {
+            "path": "mocking-patterns.md",
+            "triggers": [
+              "mock",
+              "openai",
+              "msw",
+              "stripe"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "testing-qa/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "docker-devops",
+      "portable": true,
+      "entry": "docker-devops/SKILL.md",
+      "referencesDir": "docker-devops/references",
+      "phases": [
+        "devops"
+      ],
+      "agents": [
+        "devops-worker"
+      ],
+      "keywords": [
+        "docker",
+        "compose",
+        "nginx",
+        "dockerfile",
+        "ci",
+        "cd",
+        "healthcheck",
+        "network",
+        "deploy"
+      ],
+      "refKeywords": {
+        "docker-compose-pattern.md": [
+          "compose",
+          "depends_on",
+          "healthcheck"
+        ],
+        "multi-stage-dockerfile.md": [
+          "dockerfile",
+          "builder",
+          "runner"
+        ],
+        "network-isolation.md": [
+          "network",
+          "internal",
+          "public",
+          "isolation"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 6,
+      "estimatedTokens": 262,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "docker-compose-pattern.md",
+            "triggers": [
+              "compose",
+              "depends_on",
+              "healthcheck"
+            ]
+          },
+          {
+            "path": "multi-stage-dockerfile.md",
+            "triggers": [
+              "dockerfile",
+              "builder",
+              "runner"
+            ]
+          },
+          {
+            "path": "network-isolation.md",
+            "triggers": [
+              "network",
+              "internal",
+              "public",
+              "isolation"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "docker-devops/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "nestjs-skills",
+      "portable": false,
+      "domainTag": "nestjs",
+      "note": "Domain skill for NestJS projects. Activate when AGENTS.md \u00a72 backend framework is NestJS.",
+      "entry": "nestjs-skills/SKILL.md",
+      "referencesDir": "nestjs-skills",
+      "phases": [
+        "implement-backend",
+        "review"
+      ],
+      "agents": [
+        "backend-worker",
+        "admin-worker",
+        "security-worker",
+        "qa-worker"
+      ],
+      "keywords": [
+        "nestjs",
+        "backend",
+        "api",
+        "rest",
+        "module",
+        "service",
+        "controller",
+        "dto",
+        "guard",
+        "auth",
+        "microservice",
+        "queue",
+        "websocket",
+        "interceptor",
+        "pipe",
+        "filter"
+      ],
+      "refKeywords": {
+        "advanced/microservices.md": [
+          "queue",
+          "bull",
+          "bullmq",
+          "job",
+          "background",
+          "worker",
+          "microservice",
+          "health"
+        ],
+        "advanced/event-driven.md": [
+          "event",
+          "emitter",
+          "decoupling",
+          "pub-sub"
+        ],
+        "advanced/api-versioning.md": [
+          "versioning",
+          "version",
+          "v1",
+          "v2"
+        ],
+        "advanced/performance-deep.md": [
+          "cache",
+          "redis",
+          "lazy",
+          "performance",
+          "optimize",
+          "caching"
+        ],
+        "advanced/di-advanced.md": [
+          "injection",
+          "token",
+          "scope",
+          "interface",
+          "isp",
+          "lsp",
+          "provider"
+        ]
+      },
+      "consolidation": {
+        "v2SkillMd": "nestjs-skills/SKILL.md",
+        "advancedDir": "nestjs-skills/advanced",
+        "legacyReferencesDir": "nestjs-skills/references"
+      },
+      "manifestSchema": "2.0",
+      "priority": 10,
+      "estimatedTokens": 1586,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "advanced/microservices.md",
+            "triggers": [
+              "queue",
+              "bull",
+              "bullmq",
+              "job",
+              "background",
+              "worker",
+              "microservice",
+              "health"
+            ]
+          },
+          {
+            "path": "advanced/event-driven.md",
+            "triggers": [
+              "event",
+              "emitter",
+              "decoupling",
+              "pub-sub"
+            ]
+          },
+          {
+            "path": "advanced/api-versioning.md",
+            "triggers": [
+              "versioning",
+              "version",
+              "v1",
+              "v2"
+            ]
+          },
+          {
+            "path": "advanced/performance-deep.md",
+            "triggers": [
+              "cache",
+              "redis",
+              "lazy",
+              "performance",
+              "optimize",
+              "caching"
+            ]
+          },
+          {
+            "path": "advanced/di-advanced.md",
+            "triggers": [
+              "injection",
+              "token",
+              "scope",
+              "interface",
+              "isp",
+              "lsp",
+              "provider"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "zod-shared-types",
+      "portable": false,
+      "domainTag": "zod",
+      "note": "Domain skill for projects using Zod for shared type contracts between frontend and backend.",
+      "entry": "zod-shared-types/SKILL.md",
+      "referencesDir": "zod-shared-types/references",
+      "phases": [
+        "design",
+        "implement-backend",
+        "implement-frontend"
+      ],
+      "agents": [
+        "backend-worker",
+        "frontend-worker",
+        "architect-planner"
+      ],
+      "keywords": [
+        "zod",
+        "schema",
+        "shared-types",
+        "dto",
+        "validation",
+        "createZodDto",
+        "zodResolver",
+        "contract",
+        "infer"
+      ],
+      "refKeywords": {
+        "schema-design-patterns.md": [
+          "schema",
+          "refine",
+          "enum",
+          "pagination"
+        ],
+        "shared-types-sync.md": [
+          "sync",
+          "export",
+          "build",
+          "shared"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 7,
+      "estimatedTokens": 228,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "schema-design-patterns.md",
+            "triggers": [
+              "schema",
+              "refine",
+              "enum",
+              "pagination"
+            ]
+          },
+          {
+            "path": "shared-types-sync.md",
+            "triggers": [
+              "sync",
+              "export",
+              "build",
+              "shared"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "zod-shared-types/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "ai-llm-integration",
+      "portable": false,
+      "domainTag": "ai-llm",
+      "note": "Domain skill for projects with LLM/AI integration. Activate when AGENTS.md \u00a72 AI/LLM is not 'none'.",
+      "entry": "ai-llm-integration/SKILL.md",
+      "referencesDir": "ai-llm-integration/references",
+      "phases": [
+        "design",
+        "implement-backend"
+      ],
+      "agents": [
+        "ai-worker",
+        "backend-worker"
+      ],
+      "keywords": [
+        "llm",
+        "openai",
+        "anthropic",
+        "embedding",
+        "pgvector",
+        "copilot",
+        "matching",
+        "ai",
+        "cost",
+        "streaming",
+        "xai",
+        "prompt"
+      ],
+      "refKeywords": {
+        "llm-router-pattern.md": [
+          "router",
+          "llm",
+          "fallback",
+          "provider"
+        ],
+        "embedding-operations.md": [
+          "embedding",
+          "vector",
+          "similarity",
+          "pgvector"
+        ],
+        "cost-tracking.md": [
+          "cost",
+          "budget",
+          "usage",
+          "tokens"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 7,
+      "estimatedTokens": 476,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "llm-router-pattern.md",
+            "triggers": [
+              "router",
+              "llm",
+              "fallback",
+              "provider"
+            ]
+          },
+          {
+            "path": "embedding-operations.md",
+            "triggers": [
+              "embedding",
+              "vector",
+              "similarity",
+              "pgvector"
+            ]
+          },
+          {
+            "path": "cost-tracking.md",
+            "triggers": [
+              "cost",
+              "budget",
+              "usage",
+              "tokens"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "ai-llm-integration/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "admin-service",
+      "portable": false,
+      "domainTag": "admin-control-plane",
+      "note": "Domain skill for projects with a separate admin/control-plane service (MFA, IP whitelist, tenant management).",
+      "entry": "admin-service/SKILL.md",
+      "referencesDir": "admin-service/references",
+      "phases": [
+        "implement-backend",
+        "design"
+      ],
+      "agents": [
+        "admin-worker",
+        "frontend-worker"
+      ],
+      "keywords": [
+        "admin",
+        "mfa",
+        "totp",
+        "audit",
+        "whitelist",
+        "tenant",
+        "billing",
+        "super-admin",
+        "control-plane"
+      ],
+      "refKeywords": {
+        "mfa-implementation.md": [
+          "mfa",
+          "totp",
+          "otp"
+        ],
+        "audit-logging.md": [
+          "audit",
+          "log",
+          "before",
+          "after"
+        ],
+        "ip-whitelist.md": [
+          "ip",
+          "whitelist",
+          "cidr"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 6,
+      "estimatedTokens": 243,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "mfa-implementation.md",
+            "triggers": [
+              "mfa",
+              "totp",
+              "otp"
+            ]
+          },
+          {
+            "path": "audit-logging.md",
+            "triggers": [
+              "audit",
+              "log",
+              "before",
+              "after"
+            ]
+          },
+          {
+            "path": "ip-whitelist.md",
+            "triggers": [
+              "ip",
+              "whitelist",
+              "cidr"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "admin-service/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "bullmq-worker",
+      "portable": false,
+      "domainTag": "bullmq",
+      "note": "Domain skill for projects using BullMQ for job queues. Activate when AGENTS.md \u00a72 Queue/Workers includes BullMQ.",
+      "entry": "bullmq-worker/SKILL.md",
+      "referencesDir": "bullmq-worker/references",
+      "phases": [
+        "implement-backend"
+      ],
+      "agents": [
+        "backend-worker"
+      ],
+      "keywords": [
+        "bullmq",
+        "queue",
+        "job",
+        "processor",
+        "worker",
+        "background",
+        "dead-letter",
+        "idempotent",
+        "retry"
+      ],
+      "refKeywords": {
+        "processor-pattern.md": [
+          "processor",
+          "workerhost",
+          "process"
+        ],
+        "queue-configuration.md": [
+          "register",
+          "backoff",
+          "attempts"
+        ],
+        "dead-letter-queue.md": [
+          "failed",
+          "retry",
+          "dead-letter"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 6,
+      "estimatedTokens": 215,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "processor-pattern.md",
+            "triggers": [
+              "processor",
+              "workerhost",
+              "process"
+            ]
+          },
+          {
+            "path": "queue-configuration.md",
+            "triggers": [
+              "register",
+              "backoff",
+              "attempts"
+            ]
+          },
+          {
+            "path": "dead-letter-queue.md",
+            "triggers": [
+              "failed",
+              "retry",
+              "dead-letter"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "bullmq-worker/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "planning",
+      "portable": true,
+      "note": "Generic technical planning skill for architect-planner. Covers plan structure, output standards, and planning on lower-capability models.",
+      "entry": "planning/SKILL.md",
+      "referencesDir": "planning/references",
+      "phases": [
+        "plan",
+        "brainstorm",
+        "dev-module"
+      ],
+      "agents": [
+        "architect-planner"
+      ],
+      "keywords": [
+        "plan",
+        "planning",
+        "architect",
+        "design",
+        "roadmap",
+        "breakdown",
+        "task",
+        "adr",
+        "estimate",
+        "scope",
+        "requirement",
+        "tradeoff",
+        "approach"
+      ],
+      "refKeywords": {
+        "codebase-understanding.md": [
+          "codebase",
+          "analyze",
+          "explore",
+          "context",
+          "pattern"
+        ],
+        "output-standards.md": [
+          "output",
+          "standard",
+          "quality",
+          "breakdown",
+          "acceptance"
+        ],
+        "planning-with-lower-models.md": [
+          "lower",
+          "small",
+          "cheap",
+          "weak",
+          "model",
+          "truncation",
+          "lazy",
+          "quality"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 15,
+      "estimatedTokens": 1265,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "codebase-understanding.md",
+            "triggers": [
+              "codebase",
+              "analyze",
+              "explore",
+              "context",
+              "pattern"
+            ]
+          },
+          {
+            "path": "output-standards.md",
+            "triggers": [
+              "output",
+              "standard",
+              "quality",
+              "breakdown",
+              "acceptance"
+            ]
+          },
+          {
+            "path": "planning-with-lower-models.md",
+            "triggers": [
+              "lower",
+              "small",
+              "cheap",
+              "weak",
+              "model",
+              "truncation",
+              "lazy",
+              "quality"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "planning/references",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    },
+    {
+      "id": "nestjs-scaffold",
+      "portable": false,
+      "domainTag": "nestjs-scaffold",
+      "note": "Scaffolding skill for NestJS modules + Next.js pages. Activate for scaffold-agent tasks.",
+      "entry": "nestjs-skills/SKILL.md",
+      "referencesDir": "nestjs-skills",
+      "phases": [
+        "scaffold",
+        "implement-backend"
+      ],
+      "agents": [
+        "scaffold-agent",
+        "backend-worker"
+      ],
+      "keywords": [
+        "scaffold",
+        "module",
+        "entity",
+        "migration",
+        "stub",
+        "bootstrap",
+        "template",
+        "skeleton"
+      ],
+      "refKeywords": {
+        "arch-feature-modules.md": [
+          "scaffold",
+          "module",
+          "structure",
+          "api",
+          "service",
+          "controller",
+          "backend"
+        ],
+        "advanced/microservices.md": [
+          "queue",
+          "bullmq",
+          "migration"
+        ]
+      },
+      "manifestSchema": "2.0",
+      "priority": 9,
+      "estimatedTokens": 1586,
+      "references": {
+        "lazy": true,
+        "optional": [
+          {
+            "path": "arch-feature-modules.md",
+            "triggers": [
+              "scaffold",
+              "module",
+              "structure",
+              "api",
+              "service",
+              "controller",
+              "backend"
+            ]
+          },
+          {
+            "path": "advanced/microservices.md",
+            "triggers": [
+              "queue",
+              "bullmq",
+              "migration"
+            ]
+          }
+        ]
+      },
+      "consolidation": {
+        "v1ReferencesDir": "nestjs-skills",
+        "note": "Load via tier4 --expand-ref only"
+      }
+    }
+  ]
+}

@@ -33,12 +33,12 @@ Before creating a plan:
 
 ## Workflow
 
-1. Run skill-loader:
+1. Run context-builder:
    ```bash
-   python3 .cursor/skills/scripts/skill-loader.py --phase plan --task "$TASK" --agent architect-planner
+   python3 .cursor/context/context-builder.py --phase plan --task "$TASK" --agent architect-planner
    ```
-2. Read `AGENTS.md` for project name, tech stack, structure, and compliance requirements.
-3. Explore the relevant source directories (see `AGENTS.md §3`).
+2. Read `.memory/architecture.md` and `.memory/known-decisions.md` (not full `AGENTS.md` unless memory is stale).
+3. Explore relevant source directories (see `AGENTS.md §3` or `.memory/architecture.md`).
 4. Produce durable artifacts (not chat-only):
    - Plan: `docs/plans/YYYY-MM-DD-feature-name.md`
    - ADR (when architecture/stack/pattern changes): `docs/adr/NNNN-short-title.md`
@@ -100,85 +100,33 @@ Driven by **`/architecture-plan brainstorming {idea}`** (GENESIS) then **`/archi
 6. Write the system roadmap plan under `docs/plans/`; set `.active-plan`
 7. Judge **Plan Review** gate → then `/architecture-plan` BREAKDOWN → then per-module `/dev-module` executions
 
-## Plan Template
+## Plan Template (Compact — target ≤500 tokens body)
 
 ```markdown
 # [Feature Name]
-> **For workers:** REQUIRED — use handoff packet from this plan section-by-section.
-
 **Goal:** [One sentence]
-**Architecture:** [2-3 sentences]
-**Tech Stack:** (from AGENTS.md §2)
+**Protected:** yes/no | **Agents:** [comma-separated]
 
-## Global Constraints
-[workspace_id required, JWT on all routes, no SELECT *, etc. — exact rules from AGENTS.md §4-§5]
+## Constraints
+[from .memory/constraints.md — do not duplicate AGENTS.md]
 
----
+## Files
+| Path | Action | Owner |
 
-## Acceptance Criteria
-- [ ] (concrete, testable — not "API works")
-
-## Source Evidence
-- Existing docs/code inspected:
-- User constraints:
-- Assumptions:
-
-## Database Changes
-- Migration needed? Y/N — tables, columns, indexes
-
-## API Contract
-- Endpoints, shared schemas/types
-
-## Files to Create/Modify
-| Path | Action | Owner agent | Skill(s) | Verification |
-
-## Task Breakdown
-### Task 1: [Component Name]
-
-**Files:**
-- Create: `exact/path/to/file.ts`
-- Modify: `exact/path/to/existing.ts`
-
-**Steps:**
-- [ ] Step 1: Write failing test
-  ```typescript
-  // actual test code here
-  ```
-- [ ] Step 2: Run test → verify FAIL
-- [ ] Step 3: Implement minimal code
-- [ ] Step 4: Run test → verify PASS
-- [ ] Step 5: Commit `feat(module): description`
-
-**Acceptance:** [specific criterion]
-
-### Task N: ...
-
-## Domain Config Sync
-- [ ] ADR path: `docs/adr/NNNN-…` (or N/A — reason)
-- [ ] `docs/architecture.md` created/updated (or N/A — reason)
-- [ ] `AGENTS.md` sections updated: [list §] (or N/A — reason)
-- [ ] `.cursor/config/*` updated: [files] (or N/A — reason)
-- [ ] `docs/plans/.active-plan` points to this plan
-
-## Security & Compliance
-- Auth/RBAC, data privacy, domain compliance (see AGENTS.md §5–§6)
-
-## Handoff Packets
-For each worker, include:
-- Objective:
-- In-scope paths:
-- Out-of-scope paths:
-- Required skills:
-- Acceptance criteria:
-- Required checks:
-
-## Judge Gate
-- Required review command(s):
-- Blocking risks to verify:
-- Confirm Domain Config Sync checklist evidence
+## Execution
+1. agent: step
 
 ## Risks
+- ...
+
+## Handoffs
+→ `.cursor/context/handoffs/{feature}.json`
+
+## Domain Config Sync
+- [ ] ADR / architecture / AGENTS.md / config (or N/A)
 ```
+
+For large features, attach machine-readable handoff JSON. Full template sections (acceptance, security) remain valid when complexity=high.
 
 ## Constraints
 

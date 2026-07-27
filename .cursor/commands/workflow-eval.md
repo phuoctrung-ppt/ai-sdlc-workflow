@@ -15,8 +15,8 @@ Inputs to inspect:
 - Git diff or specified implementation files
 
 Process:
-1. Run skill-loader for review:
-   `python3 .cursor/skills/scripts/skill-loader.py --phase review --task "{plan_or_diff_or_feature}" --agent judge-agent --keywords "workflow,judge,security,tenant,test"`
+1. Run context-builder for review:
+   `python3 .cursor/context/context-builder.py --phase review --task "{plan_or_diff_or_feature}" --agent judge-agent --keywords "workflow,judge,security,tenant,test" --budget 5000`
 2. Verify the result against acceptance criteria and the handoff packet.
 3. Check the shared protected classifier in `.cursor/config/protected-paths.json`; do not accept agent self-classification.
 4. Check role boundaries: planner planned, workers implemented, judge stayed read-only.

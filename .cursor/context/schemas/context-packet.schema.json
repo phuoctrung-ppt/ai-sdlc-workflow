@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "context-packet.v2",
+  "title": "Workflow V2 Context Packet",
+  "type": "object",
+  "required": ["version", "intent", "tokenBudget", "tier1", "tier2", "usage"],
+  "properties": {
+    "version": { "const": "2.0" },
+    "intent": {
+      "type": "object",
+      "required": ["phase", "domains", "complexity", "protected"],
+      "properties": {
+        "phase": { "type": "string" },
+        "domains": { "type": "array", "items": { "type": "string" } },
+        "complexity": { "enum": ["low", "medium", "high"] },
+        "protected": { "type": "boolean" },
+        "pathHints": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "tokenBudget": {
+      "type": "object",
+      "required": ["maxTotal", "allocated", "remaining"],
+      "properties": {
+        "maxTotal": { "type": "integer" },
+        "allocated": { "type": "integer" },
+        "remaining": { "type": "integer" }
+      }
+    },
+    "activation": {
+      "type": "object",
+      "properties": {
+        "agents": { "type": "array" },
+        "reviewer": { "type": ["string", "null"] },
+        "reviewMode": { "enum": ["required", "optional"] }
+      }
+    },
+    "tier1": { "type": "object" },
+    "tier2": { "type": "object" },
+    "tier3": { "type": "object" },
+    "tier4": { "type": "object" },
+    "doNotLoad": { "type": "array", "items": { "type": "string" } },
+    "usage": { "type": "array", "items": { "type": "string" } }
+  }
+}

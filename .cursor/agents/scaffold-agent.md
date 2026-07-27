@@ -23,12 +23,14 @@ shells for whatever stack §2 declares.
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase scaffold \
   --task "$TASK" \
   --agent scaffold-agent \
   --keywords "module,service,controller,dto,entity,scaffold,migration"
 ```
+
+Obey Context Packet tiers. Legacy: `--use-legacy-loader`.
 
 ## Input Required
 
@@ -111,4 +113,4 @@ After scaffold complete, write handoff packet to `docs/plans/YYYY-MM-DD-scaffold
 - Tech stack: `AGENTS.md §2`
 - Module structure: `AGENTS.md §3`
 - Multi-tenancy: `AGENTS.md §4` (tenant column required on tenant-scoped tables)
-- Framework scaffold patterns: loaded via skill-loader (`--phase scaffold`)
+- Framework scaffold patterns: tier2 from Context Packet (`--phase scaffold`)

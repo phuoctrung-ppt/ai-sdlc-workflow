@@ -10,10 +10,12 @@ Scope: determined by `AGENTS.md §3` — typically AI/LLM module directories and
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase implement-backend --task "$TASK" --agent ai-worker \
   --keywords "llm,embedding,ai,openai,cost,streaming,vector"
 ```
+
+Obey Context Packet tiers — read tier2 `ai-llm-integration` SKILL.md only.
 
 Load `ai-llm-integration` SKILL.md for provider patterns, cost tracking, and routing.
 

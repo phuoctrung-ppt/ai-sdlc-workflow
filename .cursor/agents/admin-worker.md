@@ -12,9 +12,12 @@ This agent handles elevated-privilege work that is **separated from the main app
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
-  --phase implement-backend --task "$TASK" --agent admin-worker
+python3 .cursor/context/context-builder.py \
+  --phase implement-backend --task "$TASK" --agent admin-worker \
+  --keywords "admin,mfa,audit,whitelist,tenant,super-admin"
 ```
+
+Obey Context Packet tiers — read tier2 `admin-service` SKILL.md only.
 
 Load `admin-service` SKILL.md. Read `AGENTS.md §5` for the admin security requirements.
 

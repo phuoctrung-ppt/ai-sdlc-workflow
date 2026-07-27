@@ -28,7 +28,7 @@ Any task that creates or changes UI (page, component, layout, visual, styling) R
    - **Preferred:** hand off to `@designer-worker` to create the spec + sketches + **asset pack** (backgrounds + logo/icon SVGs) + Asset Mapping using taste-design / imagegen / brandkit skills, then resume once they exist.
    - **Solo fallback (no sub-agent dispatch available):** run the design phase yourself before shipping —
      ```bash
-     python3 .cursor/skills/scripts/skill-loader.py --phase design --task "$TASK" --agent designer-worker \
+     python3 .cursor/context/context-builder.py --phase design --task "$TASK" --agent designer-worker \
        --keywords "design,ui,ux,sketch,mockup,layout,typography,color,asset,background,logo,svg,icon,brandkit,imagegen,$STYLE_KEYWORDS"
      ```
      Read the loaded `taste-design` skill (+ style sub-skill + `imagegen-frontend-*` and/or `brandkit`), write `docs/design/YYYY-MM-DD-{feature}.md` with **Asset Mapping**, generate sketches under `docs/design/sketches/{feature}/` and usable assets under `docs/design/assets/{feature}/`, THEN implement.
@@ -38,19 +38,27 @@ Any task that creates or changes UI (page, component, layout, visual, styling) R
 
 ---
 
-## Step 1 — Load Skills
+## Step 1 — Build Context (Workflow V2)
 
-Run skill-loader with keywords that match your task. Pick keywords from the table below:
+**REQUIRED:** Run context-builder before any UI work:
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
-  --phase implement-frontend \
+python3 .cursor/context/context-builder.py \
   --task "$TASK" \
   --agent frontend-worker \
+  --paths "$PATH_HINTS" \
   --keywords "$KEYWORDS"
 ```
 
-### Keyword Table
+Obey the **Context Packet** JSON output:
+- **tier1:** rules + `.memory/` files (NOT full `AGENTS.md`)
+- **tier2:** read matched skill `entry` (SKILL.md) only
+- **tier3:** read listed patterns when present
+- **tier4:** load references ONLY via `--expand-ref` when needed mid-task
+
+Legacy fallback: add `--use-legacy-loader` to use skill-loader v1 behavior.
+
+### Keyword hints (for `--keywords`)
 
 | Task type | Add these `--keywords` |
 |---|---|
@@ -77,26 +85,26 @@ python3 .cursor/skills/scripts/skill-loader.py \
 
 ---
 
-## Step 2 — Read Loaded References
+## Step 2 — Read Context Packet Tiers
 
-Skill-loader returns JSON with two keys you must use:
+Context-builder returns tiered loading — **do not bulk-read references**:
 
 ```json
 {
-  "matchedSkills": [ { "id": "frontend-skills", "entry": "..." }, { "id": "taste-design", "entry": "..." } ],
-  "referenceFiles": [
-    { "path": ".cursor/skills/frontend-skills/references/hooks-pattern.md" },
-    { "path": ".cursor/skills/taste-design/minimalist-skill/SKILL.md" }
-  ]
+  "tier2": { "skills": [{ "entry": ".cursor/skills/frontend-skills/SKILL.md" }] },
+  "tier3": { "patterns": [{ "path": ".cursor/patterns/frontend/avoid-double-fetch.md" }] },
+  "tier4": { "lazyReferences": [], "loadMode": "lazy" }
 }
 ```
 
-**For each file in `referenceFiles`:** open and read it before writing any code or layout.  
-**For each skill in `matchedSkills`:** read its `entry` SKILL.md for top-level rules and constraints.
+**tier2:** read skill `entry` files only.  
+**tier3:** read matched patterns (short, reusable).  
+**tier4:** load ONE reference when needed:
+```bash
+python3 .cursor/context/context-builder.py --expand-ref "<path>" --reason "<why>"
+```
 
-> **taste-design note:** When a taste-design sub-skill loads (e.g. `minimalist-skill/SKILL.md`), read its full content — it defines the exact aesthetic dials, anti-defaults, and layout rules for that visual style. Do not default to AI-purple gradients or centered hero + three cards.
-
-Check `AGENTS.md §2` for the project's frontend framework to confirm the right skill loaded (e.g. `frontend-skills` for React/Next.js).
+Use `.memory/constraints.md` for project rules instead of full `AGENTS.md`.
 
 ---
 
@@ -114,7 +122,7 @@ Read `AGENTS.md §2` for the exact framework decisions. Common defaults:
 
 ## Step 4 — Implementation Checklist
 
-- [ ] Loaded and read all `referenceFiles[]` from skill-loader before starting
+- [ ] Context Packet tier2 skills read; tier3 patterns read when listed
 - [ ] Design spec + sketches read; for branding UI, **Asset Mapping** followed (files copied/imported — no invented placeholders for mapped assets)
 - [ ] Shared validation schemas from the shared types package (see `AGENTS.md §3`)
 - [ ] Loading state: skeleton matching final layout shape (not spinner-only)
@@ -141,7 +149,7 @@ Read `AGENTS.md §2` for the exact framework decisions. Common defaults:
 
 For section/component-library work, load the taste + section keywords:
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase implement-frontend --task "$TASK" --agent frontend-worker \
   --keywords "landing,premium,hero,design,visual,component,section"
 ```
@@ -166,7 +174,7 @@ section components (it changes how props/slots and data-fetching are designed).
 For admin dashboard UIs (MFA login, data tables, IP-restricted), use:
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase implement-frontend --task "$TASK" --agent frontend-worker \
   --keywords "admin,mfa,audit,ip-restricted,dashboard,table"
 ```
@@ -181,9 +189,6 @@ Extra checklist items:
 
 ## Quick Reference
 
-- **Project stack, paths, compliance:** `AGENTS.md`
-- **Framework skill:** loaded by skill-loader (`frontend-skills/SKILL.md`)
-- **Design taste:** loaded by skill-loader (`taste-design/taste-skill/SKILL.md` + sub-skill variant)
-- **Auth patterns:** loaded by skill-loader for auth tasks (`security/references/auth-patterns.md`)
-- **Testing patterns:** loaded by skill-loader (`testing-qa/references/playwright-e2e.md`)
+- **Project memory:** `.memory/constraints.md`, `.memory/coding-style.md`
+- **Context builder:** `.cursor/context/context-builder.py`
 - **Shared types:** `zod-shared-types/SKILL.md` (if Zod used per `AGENTS.md §2`)

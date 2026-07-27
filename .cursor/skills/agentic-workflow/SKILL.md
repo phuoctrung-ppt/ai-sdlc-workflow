@@ -7,14 +7,42 @@ description: Generic Planner-Worker-Judge workflow for scoped agentic execution.
 
 This skill is **repo/domain agnostic**. Project-specific context (name, tech stack, paths, compliance) lives in `AGENTS.md` and `.cursor/config/*.json`. This skill explains the workflow mechanics only.
 
-## Core Loop
+## Core Loop (V2)
 
-1. **Classify** — use `.cursor/config/protected-paths.json`; do not rely on agent self-report.
-2. **Plan** — for protected or module-spanning work, write `docs/plans/YYYY-MM-DD-topic.md`.
-3. **Execute** — dispatch the narrowest worker with a handoff packet.
-4. **Verify** — run checks proportional to risk.
-5. **Review** — for protected work, persist `docs/reviews/YYYY-MM-DD-topic.md`.
-6. **Loop or complete** — changes requested return to a focused worker handoff.
+1. **Classify** — `.cursor/config/protected-paths.json`
+2. **Context** — `python3 .cursor/context/context-builder.py --task "..." --agent <agent>`
+3. **Plan** — protected/multi-module → `docs/plans/YYYY-MM-DD-topic.md` (compact)
+4. **Execute** — narrowest worker; obey Context Packet tiers
+5. **Verify** — checks proportional to risk
+6. **Review** — protected → `docs/reviews/`; extract reusable patterns to `.cursor/patterns/`
+
+## Context Builder (V2)
+
+Primary entry (replaces direct skill-loader calls):
+
+```bash
+python3 .cursor/context/context-builder.py \
+  --task "<description>" \
+  --agent <agent-id> \
+  [--paths path1,path2] \
+  [--keywords kw1,kw2] \
+  [--handoff docs/plans/.active-plan] \
+  [--budget 8000]
+```
+
+Lazy reference expansion:
+
+```bash
+python3 .cursor/context/context-builder.py --expand-ref "<path>" --reason "<why>"
+```
+
+Sync project memory after AGENTS.md changes:
+
+```bash
+python3 .cursor/context/memory-loader.py --sync
+```
+
+Legacy: `--use-legacy-loader` delegates to `skill-loader.py`.
 
 ## Handoff Packet
 
@@ -57,17 +85,21 @@ Copy the workflow files, then update only configuration — do not modify hook c
 
 ### Files to Copy (unchanged)
 - `.cursor/hooks/` (all files)
+- `.cursor/context/` (context orchestration — V2 entry point)
 - `.cursor/config/` (all files — update content, not structure)
 - `.cursor/skills/agentic-workflow/`
-- `.cursor/skills/scripts/skill-loader.py`
-- `.cursor/rules/006-agentic-workflow.mdc`
+- `.cursor/skills/scripts/skill-loader.py` (legacy fallback only)
+- `.cursor/rules/000-core.mdc`, `001-workflow-v2.mdc`, `006-agentic-workflow.mdc`
 
 ### Files to Update for Your Project
 1. **`AGENTS.md`** (project root) — fill in project name, tech stack, structure, agent scopes, compliance
 2. **`.cursor/config/workflow-policy.json`** — no changes needed (already domain-agnostic)
 3. **`.cursor/config/protected-paths.json`** — update `projectProtectedGlobs` with your sensitive paths
 4. **`.cursor/config/worker-scopes.json`** — update `agents` section with your concrete folder paths
-5. **`.cursor/skills/skills-manifest.json`** — add domain skills for your tech stack, remove unneeded ones
+5. **`.cursor/skills/skills-manifest.v2.json`** — add domain skills for your tech stack
+
+After porting, run `python3 .cursor/context/memory-loader.py --sync`.
+Agents use **context-builder.py** — not skill-loader.py directly.
 
 ### Files to Copy Selectively (bring the skills your project needs)
 - `.cursor/skills/databases/` — if using a SQL/NoSQL database

@@ -12,9 +12,12 @@ See `AGENTS.md §3` for the project's actual infra folder layout.
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
-  --phase devops --task "$TASK" --agent devops-worker
+python3 .cursor/context/context-builder.py \
+  --phase devops --task "$TASK" --agent devops-worker \
+  --keywords "docker,compose,nginx,ci,cd,deploy"
 ```
+
+Obey Context Packet tiers — read tier2 `docker-devops` SKILL.md only.
 
 Load `docker-devops` SKILL.md for Dockerfile patterns, compose structure, and network isolation.
 

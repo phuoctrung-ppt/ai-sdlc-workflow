@@ -1,0 +1,49 @@
+---
+description: Workflow V2 shared core — all agents inherit automatically
+globs: "**/*"
+alwaysApply: true
+---
+
+# Core Rules (Workflow V2)
+
+## Execution Order
+
+1. **Classify** — run context-builder; obey Context Packet tiers
+2. **Plan** — architect-planner for protected or multi-module work
+3. **Execute** — narrowest worker from activation.agents
+4. **Verify** — checks proportional to risk
+5. **Review** — judge-agent for protected work or when reviewMode=required
+
+## Context Control (mandatory)
+
+Before coding:
+
+```bash
+python3 .cursor/context/context-builder.py --task "$TASK" --agent <agent> [--paths ...] [--keywords ...]
+```
+
+- Read **tier1** rules + `.memory/` files — NOT full `AGENTS.md`
+- Read **tier2** skill SKILL.md entries only (1–2 for low complexity)
+- Read **tier3** patterns when listed
+- Load **tier4** references ONLY via `--expand-ref` or when in tier4.references
+- Never bulk-read `docs/reviews/`, entire `references/` folders, or doNotLoad paths
+
+## Handoff Packet
+
+Required before worker dispatch: objective, in-scope paths, out-of-scope paths, acceptance criteria, verification commands.
+
+Machine-readable handoffs: `.cursor/context/handoffs/*.json`
+
+## Completion Evidence
+
+- Modified files match acceptance criteria
+- Lint/type/test/build run or skipped with concrete reason
+- Docs/ADRs updated when behavior or architecture changed
+- Protected changes have plan + review artifacts
+
+## Escalation
+
+- Scope blocked → orchestrator with path, reason, updated acceptance
+- Missing design spec → designer-worker (frontend UI)
+- Architecture gap → architect-planner
+- Security concern → security-worker

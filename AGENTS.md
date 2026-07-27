@@ -9,7 +9,8 @@
 > Only this file and the config JSONs below need updating when adding new features:
 > - `.cursor/config/protected-paths.json` → `projectProtectedGlobs`
 > - `.cursor/config/worker-scopes.json` → `agents` section
-> - `.cursor/skills/skills-manifest.json` → add/remove domain skills
+> - `.cursor/skills/skills-manifest.v2.json` → add/remove domain skills
+> - Run `python3 .cursor/context/memory-loader.py --sync` after §2–§6 changes
 
 ---
 
@@ -56,10 +57,10 @@
 
 ```
 <root>/
-├── <app-or-package-1>/        # <role>
-├── <app-or-package-2>/        # <role>
+├── .memory/                   # Workflow V2 project memory (generated — concise context)
+├── .cursor/                   # workflow: agents, skills, hooks, context builder, config
 ├── docs/                      # plans, adr, reviews, architecture
-└── .cursor/                   # workflow: agents, skills, hooks, config
+└── <app-or-package-N>/        # application code (fill when porting)
 ```
 
 > _EXAMPLE_ (delete when porting): a monorepo might use `apps/api`, `apps/web`, `apps/worker`, `packages/shared-types`. Whatever you choose, mirror it exactly in `worker-scopes.json`.

@@ -1,20 +1,37 @@
 {
-  "schemaVersion": 1,
-  "workflowName": "Agentic Planner-Worker-Judge Workflow",
-  "description": "Domain-agnostic agentic workflow config. Project identity lives in AGENTS.md at the repo root — not here.",
+  "schemaVersion": 2,
+  "workflowName": "Agentic Planner-Worker-Judge Workflow V2",
+  "description": "Domain-agnostic agentic workflow with deterministic context orchestration. Project identity in AGENTS.md; runtime context via .memory/ and context-builder.",
   "standardsDocs": [
-    "AGENTS.md"
+    "AGENTS.md",
+    ".memory/constraints.md"
   ],
   "entrypointDocs": [
+    ".memory/architecture.md",
     "AGENTS.md"
   ],
+  "contextBuilder": {
+    "entrypoint": ".cursor/context/context-builder.py",
+    "intentDetector": ".cursor/context/intent-detector.py",
+    "memoryLoader": ".cursor/context/memory-loader.py",
+    "patternMatcher": ".cursor/context/pattern-matcher.py",
+    "agentMatrix": ".cursor/config/agent-matrix.json",
+    "contextBudget": ".cursor/config/context-budget.json",
+    "skillsManifestV2": ".cursor/skills/skills-manifest.v2.json",
+    "legacySkillLoader": ".cursor/skills/scripts/skill-loader.py"
+  },
   "artifactDirs": {
     "plans": "docs/plans",
     "adrs": "docs/adr",
-    "reviews": "docs/reviews"
+    "reviews": "docs/reviews",
+    "patterns": ".cursor/patterns",
+    "memory": ".memory",
+    "handoffs": ".cursor/context/handoffs"
   },
   "cycle": [
     "classify",
+    "intent-detect",
+    "context-build",
     "plan",
     "execute",
     "verify",
@@ -35,11 +52,10 @@
   },
   "portableSetupNotes": [
     "To port to another repo:",
-    "1. Copy .cursor/ folder and AGENTS.md to the new repo.",
-    "2. Fill in AGENTS.md (project name, tech stack, structure, agent scopes).",
-    "3. Update .cursor/config/protected-paths.json — only 'projectProtectedGlobs' needs changing.",
-    "4. Optionally add project-specific agent scopes in .cursor/config/worker-scopes.json under 'agents'.",
-    "5. Add domain skills to .cursor/skills/ and register in skills-manifest.json.",
-    "No changes needed to hooks, workflow-guard.py, skill-loader.py, or generic rules."
+    "1. Copy .cursor/ folder, .memory/, and AGENTS.md.",
+    "2. Fill AGENTS.md; run: python3 .cursor/context/memory-loader.py --sync",
+    "3. Update protected-paths.json projectProtectedGlobs.",
+    "4. Register domain skills in skills-manifest.v2.json.",
+    "5. Use context-builder.py before every agent task."
   ]
 }

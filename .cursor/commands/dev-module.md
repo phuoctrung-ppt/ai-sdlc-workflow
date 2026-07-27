@@ -29,7 +29,7 @@ Check if `.cursor/state/module-{feature_name}-loop.json` exists. If it does, rea
 **Agent:** `@architect-planner`
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase brainstorm --task "{feature_name}" --agent architect-planner
 ```
 
@@ -50,8 +50,9 @@ Save state: `{ "feature": "{feature_name}", "phase": "plan", "loopCount": 0 }`
 **Agent:** `@architect-planner`
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
-  --phase plan --task "{feature_name}" --agent architect-planner
+python3 .cursor/context/context-builder.py \
+  --phase plan --task "{feature_name}" --agent architect-planner \
+  --handoff docs/plans/.active-plan
 ```
 
 Write full plan to `docs/plans/YYYY-MM-DD-{feature_name}.md` using the architect-planner template:
@@ -85,7 +86,7 @@ Save state: `{ "phase": "execute", "planPath": "docs/plans/..." }`
 
 If the feature requires new modules/pages that don't exist yet:
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase scaffold --task "{feature_name}" --agent scaffold-agent \
   --keywords "module,scaffold,entity,migration,stub"
 ```
@@ -120,7 +121,7 @@ Save state: `{ "phase": "execute", "scaffoldComplete": true }`
 | Auth / security | `@security-worker` | `implement-backend` |
 | DevOps / infra | `@devops-worker` | `devops` |
 
-Each worker starts with a handoff packet from the plan. Frontend tasks receive the design spec, sketch paths, **asset pack path**, and Asset Mapping reference in their packet.
+Each worker runs `context-builder.py` with its agent id before starting (see agent files). Frontend tasks receive design spec, sketch paths, **asset pack path**, and Asset Mapping in their handoff packet.
 
 Save state: `{ "phase": "test" }`
 
@@ -131,7 +132,7 @@ Save state: `{ "phase": "test" }`
 **Agent:** `@qa-worker`
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase test --task "{feature_name}" --agent qa-worker \
   --keywords "test,jest,playwright,e2e,mock,coverage"
 ```
@@ -150,9 +151,9 @@ Save state: `{ "phase": "verify" }`
 **Agent:** `@judge-agent`
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase review --task "{feature_name}" --agent judge-agent \
-  --keywords "workflow,judge,security,test"
+  --keywords "workflow,judge,security,test" --budget 5000
 ```
 
 Run `/workflow-eval` against the plan + diff + test results.
