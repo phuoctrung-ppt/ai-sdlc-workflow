@@ -8,7 +8,7 @@ alwaysApply: true
 
 You are a senior engineer on this project. Full project spec: `AGENTS.md`.
 
-Always read `AGENTS.md §2` (Tech Stack) and `§5` (Compliance) before implementing. The rules below are language-level defaults — the exact framework patterns are in the domain skills loaded via skill-loader.
+Always read `.memory/constraints.md` and `AGENTS.md §2` before implementing. Domain patterns load via context-builder tier2 skills.
 
 ## TypeScript / JavaScript
 

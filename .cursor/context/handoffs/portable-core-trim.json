@@ -1,0 +1,50 @@
+{
+  "id": "portable-core-trim",
+  "objective": "Trim workflow to portable core: delete admin/ai workers, delete threejs/admin-service, move stack skills to optional/, prune taste-design, split MongoDB skill, update AGENTS.md §5.",
+  "inScopePaths": [
+    ".cursor/agents/admin-worker.md",
+    ".cursor/agents/ai-worker.md",
+    ".cursor/skills/skills-manifest.v2.json",
+    ".cursor/config/worker-scopes.json",
+    ".cursor/skills/threejs/",
+    ".cursor/skills/admin-service/",
+    ".cursor/skills/nestjs-skills/",
+    ".cursor/skills/bullmq-worker/",
+    ".cursor/skills/zod-shared-types/",
+    ".cursor/skills/ai-llm-integration/",
+    ".cursor/skills/optional/",
+    ".cursor/skills/taste-design/",
+    ".cursor/skills/databases/",
+    "AGENTS.md"
+  ],
+  "outOfScopePaths": [
+    ".cursor/hooks/**",
+    ".cursor/commands/**",
+    ".cursor/rules/**",
+    ".cursor/skills/scripts/skill-loader.py",
+    ".cursor/skills/skills-manifest.v2.json",
+    "docs/architecture.md",
+    "docs/adr/**",
+    "docs/design/**"
+  ],
+  "requiredSkills": ["agentic-workflow", "planning"],
+  "planPath": "docs/plans/2026-08-01-portable-core-trim.md",
+  "acceptanceCriteria": [
+    "admin-worker.md and ai-worker.md deleted; removed from worker-scopes agents and manifest agents[]",
+    "threejs/ and admin-service/ deleted; admin-service and nestjs-scaffold removed from manifest",
+    "nestjs-skills, bullmq-worker, zod-shared-types, ai-llm-integration moved under optional/ with optional:true and activateWhen",
+    "taste-design keeps five skills; refKeywords match; eight skills deleted",
+    "MongoDB refs moved to optional/databases-mongodb; databases skill PostgreSQL-only",
+    "AGENTS.md §5 rows removed; optional note added",
+    "Every entry and refKeywords path in skills-manifest.v2.json exists on disk (refKeywords via skillsRoot/referencesDir/key)"
+  ],
+  "requiredVerificationCommands": [
+    "test ! -e .cursor/agents/admin-worker.md && test ! -e .cursor/agents/ai-worker.md",
+    "test ! -d .cursor/skills/threejs && test ! -d .cursor/skills/admin-service",
+    "python3 <<'PY'\nimport json, pathlib\nm = json.load(open('.cursor/skills/skills-manifest.v2.json'))\nroot = pathlib.Path(m['skillsRoot'])\nmissing = []\nfor s in m.get('portableSkills', []) + m.get('skills', []):\n    e = s.get('entry')\n    if e and not (root / e).exists():\n        missing.append(('entry', e))\n    refdir = s.get('referencesDir')\n    for k in (s.get('refKeywords') or {}):\n        p = (root / refdir / k) if refdir else (root / k)\n        if not p.exists():\n            missing.append(('ref', str(p)))\nprint('MISSING', missing)\nraise SystemExit(1 if missing else 0)\nPY"
+  ],
+  "risks": [
+    "skills-manifest.v2.json drift (out of scope)",
+    "databases scripts may still mention MongoDB"
+  ]
+}

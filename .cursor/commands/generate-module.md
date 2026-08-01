@@ -5,13 +5,14 @@ description: Scaffold a complete feature module using the project's backend fram
 
 Act as **Backend Worker**. Scaffold a complete feature module for: **{feature_name}**
 
-1. Run skill-loader first:
+1. Run context-builder first:
    ```bash
-   python3 .cursor/skills/scripts/skill-loader.py \
-     --phase implement-backend --task "scaffold {feature_name} module" --agent backend-worker
+   python3 .cursor/context/context-builder.py \
+     --phase implement-backend --task "scaffold {feature_name} module" --agent backend-worker \
+     --keywords "module,service,controller,scaffold"
    ```
-2. Read `AGENTS.md §2` (backend framework, DB, auth, shared types tool) and `§3` (backend app path)
-3. Read matched skill SKILL.md (e.g. `nestjs-skills/SKILL.md` for NestJS, or your project's backend framework skill)
+2. Obey Context Packet tiers — read tier2 backend/framework skill SKILL.md
+3. Read `.memory/constraints.md` and `AGENTS.md §3` for backend app path
 
 ## Module Location
 

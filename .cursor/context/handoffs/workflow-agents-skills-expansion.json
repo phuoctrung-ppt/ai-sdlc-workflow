@@ -1,0 +1,52 @@
+{
+  "id": "workflow-agents-skills-expansion",
+  "objective": "Add spike-agent, contract-agent, error-recovery/api-contract-first/incremental-commit skills, plan Task Dependencies + CERTAIN/UNCERTAIN labels, AGENTS.md §12 Maintainability/Test Data; register in skills-manifest.v2.json and worker-scopes.json. P1 weak-model gates already done — do not re-implement.",
+  "inScopePaths": [
+    ".cursor/agents/spike-agent.md",
+    ".cursor/agents/contract-agent.md",
+    ".cursor/agents/architect-planner.md",
+    ".cursor/commands/dev-module.md",
+    ".cursor/skills/error-recovery/SKILL.md",
+    ".cursor/skills/api-contract-first/SKILL.md",
+    ".cursor/skills/incremental-commit/SKILL.md",
+    ".cursor/skills/skills-manifest.v2.json",
+    ".cursor/config/worker-scopes.json",
+    "AGENTS.md"
+  ],
+  "outOfScopePaths": [
+    ".cursor/hooks/**",
+    ".cursor/context/workflow-guard.py",
+    ".cursor/skills/scripts/skill-loader.py",
+    ".cursor/config/protected-paths.json",
+    ".cursor/agents/backend-worker.md",
+    ".cursor/agents/frontend-worker.md",
+    ".cursor/agents/judge-agent.md"
+  ],
+  "requiredSkills": ["planning", "agentic-workflow"],
+  "planPath": "docs/plans/2026-08-01-workflow-agents-skills-expansion.md",
+  "acceptanceCriteria": [
+    "spike-agent.md and contract-agent.md exist with required scopes and report/contract formats",
+    "three new SKILL.md files exist with required content",
+    "skills-manifest.v2.json lists spike-agent, contract-agent, and three skills with correct phases/keywords",
+    "worker-scopes.json has spike-agent docs/spikes/** and contract-agent docs/contracts/** + packages/**",
+    "architect-planner Plan Template has Task Dependencies and CERTAIN/UNCERTAIN",
+    "dev-module Phase 3 has contract gate and dependency-aware dispatch",
+    "AGENTS.md §5 roster + §12 Maintainability and Test Data",
+    "finish checklist six items all pass; no out-of-scope file edits"
+  ],
+  "requiredVerificationCommands": [
+    "test -f .cursor/agents/spike-agent.md && test -f .cursor/agents/contract-agent.md",
+    "test -f .cursor/skills/error-recovery/SKILL.md && test -f .cursor/skills/api-contract-first/SKILL.md && test -f .cursor/skills/incremental-commit/SKILL.md",
+    "rg -n 'spike-agent|contract-agent|error-recovery|api-contract-first|incremental-commit' .cursor/skills/skills-manifest.v2.json",
+    "rg -n '\"spike-agent\"|\"contract-agent\"' .cursor/config/worker-scopes.json",
+    "rg -n 'Task Dependencies|\\[CERTAIN\\]|\\[UNCERTAIN\\]|Phase .*-1' .cursor/agents/architect-planner.md",
+    "rg -n 'CHANGES_REQUESTED\\(Critical\\)|CHANGES_REQUESTED\\(Minor\\)' .cursor/agents/judge-agent.md",
+    "rg -n 'contract-agent|Task Dependencies' .cursor/commands/dev-module.md",
+    "rg -n 'spike-agent|contract-agent|Maintainability|Test Data' AGENTS.md"
+  ],
+  "risks": [
+    "Broad packages/** scope for contract-agent until AGENTS.md §3 is filled",
+    "Soft wording may let operators skip spike/contract gates",
+    "Manifest path confusion with legacy skills-manifest.json name"
+  ]
+}

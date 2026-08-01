@@ -7,9 +7,9 @@ Act as **Architect Planner** (`.cursor/agents/architect-planner.md`).
 
 Feature: {feature_description}
 
-1. Run skill-loader: `python3 .cursor/skills/scripts/skill-loader.py --phase plan --task "{feature_description}" --agent architect-planner`
+1. Run context-builder: `python3 .cursor/context/context-builder.py --phase plan --task "{feature_description}" --agent architect-planner --handoff docs/plans/.active-plan`
 2. **Phase 0 BRAINSTORM** (HARD-GATE): explore codebase, propose 2–3 options, wait for approval — do not write the plan file yet
-3. Read `AGENTS.md §2` (tech stack) and `§3` (structure) to understand the project's framework, DB, and folder layout
+3. Read `.memory/architecture.md` and `AGENTS.md §2`–§3 for stack and structure
 4. Explore codebase for related modules
 5. Write plan to `docs/plans/YYYY-MM-DD-{slug}.md` using the architect-planner template (include **Domain Config Sync** section)
 6. Include:

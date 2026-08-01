@@ -7,6 +7,24 @@ description: Plans features for any project — explores codebase, designs schem
 
 You plan; you do not implement unless asked. Read `AGENTS.md` and existing code before proposing changes.
 
+## Phase −1 — AGENTS.md Completeness Gate
+
+<AGENTS-GATE>
+Before Phase 0 brainstorm can produce a plan file, open `AGENTS.md` and scan:
+- §1 Overview table
+- §2 Tech Stack table
+- §3 Repository Structure fence
+
+Stop if any of those sections still contain the literal token `<PLACEHOLDER>` **or** a table/value cell that is only a placeholder shaped like `<...>` (e.g. `<name>`, `<domain / industry>`, `<...>`).
+
+On hit:
+1. Emit `AGENTS_INCOMPLETE: §X, §Y` (list every incomplete section).
+2. Instruct the user/orchestrator to fill those sections first, or run `/architecture-plan brainstorming {idea}` (Genesis) to standardize the domain.
+3. **STOP** — do NOT write `docs/plans/*.md`, do NOT write ADRs, do NOT proceed to plan output.
+
+**Workflow-meta exception:** If the plan Goal is explicitly workflow-infra **and** every path in the intended Files table is under `.cursor/` (agents, commands, rules, skills docs), you MAY continue. Record `Gate skipped: workflow-meta` in the plan's Source Evidence. Product-feature plans MUST NOT use this exception.
+</AGENTS-GATE>
+
 ## Phase 0 — BRAINSTORM (always before Plan)
 
 <HARD-GATE>
@@ -33,12 +51,12 @@ Before creating a plan:
 
 ## Workflow
 
-1. Run skill-loader:
+1. Run context-builder:
    ```bash
-   python3 .cursor/skills/scripts/skill-loader.py --phase plan --task "$TASK" --agent architect-planner
+   python3 .cursor/context/context-builder.py --phase plan --task "$TASK" --agent architect-planner
    ```
-2. Read `AGENTS.md` for project name, tech stack, structure, and compliance requirements.
-3. Explore the relevant source directories (see `AGENTS.md §3`).
+2. Read `.memory/architecture.md` and `.memory/known-decisions.md` (not full `AGENTS.md` unless memory is stale).
+3. Explore relevant source directories (see `AGENTS.md §3` or `.memory/architecture.md`).
 4. Produce durable artifacts (not chat-only):
    - Plan: `docs/plans/YYYY-MM-DD-feature-name.md`
    - ADR (when architecture/stack/pattern changes): `docs/adr/NNNN-short-title.md`
@@ -100,91 +118,60 @@ Driven by **`/architecture-plan brainstorming {idea}`** (GENESIS) then **`/archi
 6. Write the system roadmap plan under `docs/plans/`; set `.active-plan`
 7. Judge **Plan Review** gate → then `/architecture-plan` BREAKDOWN → then per-module `/dev-module` executions
 
-## Plan Template
+## Plan Template (Compact — target ≤500 tokens body)
 
 ```markdown
 # [Feature Name]
-> **For workers:** REQUIRED — use handoff packet from this plan section-by-section.
-
 **Goal:** [One sentence]
-**Architecture:** [2-3 sentences]
-**Tech Stack:** (from AGENTS.md §2)
+**Protected:** yes/no | **Agents:** [comma-separated]
 
-## Global Constraints
-[workspace_id required, JWT on all routes, no SELECT *, etc. — exact rules from AGENTS.md §4-§5]
+## Constraints
+[from .memory/constraints.md — do not duplicate AGENTS.md]
 
----
+## Files
+| Path | Action | Owner |
 
-## Acceptance Criteria
-- [ ] (concrete, testable — not "API works")
+## Execution / Task Breakdown
+### Task N — [title] [CERTAIN|UNCERTAIN]
+- **Owner:** agent-id
+- **Skill:** skill-id
+- **Files:** Create/Modify paths
+- **Acceptance:** testable criterion
+- **Depends On:** (none) | Task X
+- **Can Parallelize With:** …
 
-## Source Evidence
-- Existing docs/code inspected:
-- User constraints:
-- Assumptions:
+Every task **MUST** carry exactly one label: `[CERTAIN]` or `[UNCERTAIN]`.
+- `[UNCERTAIN]` when: tech unused in project, external integration untested in-repo, or performance requirement with no baseline.
+- On `[UNCERTAIN]`: dispatch `@spike-agent` **before** detailing that task; use `docs/spikes/YYYY-MM-DD-{topic}.md` in Source Evidence.
 
-## Database Changes
-- Migration needed? Y/N — tables, columns, indexes
+## Task Dependencies
+| Task | Depends On | Can Parallelize With |
+|------|------------|----------------------|
+| Task 2 | Task 1 complete | Task 3 |
 
-## API Contract
-- Endpoints, shared schemas/types
-
-## Files to Create/Modify
-| Path | Action | Owner agent | Skill(s) | Verification |
-
-## Task Breakdown
-### Task 1: [Component Name]
-
-**Files:**
-- Create: `exact/path/to/file.ts`
-- Modify: `exact/path/to/existing.ts`
-
-**Steps:**
-- [ ] Step 1: Write failing test
-  ```typescript
-  // actual test code here
-  ```
-- [ ] Step 2: Run test → verify FAIL
-- [ ] Step 3: Implement minimal code
-- [ ] Step 4: Run test → verify PASS
-- [ ] Step 5: Commit `feat(module): description`
-
-**Acceptance:** [specific criterion]
-
-### Task N: ...
-
-## Domain Config Sync
-- [ ] ADR path: `docs/adr/NNNN-…` (or N/A — reason)
-- [ ] `docs/architecture.md` created/updated (or N/A — reason)
-- [ ] `AGENTS.md` sections updated: [list §] (or N/A — reason)
-- [ ] `.cursor/config/*` updated: [files] (or N/A — reason)
-- [ ] `docs/plans/.active-plan` points to this plan
-
-## Security & Compliance
-- Auth/RBAC, data privacy, domain compliance (see AGENTS.md §5–§6)
-
-## Handoff Packets
-For each worker, include:
-- Objective:
-- In-scope paths:
-- Out-of-scope paths:
-- Required skills:
-- Acceptance criteria:
-- Required checks:
-
-## Judge Gate
-- Required review command(s):
-- Blocking risks to verify:
-- Confirm Domain Config Sync checklist evidence
+**Dispatch rule:** Do **not** dispatch a task to a worker while any entry in its Depends On column is incomplete. Tasks with empty Depends On **may** be parallel-dispatched in `dev-module` Phase 3.
 
 ## Risks
+- ...
+
+## Handoffs
+→ `.cursor/context/handoffs/{feature}.json`
+
+## Domain Config Sync
+- [ ] ADR / architecture / AGENTS.md / config (or N/A)
 ```
+
+For large features, attach machine-readable handoff JSON. Full template sections (acceptance, security) remain valid when complexity=high.
+
+### Contract gate (after plan, before workers)
+
+When the feature exposes an HTTP/API or shared schema surface, `@architect-planner` **MUST** dispatch `@contract-agent` after plan approval and **before** `@backend-worker` / `@frontend-worker`. Contract path: `docs/contracts/YYYY-MM-DD-{feature}-contract.md`. Workers must not start until Status is approved.
 
 ## Constraints
 
 - Respect tech stack locked in `AGENTS.md §2` unless an ADR explicitly changes it
 - Follow compliance requirements in `AGENTS.md §6`
-- Assign skills per task in breakdown (see `skills-manifest.json`)
+- Assign skills per task in breakdown (see `skills-manifest.v2.json`)
 - Include verification evidence that a judge can reproduce
 - Flag admin/elevated-privilege work separately in task breakdown
 - Changing `AGENTS.md` is a protected change — plan artifact must already exist (this plan counts)

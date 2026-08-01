@@ -3,5 +3,5 @@
 set -euo pipefail
 
 jq -n '{
-  "additional_context": "Agentic Planner-Worker-Judge workflow active. Read AGENTS.md for project identity, tech stack, scope, and compliance requirements. Run skill-loader before coding tasks: python3 .cursor/skills/scripts/skill-loader.py --phase <phase> --task \"<task>\" --agent <agent>. Use handoff packets between agents. Write plans to docs/plans/, reviews to docs/reviews/. Protected changes require current plan/review artifacts before completion; low-risk changes need a brief rationale."
+  "additional_context": "Workflow V2 active. Before coding: python3 .cursor/context/context-builder.py --task \"<task>\" --agent <agent> [--paths ...] [--keywords ...]. Obey Context Packet tiers; read .memory/ not full AGENTS.md. Legacy: --use-legacy-loader. Handoffs: .cursor/context/handoffs/*.json. Plans: docs/plans/. Reviews: docs/reviews/ (audit only, not context)."
 }'

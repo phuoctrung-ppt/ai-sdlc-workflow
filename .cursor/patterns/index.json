@@ -1,0 +1,60 @@
+{
+  "patterns": [
+    {
+      "id": "avoid-double-fetch",
+      "path": ".cursor/patterns/frontend/avoid-double-fetch.md",
+      "triggers": ["fetch", "useeffect", "tanstack", "duplicate", "request", "double"],
+      "domains": ["frontend"],
+      "estimatedTokens": 120
+    },
+    {
+      "id": "avoid-hydration-mismatch",
+      "path": ".cursor/patterns/frontend/avoid-hydration-mismatch.md",
+      "triggers": ["hydration", "rsc", "client", "mismatch", "ssr"],
+      "domains": ["frontend"],
+      "estimatedTokens": 130
+    },
+    {
+      "id": "repository-pattern",
+      "path": ".cursor/patterns/backend/repository-pattern.md",
+      "triggers": ["repository", "data-access", "crud", "entity"],
+      "domains": ["backend", "database"],
+      "estimatedTokens": 140
+    },
+    {
+      "id": "service-layer",
+      "path": ".cursor/patterns/backend/service-layer.md",
+      "triggers": ["service", "controller", "business", "logic"],
+      "domains": ["backend"],
+      "estimatedTokens": 120
+    },
+    {
+      "id": "migration-safety",
+      "path": ".cursor/patterns/database/migration-safety.md",
+      "triggers": ["migration", "schema", "rollback", "up", "down"],
+      "domains": ["database"],
+      "estimatedTokens": 130
+    },
+    {
+      "id": "avoid-n-plus-one",
+      "path": ".cursor/patterns/database/avoid-n-plus-one.md",
+      "triggers": ["n-plus-one", "eager", "lazy", "join", "orm"],
+      "domains": ["database", "backend"],
+      "estimatedTokens": 120
+    },
+    {
+      "id": "auth-guard-pattern",
+      "path": ".cursor/patterns/security/auth-guard-pattern.md",
+      "triggers": ["auth", "guard", "jwt", "public", "protected", "route"],
+      "domains": ["security", "backend"],
+      "estimatedTokens": 130
+    },
+    {
+      "id": "avoid-secret-leak",
+      "path": ".cursor/patterns/security/avoid-secret-leak.md",
+      "triggers": ["secret", "env", "api-key", "token", "credential", "log"],
+      "domains": ["security"],
+      "estimatedTokens": 110
+    }
+  ]
+}

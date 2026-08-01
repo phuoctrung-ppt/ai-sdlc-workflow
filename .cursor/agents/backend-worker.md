@@ -9,19 +9,21 @@ Scope: determined by `AGENTS.md §3` and `.cursor/config/worker-scopes.json`. Ty
 
 ---
 
-## Step 1 — Load Skills
+## Step 1 — Build Context (Workflow V2)
 
-**REQUIRED: Run skill-loader with EXACT keywords matching your task from the table below.**
+**REQUIRED:**
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
-  --phase implement-backend \
+python3 .cursor/context/context-builder.py \
   --task "$TASK" \
   --agent backend-worker \
+  --paths "$PATH_HINTS" \
   --keywords "$KEYWORDS"
 ```
 
-### Keyword Table
+Obey Context Packet tiers (see `frontend-worker.md` Step 2). Use `.memory/constraints.md` instead of full `AGENTS.md`.
+
+### Keyword hints (for `--keywords`)
 
 | Task type | Add these `--keywords` |
 |---|---|
@@ -38,21 +40,11 @@ python3 .cursor/skills/scripts/skill-loader.py \
 
 ---
 
-## Step 2 — Read Loaded References
+## Step 2 — Read Context Packet Tiers
 
-Skill-loader returns JSON with two keys you must use:
+Read **tier2** skill entries and **tier3** patterns from the Context Packet. Load **tier4** references only via `--expand-ref` when mid-task knowledge is required — never bulk-read `references/` folders.
 
-```json
-{
-  "matchedSkills": [ { "id": "nestjs-skills", "entry": "..." } ],
-  "referenceFiles": [ { "path": ".cursor/skills/nestjs-skills/references/arch-feature-modules.md" } ]
-}
-```
-
-**For each file in `referenceFiles`:** open and read it before writing code.  
-**For each skill in `matchedSkills`:** read its `entry` SKILL.md for top-level rules.
-
-Check `AGENTS.md §2` for your project's backend framework to confirm the right skill loaded (e.g. `nestjs-skills` for NestJS, `databases` for DB work).
+Confirm framework skill from tier2 (e.g. `nestjs-skills` for NestJS).
 
 ---
 
@@ -104,9 +96,6 @@ Evidence required. "Should work" is not evidence.
 
 ## Quick Reference
 
-- **Project stack, paths, compliance:** `AGENTS.md`
-- **Framework skill:** loaded by skill-loader (e.g. `nestjs-skills/SKILL.md`)
-- **DB skill:** loaded by skill-loader when task includes DB keywords (`databases/SKILL.md`)
-- **Security skill:** loaded by skill-loader for auth/guard tasks (`security/SKILL.md`)
-- **Shared types:** `zod-shared-types/SKILL.md` (if Zod is used per `AGENTS.md §2`)
-- **Testing patterns:** `testing-qa/references/` — jest-setup, mocking-patterns
+- **Project memory:** `.memory/constraints.md`
+- **Context builder:** `.cursor/context/context-builder.py`
+- **Framework skill:** tier2 from Context Packet

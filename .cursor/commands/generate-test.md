@@ -7,16 +7,16 @@ Act as **QA Worker**. Generate tests for: **{target}**
 
 Type: {unit|integration|e2e}
 
-1. Run skill-loader:
+1. Run context-builder:
    ```bash
-   python3 .cursor/skills/scripts/skill-loader.py \
+   python3 .cursor/context/context-builder.py \
      --phase test --task "generate {type} tests for {target}" --agent qa-worker \
      --keywords "test,mock,coverage,e2e,jest,vitest,playwright"
    ```
-2. Read `AGENTS.md §2` (test framework) and `§7` (external services to mock)
+2. Read `.memory/constraints.md` and `AGENTS.md §7` (external services to mock)
 
 Requirements:
-- Load `testing-qa` SKILL.md; load framework test references from skill-loader output if needed
+- Read tier2 `testing-qa` SKILL.md; tier4 refs via `--expand-ref` only if needed
 - Mock all external services listed in `AGENTS.md §7` (never hit real APIs in tests)
 - Multi-tenancy isolation cases if `AGENTS.md §5` declares multi-tenancy
 - Follow naming convention from `AGENTS.md §2` (e.g. `*.spec.ts`, `*.test.ts`, `*.e2e-spec.ts`)

@@ -17,7 +17,7 @@ reads that file to learn your tech stack, structure, and compliance rules.
 3. [The two workflows](#3-the-two-workflows)
 4. [Commands](#4-commands)
 5. [Agents](#5-agents)
-6. [Skills & the skill-loader](#6-skills--the-skill-loader)
+6. [Context builder & skills](#6-context-builder--skills-workflow-v2)
 7. [Gates & guardrails](#7-gates--guardrails)
 8. [Design-first frontend](#8-design-first-frontend)
 9. [Directory map](#9-directory-map)
@@ -129,8 +129,7 @@ Type these as slash-commands in Cursor. Located in `.cursor/commands/`.
 
 ## 5. Agents
 
-Defined in `.cursor/agents/`. Invoke with `@agent-name`. Each reads `AGENTS.md` first and loads
-skills via the skill-loader.
+Defined in `.cursor/agents/`. Invoke with `@agent-name`. Each runs **context-builder** first and obeys the Context Packet tiers (`.memory/` + tier2 skills — not full `AGENTS.md`).
 
 | Agent | Role |
 |---|---|
@@ -151,28 +150,41 @@ Each agent may only edit the paths configured in `.cursor/config/worker-scopes.j
 
 ---
 
-## 6. Skills & the skill-loader
+## 6. Context builder & skills (Workflow V2)
 
-Skills are focused knowledge packs in `.cursor/skills/` (registered in `skills-manifest.json`).
-Agents don't bulk-read them — they call the **skill-loader** to get only what's relevant:
+Skills live in `.cursor/skills/` (registered in `skills-manifest.v2.json`). Agents **do not** bulk-read them — they call **context-builder** for a tiered Context Packet:
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
-  --phase <brainstorm|plan|design|implement-backend|implement-frontend|database|devops|test|review|scaffold> \
+python3 .cursor/context/context-builder.py \
   --task "<what you're doing>" \
   --agent <agent-name> \
-  --keywords "comma,separated,hints"
+  --phase <brainstorm|plan|design|implement-backend|implement-frontend|database|devops|test|review|scaffold> \
+  --paths "optional/path/hints" \
+  --keywords "comma,separated,hints" \
+  [--handoff docs/plans/.active-plan] \
+  [--budget 8000]
 ```
 
-It returns JSON with:
-- `matchedSkills[]` → the `SKILL.md` files to read for top-level rules.
-- `referenceFiles[]` → deeper reference docs to open **only when needed**.
+The packet tells you what to load:
+- **tier1** — core rules + `.memory/` slices (not full `AGENTS.md`)
+- **tier2** — matched skill `SKILL.md` files (1–2 for typical tasks)
+- **tier3** — reusable patterns from `.cursor/patterns/`
+- **tier4** — lazy references; load one at a time via `--expand-ref`
 
-Skills are split into **portable** (framework-agnostic: `agentic-workflow`, `planning`, `security`,
-`taste-design`, `frontend-skills`, `databases`, `testing-qa`, `docker-devops`) and **domain**
-(`portable:false`, activated by `AGENTS.md §2`: `nestjs-skills`, `zod-shared-types`,
-`ai-llm-integration`, `admin-service`, `bullmq-worker`). Domain skills stay dormant until your
-stack calls for them.
+```bash
+python3 .cursor/context/context-builder.py \
+  --expand-ref ".cursor/skills/nestjs-skills/advanced/microservices.md" \
+  --reason "implementing queue processor"
+```
+
+Sync project memory after `AGENTS.md` changes:
+```bash
+python3 .cursor/context/memory-loader.py --sync
+```
+
+Legacy fallback: `python3 .cursor/skills/scripts/skill-loader.py ...` (deprecated; use `--use-legacy-loader` on context-builder instead).
+
+Skills are **portable** (framework-agnostic) or **domain** (`portable:false`, activated by `AGENTS.md §2`).
 
 ---
 
@@ -225,6 +237,7 @@ for any new UI, and the judge checks that shipped UI traces back to a design art
 .
 ├── AGENTS.md                    # ← the one file you fill in per project (domain config hub)
 ├── README.md                    # this file
+├── .memory/                     # generated project memory (Workflow V2)
 ├── docs/
 │   ├── plans/                   # feature/roadmap plans (+ .active-plan pointer)
 │   ├── adr/                     # architecture decision records
@@ -237,7 +250,9 @@ for any new UI, and the judge checks that shipped UI traces back to a design art
     ├── agents/                  # agent role definitions
     ├── commands/                # slash-commands
     ├── rules/                   # always-applied rules (001–006)
-    ├── skills/                  # skills + skills-manifest.json + scripts/skill-loader.py
+    ├── context/                 # context-builder, intent detector, memory loader (V2)
+    ├── patterns/                # reusable Tier-3 patterns
+    ├── skills/                  # skills + skills-manifest.v2.json
     ├── config/                  # worker-scopes.json, protected-paths.json, workflow-policy.json
     ├── hooks.json + hooks/      # enforcement hooks
     └── state/                   # per-module loop state
@@ -253,9 +268,10 @@ for any new UI, and the judge checks that shipped UI traces back to a design art
 3. Edit `.cursor/config/protected-paths.json` → `projectProtectedGlobs` for your sensitive paths.
 4. Tighten `.cursor/config/worker-scopes.json` → `agents{}` to your real folders from `AGENTS.md §3`.
    (They ship as portable globs that work everywhere; tightening is optional but recommended.)
-5. Add/remove domain skills in `.cursor/skills/skills-manifest.json`.
+5. Add/remove domain skills in `.cursor/skills/skills-manifest.v2.json`.
+6. Run `python3 .cursor/context/memory-loader.py --sync`.
 
-No changes are needed to the hooks, `workflow-guard.py`, `skill-loader.py`, or generic rules.
+Hooks and `workflow-guard.py` stay unchanged. Agents use **context-builder.py** (skill-loader is legacy fallback only).
 
 > **Do not** leave raw `<PLACEHOLDER>` values in any `AGENTS.md` section you're actively building
 > against, and **never invent** stack/structure/compliance facts from an `_EXAMPLE_` block — the
@@ -270,7 +286,7 @@ No changes are needed to the hooks, `workflow-guard.py`, `skill-loader.py`, or g
 | Edit blocked "outside scope" | The agent's `worker-scopes.json` entry doesn't include that path. Request scope expansion from the orchestrator or use the right agent. |
 | Stop hook blocks completion | It's a protected change without a current plan/review. Produce the plan + run `/workflow-eval`, or override with `review-override.sh` and a logged reason. |
 | Judge says `PLAN_CHANGES_REQUESTED` | Leftover `<PLACEHOLDER>` in `AGENTS.md`, a feature with no task, or non-executable tasks. Fix and re-review. |
-| `skill-loader.py` returns no skills | Check `--phase`/`--agent`/`--keywords`; confirm the skill is registered in `skills-manifest.json`. |
+| `context-builder.py` returns empty tier2 | Check `--agent`/`--keywords`/`--phase`; confirm skill registered in `skills-manifest.v2.json`. |
 | Frontend worker refuses to code | DESIGN-GATE: no spec/sketch. Run `@designer-worker` first (or note "no new UI"). |
 | Plans come out vague on a smaller model | Read `.cursor/skills/planning/references/planning-with-lower-models.md` — grounding, one section at a time, no placeholders, self-verify. |
 

@@ -7,17 +7,17 @@ description: UI/UX design specialist — design systems, component specs, visual
 
 You design; you produce specs, tokens, **implementation-ready assets**, and component blueprints that frontend-worker can build from directly — including the real images/SVGs used in the UI, not only layout comps.
 
-Read `AGENTS.md §2` (tech stack) and `§3` (structure) before producing any output — the design must align with the project's framework, component library, and styling system.
+Read `.memory/constraints.md` and `AGENTS.md §2` (tech stack) before producing output.
 
 ## Workflow
 
-1. Run skill-loader:
+1. Run context-builder:
    ```bash
-   python3 .cursor/skills/scripts/skill-loader.py \
+   python3 .cursor/context/context-builder.py \
      --phase design --task "$TASK" --agent designer-worker \
      --keywords "design,ui,ux,sketch,mockup,component,layout,animation,typography,color,asset,background,logo,svg,icon,brandkit,imagegen"
    ```
-2. Load `taste-design` SKILL.md (`taste-skill/SKILL.md`) for visual direction and anti-slop rules, plus the matching style sub-skill. For imagery:
+2. Obey Context Packet tiers — read tier2 taste-design skill entries; tier4 via `--expand-ref` only.
    - **Section / UI comps + backgrounds:** `imagegen-frontend-web` (or mobile variant)
    - **Logo / identity / SVG icons:** `brandkit`
    - **Many images / full packs:** also match `output-skill` so generation is not truncated

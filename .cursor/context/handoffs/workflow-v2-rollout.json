@@ -1,0 +1,25 @@
+{
+  "planId": "workflow-v2-rollout",
+  "tasks": [
+    {
+      "id": "context-layer",
+      "agent": "architect-planner",
+      "objective": "Ship context-builder, intent detector, memory loader, pattern matcher",
+      "inScope": [".cursor/context/**", ".cursor/config/agent-matrix.json", ".cursor/config/context-budget.json"],
+      "outScope": ["apps/**"],
+      "skills": ["agentic-workflow"],
+      "acceptance": ["context-builder.py emits valid Context Packet", "memory-loader --sync creates .memory/"],
+      "verify": ["python3 .cursor/context/context-builder.py --task test --agent frontend-worker --dry-run"]
+    },
+    {
+      "id": "agent-updates",
+      "agent": "architect-planner",
+      "objective": "Update agents to use context-builder instead of skill-loader alone",
+      "inScope": [".cursor/agents/**", ".cursor/hooks/session-start.sh"],
+      "outScope": [],
+      "skills": ["agentic-workflow"],
+      "acceptance": ["All agents and commands reference context-builder.py", "skill-loader.py emits deprecation warning"],
+      "verify": ["rg skill-loader .cursor/agents .cursor/commands --glob '!*.md' || true; rg context-builder .cursor/agents .cursor/commands | wc -l"]
+    }
+  ]
+}

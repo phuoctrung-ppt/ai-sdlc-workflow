@@ -10,8 +10,10 @@ Read-only review. Do not implement fixes unless explicitly asked.
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py --phase review --task "PR review" --agent judge-agent
+python3 .cursor/context/context-builder.py --phase review --task "PR review" --agent judge-agent --budget 5000
 ```
+
+Load minimal context: tier1 + `.memory/constraints.md` + tier2 security skill + tier3 security patterns. Read plan **summary only** unless spec compliance requires full plan.
 
 Inspect git diff or specified files. Write review to `docs/reviews/YYYY-MM-DD-description.md`.
 
@@ -35,9 +37,24 @@ Inspect git diff or specified files. Write review to `docs/reviews/YYYY-MM-DD-de
 - **No missing features:** every planned feature/acceptance criterion has implementing code + a passing test.
 - **Sufficient coverage:** coverage meets the targets in `AGENTS.md` (§5 code quality / testing); flag any module below target.
 
-Output `Status: PLAN_APPROVED | PLAN_CHANGES_REQUESTED` (plan review)
-Output `Status: TASK_APPROVED | TASK_CHANGES_REQUESTED` (task review)
-Output `Status: BRANCH_APPROVED | BRANCH_CHANGES_REQUESTED` (final review)
+### Severity tiers
+
+Every non-approve status MUST carry a severity suffix:
+
+| Severity | Meaning | Examples |
+|---|---|---|
+| **Critical** | Blocks ship / blocks approve; triggers fix loop + `loopCount` | Missing feature vs plan, security issue, broken build, missing tenant filter, untestable/missing acceptance evidence, blank `AGENTS.md` `<PLACEHOLDER>` in genesis scope |
+| **Minor** | Recorded, does **not** block approve, does **not** increment `loopCount` | Style nits, non-blocking doc suggestions, optional refactors |
+
+**Status selection policy:**
+- Any Critical finding → `*_CHANGES_REQUESTED(Critical)` (list findings under `## Critical`).
+- Minor-only → `*_CHANGES_REQUESTED(Minor)` (list under `## Suggestions` or `## Minor`). Orchestrator / `dev-module` Phase 5 treats this as non-blocking → Phase 6 without `loopCount++`.
+- No findings → `*_APPROVED`.
+- **Fail closed:** bare `*_CHANGES_REQUESTED` with no `(Critical)` / `(Minor)` suffix MUST be parsed as **Critical**.
+
+Output `Status: PLAN_APPROVED | PLAN_CHANGES_REQUESTED(Critical) | PLAN_CHANGES_REQUESTED(Minor)` (plan review)
+Output `Status: TASK_APPROVED | TASK_CHANGES_REQUESTED(Critical) | TASK_CHANGES_REQUESTED(Minor)` (task review)
+Output `Status: BRANCH_APPROVED | BRANCH_CHANGES_REQUESTED(Critical) | BRANCH_CHANGES_REQUESTED(Minor)` (final review)
 
 ## Required Inputs
 
@@ -90,7 +107,7 @@ Output `Status: BRANCH_APPROVED | BRANCH_CHANGES_REQUESTED` (final review)
 ### Workflow Integrity
 - [ ] Work traces to a plan (`docs/plans/`), ADR, or explicit user request
 - [ ] Worker stayed inside declared scope (no scope creep)
-- [ ] Skills/references used are relevant and not bulk-loaded
+- [ ] Skills/references used match Context Packet tiers; no bulk-loading
 - [ ] Acceptance criteria have direct evidence, not only intent
 - [ ] Docs/ADRs updated when behavior, architecture, or workflow changed
 - [ ] Domain Config Sync: plan checklist filled; `AGENTS.md` / `docs/architecture.md` / ADR updated when the design changed them (or explicit N/A)
@@ -98,7 +115,7 @@ Output `Status: BRANCH_APPROVED | BRANCH_CHANGES_REQUESTED` (final review)
 ## Output Format
 
 ```
-Status: PLAN_APPROVED | PLAN_CHANGES_REQUESTED | TASK_APPROVED | TASK_CHANGES_REQUESTED | BRANCH_APPROVED | BRANCH_CHANGES_REQUESTED
+Status: PLAN_APPROVED | PLAN_CHANGES_REQUESTED(Critical) | PLAN_CHANGES_REQUESTED(Minor) | TASK_APPROVED | TASK_CHANGES_REQUESTED(Critical) | TASK_CHANGES_REQUESTED(Minor) | BRANCH_APPROVED | BRANCH_CHANGES_REQUESTED(Critical) | BRANCH_CHANGES_REQUESTED(Minor)
 
 ## Scope Reviewed
 - Plan/issue:
@@ -107,13 +124,17 @@ Status: PLAN_APPROVED | PLAN_CHANGES_REQUESTED | TASK_APPROVED | TASK_CHANGES_RE
 - Review mode: plan | task | final-branch
 
 ## Critical
-- [file:line] issue — fix
+- [file:line] issue — fix (blocks approve; fix-loop)
 
 ## Suggestions
-- ...
+- ... (Minor only — do not block approve)
 
 ## Verified
 - brief summary
+
+## Pattern Candidates
+- [ ] propose: <pattern-id> → .cursor/patterns/ (when issue is reusable)
 ```
 
-If `*_CHANGES_REQUESTED`, assign fixes to appropriate worker agent.
+If `*_CHANGES_REQUESTED(Critical)`, assign fixes to appropriate worker agent.
+If `*_CHANGES_REQUESTED(Minor)` only, record Suggestions and do **not** require a fix loop.

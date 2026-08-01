@@ -10,10 +10,12 @@ Scope: `**/auth/**`, `**/guards/**`, `**/security/**`, encryption services. See 
 ## Start
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase implement-backend --task "$TASK" --agent security-worker \
   --keywords "auth,jwt,guard,rbac,encryption,security,validation"
 ```
+
+Obey Context Packet tiers — read tier2 `security` + framework skill; tier3 security patterns.
 
 Read `AGENTS.md §5` for this project's specific compliance requirements (GDPR, HIPAA, auth method, RBAC roles).
 
@@ -41,4 +43,4 @@ Use `/security-audit` command for a full audit pass.
 ## References
 
 - Project auth method & compliance: `AGENTS.md §2` and `§5`
-- Security patterns: load from skill-loader output (framework skill, e.g. `nestjs-skills/references/security-*.md` for NestJS)
+- Security patterns: tier2/tier3 from Context Packet (not bulk-read `references/`)

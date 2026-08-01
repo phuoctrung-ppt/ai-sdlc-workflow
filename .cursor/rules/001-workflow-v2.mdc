@@ -1,0 +1,52 @@
+---
+description: Workflow V2 execution discipline — protected changes, hooks, artifacts
+globs: "**/*.{md,ts,tsx,json,yml,yaml}"
+alwaysApply: true
+---
+
+# Workflow Rules (V2)
+
+Canonical workflow: `AGENTS.md` + `.cursor/config/workflow-policy.json`. Project memory: `.memory/` (not full AGENTS.md on every turn).
+
+## Protected Changes
+
+Classifier: `.cursor/config/protected-paths.json`. Fail closed only for protected paths.
+
+- Plan artifact required: `docs/plans/**` or `docs/adr/**`
+- Review artifact required: `docs/reviews/**`
+- Override: `.cursor/hooks/review-override.sh --skip-review "reason"`
+
+## Hooks
+
+- `preToolUse` — worker path scopes from `worker-scopes.json`
+- `stop` — blocks protected changes without current plan/review
+- Session start — use context-builder, not legacy skill-loader alone
+
+## Artifacts
+
+| Type | Path |
+|---|---|
+| Plans | `docs/plans/YYYY-MM-DD-feature.md` (compact: ≤500 tokens body) |
+| ADRs | `docs/adr/NNNN-title.md` |
+| Reviews | `docs/reviews/YYYY-MM-DD-desc.md` (audit only — not injected as context) |
+| Patterns | `.cursor/patterns/` (Tier 3 — injected when triggered) |
+| Handoffs | `.cursor/context/handoffs/*.json` |
+
+## Compact Plan Format
+
+```markdown
+# Feature Name
+**Goal:** one sentence | **Protected:** yes/no | **Agents:** a, b
+
+## Constraints
+(from .memory/constraints.md — do not duplicate AGENTS.md)
+
+## Files
+| Path | Action | Owner |
+
+## Execution
+1. agent: step
+
+## Risks
+- ...
+```

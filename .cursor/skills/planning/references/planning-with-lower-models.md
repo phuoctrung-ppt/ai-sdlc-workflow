@@ -80,7 +80,7 @@ Before declaring the plan done, the model answers these against its own plan.
 Any "no" ⇒ fix that section, do not hand off:
 
 - [ ] Every task has real file paths and a testable acceptance line?
-- [ ] Every task names its owner agent + skill (from `skills-manifest.json`)?
+- [ ] Every task names its owner agent + skill (from `skills-manifest.v2.json`)?
 - [ ] Contracts (DB columns, API shapes, shared types) are concrete, not "TBD"?
 - [ ] Multi-tenancy respected where required (`workspace_id` / tenant filter)?
 - [ ] No placeholder tokens anywhere?

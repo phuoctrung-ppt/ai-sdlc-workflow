@@ -5,13 +5,13 @@ description: Create a database migration with correct naming convention, up/down
 
 Act as **Database Worker**. Create a migration for: **{migration_description}**
 
-1. Run skill-loader:
+1. Run context-builder:
    ```bash
-   python3 .cursor/skills/scripts/skill-loader.py \
+   python3 .cursor/context/context-builder.py \
      --phase database --task "{migration_description}" --agent database-worker \
      --keywords "migration,schema,index"
    ```
-2. Read `AGENTS.md §2` (DB type, ORM) and `§3` (migrations path) for the correct location and file format
+2. Read `.memory/constraints.md` and `AGENTS.md §3` (migrations path)
 
 ## Migration Location
 

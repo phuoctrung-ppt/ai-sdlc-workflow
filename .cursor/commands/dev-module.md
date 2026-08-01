@@ -29,7 +29,7 @@ Check if `.cursor/state/module-{feature_name}-loop.json` exists. If it does, rea
 **Agent:** `@architect-planner`
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase brainstorm --task "{feature_name}" --agent architect-planner
 ```
 
@@ -50,23 +50,58 @@ Save state: `{ "feature": "{feature_name}", "phase": "plan", "loopCount": 0 }`
 **Agent:** `@architect-planner`
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
-  --phase plan --task "{feature_name}" --agent architect-planner
+python3 .cursor/context/context-builder.py \
+  --phase plan --task "{feature_name}" --agent architect-planner \
+  --handoff docs/plans/.active-plan
 ```
 
-Write full plan to `docs/plans/YYYY-MM-DD-{feature_name}.md` using the architect-planner template:
-- Acceptance criteria
-- DB migrations (if needed)
-- Shared type contracts (per `AGENTS.md §2`)
-- File list with owner agents
-- Task breakdown table
-- Security / compliance gates from `AGENTS.md §6`
-- Risks
-- **Domain Config Sync** section (required)
+### Anti-laziness contract (mandatory)
+
+Paste this contract at the top of every Phase 2 planning prompt (verbatim — not a link-only reference):
+
+```
+You are writing an EXECUTABLE plan, not a summary.
+- Every "Files" entry MUST be a real, full path (e.g. apps/api/src/modules/x/x.service.ts).
+- Every acceptance criterion MUST be testable (not "API works").
+- FORBIDDEN: "etc.", "and so on", "similar to above", "// TODO", "[continue]".
+- If you approach the output limit, stop at a section boundary and write
+  [PAUSED - section N of 6]. On "continue", resume with no recap.
+- A worker with no memory of this chat must be able to execute the plan from the file alone.
+```
+
+### Section-by-section planning (Rule 2 — mandatory)
+
+Do **NOT** ask `@architect-planner` for the whole plan in one shot. Invoke it **six times** (or six sequential turns), one section each, filling the architect-planner Plan Template field-by-field (do not restructure it). Fixed order:
+
+1. Goal + Source Evidence (grounded facts) → then write `SECTION 1 COMPLETE`
+2. Acceptance Criteria (concrete, testable) → then write `SECTION 2 COMPLETE`
+3. Database / API contract → then write `SECTION 3 COMPLETE`
+4. Files to Create/Modify table → then write `SECTION 4 COMPLETE`
+5. Task Breakdown (one task block at a time) → then write `SECTION 5 COMPLETE`
+6. Domain Config Sync + Risks → then write `SECTION 6 COMPLETE`
+
+Rules:
+- After each section, the model MUST literally write `SECTION N COMPLETE` before starting the next.
+- If output limit is near: stop at a section boundary and write `[PAUSED - section N of 6]`; on continue, resume with no recap.
+- **FORBIDDEN** to accept a plan that lacks every `SECTION N COMPLETE` marker (N=1..6), or that ends mid-section without a `[PAUSED - section N of 6]` marker.
+- Write the accumulating plan to `docs/plans/YYYY-MM-DD-{feature_name}.md`.
+
+### Self-verify (Rule 5 — mandatory)
+
+Before leaving Phase 2, `@architect-planner` MUST answer every item against the plan. Any "no" ⇒ fix that section; do **not** hand off:
+
+- [ ] Every task has real file paths and a testable acceptance line?
+- [ ] Every task names its owner agent + skill (from `skills-manifest.v2.json`)?
+- [ ] Contracts (DB columns, API shapes, shared types) are concrete, not "TBD"?
+- [ ] Multi-tenancy respected where required (`workspace_id` / tenant filter)?
+- [ ] No placeholder tokens anywhere?
+- [ ] Domain Config Sync items each resolved (done or `N/A — reason`)?
+
+Report pass/fail per item in chat or in the plan file. The orchestrator MUST NOT set `state.phase = execute` until all six boxes are reported as pass.
 
 ### Phase 2b — SYNC DOMAIN CONFIG (before execute)
 
-After the plan is drafted, `@architect-planner` must complete Phase 1.5 from `.cursor/agents/architect-planner.md`:
+After the plan is drafted **and** Rule 5 self-verify passed, `@architect-planner` must complete Phase 1.5 from `.cursor/agents/architect-planner.md`:
 - ADR in `docs/adr/` when architecture decisions changed (or N/A in plan)
 - Create/update `docs/architecture.md`
 - Update affected `AGENTS.md` sections (§2–§15 as applicable)
@@ -85,7 +120,7 @@ Save state: `{ "phase": "execute", "planPath": "docs/plans/..." }`
 
 If the feature requires new modules/pages that don't exist yet:
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase scaffold --task "{feature_name}" --agent scaffold-agent \
   --keywords "module,scaffold,entity,migration,stub"
 ```
@@ -107,10 +142,26 @@ Save state: `{ "phase": "execute", "scaffoldComplete": true }`
 >
 > If any of the above is missing for a branding UI task, dispatch `@designer-worker` (phase `design`) FIRST with keywords including `asset,background,logo,svg,icon,brandkit,imagegen`, then dispatch `@frontend-worker` to implement from the mapping (copy/import mapped files — do not invent placeholders). Skip the design step only for non-visual frontend work (note "no new UI"). This mirrors the `<DESIGN-GATE>` in `frontend-worker`.
 
-**Dispatch workers in parallel** based on the task table in the plan:
+### Contract gate (mandatory when plan lists a contract / API surface)
+
+Before `@backend-worker` or `@frontend-worker` start:
+1. Dispatch `@contract-agent` if the plan requires a contract (HTTP/API or shared schema).
+2. Wait until `docs/contracts/YYYY-MM-DD-{feature}-contract.md` Status is **approved**.
+3. Only then dispatch backend/frontend. Do **not** start them in parallel with an unapproved contract.
+
+### Task dependency dispatch
+
+Honor the plan's **Task Dependencies** table:
+- Do **not** dispatch a task whose **Depends On** entries are incomplete.
+- Tasks with empty Depends On **may** be dispatched in parallel.
+- `[UNCERTAIN]` tasks: run `@spike-agent` first; fold the spike report into planning before worker dispatch.
+
+**Dispatch workers** based on the task table in the plan (parallel only when dependencies allow):
 
 | Task type | Agent | Phase |
 |---|---|---|
+| Uncertainty spike | `@spike-agent` | `brainstorm` |
+| API/schema contract | `@contract-agent` | `plan` |
 | New module/feature scaffold | `@scaffold-agent` | `scaffold` |
 | Backend / API | `@backend-worker` | `implement-backend` |
 | UI design (spec + sketches + **asset pack** + Asset Mapping) — before any new UI | `@designer-worker` | `design` |
@@ -120,7 +171,7 @@ Save state: `{ "phase": "execute", "scaffoldComplete": true }`
 | Auth / security | `@security-worker` | `implement-backend` |
 | DevOps / infra | `@devops-worker` | `devops` |
 
-Each worker starts with a handoff packet from the plan. Frontend tasks receive the design spec, sketch paths, **asset pack path**, and Asset Mapping reference in their packet.
+Each worker runs `context-builder.py` with its agent id before starting (see agent files). Frontend tasks receive design spec, sketch paths, **asset pack path**, and Asset Mapping in their handoff packet. Contract path goes in backend/frontend handoffs when applicable.
 
 Save state: `{ "phase": "test" }`
 
@@ -131,7 +182,7 @@ Save state: `{ "phase": "test" }`
 **Agent:** `@qa-worker`
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase test --task "{feature_name}" --agent qa-worker \
   --keywords "test,jest,playwright,e2e,mock,coverage"
 ```
@@ -150,21 +201,32 @@ Save state: `{ "phase": "verify" }`
 **Agent:** `@judge-agent`
 
 ```bash
-python3 .cursor/skills/scripts/skill-loader.py \
+python3 .cursor/context/context-builder.py \
   --phase review --task "{feature_name}" --agent judge-agent \
-  --keywords "workflow,judge,security,test"
+  --keywords "workflow,judge,security,test" --budget 5000
 ```
 
 Run `/workflow-eval` against the plan + diff + test results.
 Write review to `docs/reviews/YYYY-MM-DD-{feature_name}-review.md`.
 
+Judge status uses severity tiers (see `.cursor/agents/judge-agent.md`):
+- `*_APPROVED`
+- `*_CHANGES_REQUESTED(Critical)`
+- `*_CHANGES_REQUESTED(Minor)`
+- Bare `*_CHANGES_REQUESTED` (no severity suffix) ≡ **Critical** (fail closed)
+
 ### Decision tree:
 
 ```
-APPROVED  ──────────────────────────────────────────────▶ Phase 6 (DONE ✅)
-CHANGES_REQUESTED + loopCount < 3 ──────────────────────▶ Phase 5a (FIX)
-CHANGES_REQUESTED + loopCount >= 3 ─────────────────────▶ Phase 5b (ESCALATE)
+*_APPROVED  ────────────────────────────────────────────▶ Phase 6 (DONE ✅)
+*_CHANGES_REQUESTED(Minor) only  ───────────────────────▶ Phase 6 (DONE ✅)
+  (record Minor under Suggestions in the review; do NOT block approve;
+   do NOT increment loopCount)
+*_CHANGES_REQUESTED(Critical) + loopCount < 3 ──────────▶ Phase 5a (FIX)
+*_CHANGES_REQUESTED(Critical) + loopCount >= 3 ─────────▶ Phase 5b (ESCALATE)
 ```
+
+Only **Critical** findings trigger the fix loop and count toward `loopCount`. Minor ⇒ Phase 6 (record only).
 
 Save state: `{ "phase": "fix" or "done", "reviewPath": "docs/reviews/..." }`
 
@@ -172,16 +234,16 @@ Save state: `{ "phase": "fix" or "done", "reviewPath": "docs/reviews/..." }`
 
 ## Phase 5a — FIX (loop back)
 
-Increment `loopCount` in state file.
+Increment `loopCount` in state file (**Critical only** — never for Minor-only reviews).
 
-Dispatch a focused **fix handoff** to the worker responsible for each CHANGES_REQUESTED item:
+Dispatch a focused **fix handoff** to the worker responsible for each **Critical** CHANGES_REQUESTED item (ignore Minor in loop dispatch):
 
 ```
-Objective: Fix [specific issue from judge review]
+Objective: Fix [Critical issue from judge review]
 Plan: [planPath from state]
 Judge review: [reviewPath from state]
-In-scope: [only the files flagged by judge]
-Acceptance: [specific criterion from judge review]
+In-scope: [only the files flagged by judge as Critical]
+Acceptance: [specific Critical criterion from judge review]
 ```
 
 After fixes are applied → return to **Phase 4 (TEST)**.
