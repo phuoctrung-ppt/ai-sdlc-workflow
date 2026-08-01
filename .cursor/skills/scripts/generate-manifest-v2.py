@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Generate skills-manifest.v2.json from skills-manifest.json with token metadata."""
+"""Enrich / rewrite skills-manifest.v2.json (canonical skill manifest).
+
+V1 skills-manifest.json is retired. This script re-estimates tokens and rebuilds
+lazy `references` metadata in place on skills-manifest.v2.json.
+
+Usage:
+  python3 .cursor/skills/scripts/generate-manifest-v2.py
+"""
 
 from __future__ import annotations
 
@@ -9,6 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 SKILLS_DIR = ROOT / ".cursor" / "skills"
+MANIFEST_V2 = SKILLS_DIR / "skills-manifest.v2.json"
 
 DEFAULT_TOKENS = {
     "agentic-workflow": 600,
@@ -16,15 +24,14 @@ DEFAULT_TOKENS = {
     "taste-design": 1200,
     "frontend-skills": 900,
     "databases": 1000,
+    "databases-mongodb": 800,
     "testing-qa": 700,
     "docker-devops": 600,
     "nestjs-skills": 2500,
     "zod-shared-types": 500,
     "ai-llm-integration": 800,
-    "admin-service": 700,
     "bullmq-worker": 600,
     "planning": 700,
-    "nestjs-scaffold": 2500,
 }
 
 DEFAULT_PRIORITY = {
@@ -34,15 +41,31 @@ DEFAULT_PRIORITY = {
     "nestjs-skills": 10,
     "frontend-skills": 10,
     "databases": 10,
+    "databases-mongodb": 7,
     "testing-qa": 8,
     "taste-design": 8,
     "docker-devops": 6,
     "zod-shared-types": 7,
     "ai-llm-integration": 7,
-    "admin-service": 6,
     "bullmq-worker": 6,
-    "nestjs-scaffold": 9,
 }
+
+# Fields copied through enrich unchanged when present
+PASS_THROUGH = (
+    "optional",
+    "activateWhen",
+    "note",
+    "domainTag",
+    "portable",
+    "phases",
+    "agents",
+    "keywords",
+    "refKeywords",
+    "scripts",
+    "entry",
+    "referencesDir",
+    "consolidation",
+)
 
 
 def estimate_file_tokens(path: Path) -> int:
@@ -61,51 +84,66 @@ def enrich_skill(skill: dict) -> dict:
         "estimatedTokens",
         estimate_file_tokens(entry) if entry.exists() else DEFAULT_TOKENS.get(sid, 800),
     )
-    enriched["references"] = skill.get("references", {
+    enriched["references"] = {
         "lazy": True,
         "optional": [
             {"path": k, "triggers": v}
             for k, v in skill.get("refKeywords", {}).items()
         ],
-    })
-    if "refKeywords" in enriched and enriched.get("references", {}).get("lazy"):
-        enriched.setdefault("consolidation", {
+    }
+    if skill.get("refKeywords") and not skill.get("consolidation"):
+        enriched["consolidation"] = {
             "v1ReferencesDir": skill.get("referencesDir", ""),
             "note": "Load via tier4 --expand-ref only",
-        })
+        }
     return enriched
 
 
 def main() -> None:
-    src = SKILLS_DIR / "skills-manifest.json"
-    dst = SKILLS_DIR / "skills-manifest.v2.json"
-    manifest = json.loads(src.read_text(encoding="utf-8"))
+    if not MANIFEST_V2.exists():
+        sys.exit(f"error: canonical manifest missing: {MANIFEST_V2}")
+
+    manifest = json.loads(MANIFEST_V2.read_text(encoding="utf-8"))
+
+    description = manifest.get("description", "")
+    if "(V2: token budgets + lazy refs)" not in description:
+        description = description.rstrip() + " (V2: token budgets + lazy refs)"
 
     out = {
         "manifestSchema": "2.0",
         "version": manifest.get("version", "4.0"),
-        "description": manifest.get("description", "") + " (V2: token budgets + lazy refs)",
+        "description": description,
         "skillsRoot": manifest.get("skillsRoot", ".cursor/skills"),
         "phases": manifest.get("phases", []),
         "agents": manifest.get("agents", []),
-        "defaultTokenBudget": 8000,
-        "tierCeilings": {
-            "tier1": 1200,
-            "tier2": 4000,
-            "tier3": 800,
-            "tier4": 2000,
-        },
-        "maxSkillsByComplexity": {
-            "low": 1,
-            "medium": 2,
-            "high": 4,
-        },
+        "defaultTokenBudget": manifest.get("defaultTokenBudget", 8000),
+        "tierCeilings": manifest.get(
+            "tierCeilings",
+            {"tier1": 1200, "tier2": 4000, "tier3": 800, "tier4": 2000},
+        ),
+        "maxSkillsByComplexity": manifest.get(
+            "maxSkillsByComplexity",
+            {"low": 1, "medium": 2, "high": 4},
+        ),
         "portableSkills": [enrich_skill(s) for s in manifest.get("portableSkills", [])],
         "skills": [enrich_skill(s) for s in manifest.get("skills", [])],
     }
 
-    dst.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
-    print(f"Wrote {dst.relative_to(ROOT)}")
+    if "_commentPortableVsOptional" in manifest:
+        # Keep comment near top after description
+        ordered = {
+            "manifestSchema": out["manifestSchema"],
+            "version": out["version"],
+            "description": out["description"],
+            "_commentPortableVsOptional": manifest["_commentPortableVsOptional"],
+        }
+        for key, value in out.items():
+            if key not in ordered:
+                ordered[key] = value
+        out = ordered
+
+    MANIFEST_V2.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote {MANIFEST_V2.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,36 @@
+{
+  "id": "weak-model-workflow-quality",
+  "objective": "Add AGENTS.md completeness gate to architect-planner, enforce section-by-section Phase 2 with embedded Rule 2/4/5 in dev-module, and add Critical vs Minor judge severity so only Critical increments loopCount.",
+  "inScopePaths": [
+    ".cursor/agents/architect-planner.md",
+    ".cursor/commands/dev-module.md",
+    ".cursor/agents/judge-agent.md"
+  ],
+  "outOfScopePaths": [
+    ".cursor/hooks/**",
+    ".cursor/skills/**/skill-loader.py",
+    ".cursor/skills/skills-manifest.v2.json",
+    ".cursor/agents/*-worker.md",
+    "AGENTS.md"
+  ],
+  "requiredSkills": ["planning", "agentic-workflow"],
+  "planPath": "docs/plans/2026-08-01-weak-model-workflow-quality.md",
+  "acceptanceCriteria": [
+    "architect-planner.md has Phase -1 AGENTS.md completeness gate that stops on <PLACEHOLDER> in §1/§2/§3 with workflow-meta exception",
+    "dev-module.md Phase 2 requires SECTION N COMPLETE for N=1..6 and embeds Rule 4 contract verbatim",
+    "dev-module.md Phase 2 marks Rule 5 self-verify mandatory before phase execute",
+    "judge-agent.md Status includes CHANGES_REQUESTED(Critical) and CHANGES_REQUESTED(Minor)",
+    "dev-module.md Phase 5 only Critical triggers Phase 5a and loopCount++; Minor-only goes to Phase 6",
+    "bare CHANGES_REQUESTED treated as Critical (fail closed)"
+  ],
+  "requiredVerificationCommands": [
+    "rg -n 'Phase .*-1|AGENTS_INCOMPLETE|<PLACEHOLDER>' .cursor/agents/architect-planner.md",
+    "rg -n 'SECTION N COMPLETE|EXECUTABLE plan|Rule 5 — mandatory|CHANGES_REQUESTED\\(Critical\\)' .cursor/commands/dev-module.md",
+    "rg -n 'CHANGES_REQUESTED\\(Critical\\)|CHANGES_REQUESTED\\(Minor\\)|fail closed' .cursor/agents/judge-agent.md"
+  ],
+  "risks": [
+    "False-positive gate on workflow-meta plans if exception omitted",
+    "Operators ignore section-by-section if language is soft",
+    "Legacy bare CHANGES_REQUESTED ambiguity — treat as Critical"
+  ]
+}

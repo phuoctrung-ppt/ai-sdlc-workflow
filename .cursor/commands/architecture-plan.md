@@ -93,7 +93,7 @@ python3 .cursor/context/context-builder.py --phase plan --task "breakdown $(cat 
 ## Step 1 — EXPAND TO EXECUTABLE TASKS
 For each module in the roadmap, `@architect-planner` produces a concrete task breakdown (append to the roadmap plan, or write per-module `docs/plans/YYYY-MM-DD-{module}.md` and link them). Each task must have:
 - Real file paths (Create/Modify) matching §3 + `worker-scopes.json`
-- Owner agent + skill(s) from `skills-manifest.json`
+- Owner agent + skill(s) from `skills-manifest.v2.json`
 - Testable acceptance criteria (not "works")
 - Dependencies / ordering (DB → API → Frontend)
 - A filled **Handoff Packet** (objective, in/out-of-scope paths, required skills, acceptance, required checks)

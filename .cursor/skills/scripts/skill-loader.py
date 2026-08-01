@@ -6,7 +6,7 @@ New code and agents should call:
 
   python3 .cursor/context/context-builder.py --task "..." --agent <agent>
 
-This script reads `.cursor/skills/skills-manifest.json`, filters skills by execution phase
+This script reads `.cursor/skills/skills-manifest.v2.json`, filters skills by execution phase
 (and optionally agent), scores them against task keywords, and returns:
 
   - matched skill ENTRY PATHS (SKILL.md) — agent reads only what it needs
@@ -21,7 +21,7 @@ Usage:
       --task "Build dashboard with server components" \
       --keywords "react,rsc,streaming,dashboard" \
       [--agent frontend-worker] [--limit 4] [--ref-limit 8] \
-      [--root /path/to/project] [--manifest-path /path/to/skills-manifest.json]
+      [--root /path/to/project] [--manifest-path /path/to/skills-manifest.v2.json]
 
 Phases: brainstorm | plan | design | implement-frontend | implement-backend
         | database | devops | skill-authoring | test | fix | review | dev-module
@@ -65,17 +65,16 @@ def detect_root(explicit_root: str | None) -> Path:
 
 
 def resolve_manifest(explicit_path: str | None, root: Path) -> Path:
-    """Find the manifest file — explicit path, or default under root."""
+    """Find the canonical v2 manifest — explicit path, or default under root."""
     if explicit_path:
         return Path(explicit_path).resolve()
-    # Default: .cursor/skills/skills-manifest.json relative to root
-    default = root / ".cursor" / "skills" / "skills-manifest.json"
+    default = root / ".cursor" / "skills" / "skills-manifest.v2.json"
     if default.exists():
         return default
-    # Fallback: try relative to this script's location (legacy behaviour)
-    legacy = Path(__file__).resolve().parent.parent / "skills-manifest.json"
-    if legacy.exists():
-        return legacy
+    # Fallback: try relative to this script's location
+    sibling = Path(__file__).resolve().parent.parent / "skills-manifest.v2.json"
+    if sibling.exists():
+        return sibling
     return default  # let load_manifest() report the missing-file error
 
 
@@ -138,7 +137,7 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=4, help="Max skills returned")
     parser.add_argument("--ref-limit", type=int, default=8, help="Max references returned")
     parser.add_argument("--root", default="", help="Project root path (default: git root or CWD)")
-    parser.add_argument("--manifest-path", default="", help="Explicit path to skills-manifest.json")
+    parser.add_argument("--manifest-path", default="", help="Explicit path to skills-manifest.v2.json")
     args = parser.parse_args()
 
     root = detect_root(args.root or None)

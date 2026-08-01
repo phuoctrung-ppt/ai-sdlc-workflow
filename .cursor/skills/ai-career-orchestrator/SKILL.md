@@ -1,6 +1,6 @@
 ---
 name: ai-career-orchestrator
-description: "[DOMAIN EXAMPLE] Orchestrator skill template for a specific project. Copy and adapt this for your project — rename it, update agent→skill mappings, and register it in skills-manifest.json with domainTag matching your stack."
+description: "[DOMAIN EXAMPLE] Orchestrator skill template for a specific project. Copy and adapt this for your project — rename it, update agent→skill mappings, and register it in skills-manifest.v2.json with domainTag matching your stack."
 domainSkill: true
 ---
 
@@ -8,7 +8,7 @@ domainSkill: true
 
 > **This is a domain-specific skill template.** It was originally written for an AI Career Platform.
 > To reuse: copy this folder, rename it, and update the agent→skill map below to match your `AGENTS.md §2` tech stack.
-> Register the copy in `skills-manifest.json` under `skills` with `portable: false` and your own `domainTag`.
+> Register the copy in `skills-manifest.v2.json` under `skills` with `portable: false` and your own `domainTag`.
 
 ## Workflow Phases
 

@@ -113,12 +113,6 @@
       "**/db/**",
       "docs/adr/**"
     ],
-    "ai-worker": [
-      "**/ai/**",
-      "**/llm/**",
-      "**/prompts/**",
-      "packages/**"
-    ],
     "devops-worker": [
       "docker/**",
       "infra/**",
@@ -142,12 +136,15 @@
       ".cursor/rules/**",
       "docs/reviews/**"
     ],
-    "admin-worker": [
-      "**/admin/**",
-      "docs/reviews/**"
-    ],
     "judge-agent": [
       "docs/reviews/**"
+    ],
+    "spike-agent": [
+      "docs/spikes/**"
+    ],
+    "contract-agent": [
+      "docs/contracts/**",
+      "packages/**"
     ]
   }
 }

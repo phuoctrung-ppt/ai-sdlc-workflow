@@ -10,7 +10,6 @@
 > - `.cursor/config/protected-paths.json` → `projectProtectedGlobs`
 > - `.cursor/config/worker-scopes.json` → `agents` section
 > - `.cursor/skills/skills-manifest.v2.json` → add/remove domain skills
-> - Run `python3 .cursor/context/memory-loader.py --sync` after §2–§6 changes
 
 ---
 
@@ -57,10 +56,10 @@
 
 ```
 <root>/
-├── .memory/                   # Workflow V2 project memory (generated — concise context)
-├── .cursor/                   # workflow: agents, skills, hooks, context builder, config
+├── <app-or-package-1>/        # <role>
+├── <app-or-package-2>/        # <role>
 ├── docs/                      # plans, adr, reviews, architecture
-└── <app-or-package-N>/        # application code (fill when porting)
+└── .cursor/                   # workflow: agents, skills, hooks, config
 ```
 
 > _EXAMPLE_ (delete when porting): a monorepo might use `apps/api`, `apps/web`, `apps/worker`, `packages/shared-types`. Whatever you choose, mirror it exactly in `worker-scopes.json`.
@@ -98,24 +97,26 @@ async findRecords(tenantId: string): Promise<Record[]> {
 
 ## 5. Agent Roster & Scopes
 
-> Roles below are the portable defaults shipped in `.cursor/agents/`. **Path scopes and skills are defined in `.cursor/config/worker-scopes.json` and `.cursor/skills/skills-manifest.json`** — keep those two files as the source of truth and update this table to match. Remove agents you don't use.
+> Roles below are the portable defaults shipped in `.cursor/agents/`. **Path scopes and skills are defined in `.cursor/config/worker-scopes.json` and `.cursor/skills/skills-manifest.v2.json`** — keep those two files as the source of truth and update this table to match. Remove agents you don't use.
 
 | Agent | Role | Scope source | Skills source |
 |---|---|---|---|
-| `architect-planner` | Plan, ADR, task breakdown, scope definition | `worker-scopes.json` | `skills-manifest.json` |
-| `scaffold-agent` | Bootstrap new module/page shells; update §3 paths | `worker-scopes.json` | `skills-manifest.json` |
-| `designer-worker` | UI/UX design, component specs, design tokens | `worker-scopes.json` | `skills-manifest.json` |
-| `backend-worker` | API features, services, DTOs, guards | `worker-scopes.json` | `skills-manifest.json` |
-| `frontend-worker` | Pages, forms, data fetching, client state | `worker-scopes.json` | `skills-manifest.json` |
-| `database-worker` | Migrations, entities, query optimization | `worker-scopes.json` | `skills-manifest.json` |
-| `ai-worker` | LLM/AI integration, embeddings, cost tracking (if any) | `worker-scopes.json` | `skills-manifest.json` |
-| `devops-worker` | Docker, CI/CD, infra | `worker-scopes.json` | `skills-manifest.json` |
-| `security-worker` | Auth, RBAC, encryption, rate limiting | `worker-scopes.json` | `skills-manifest.json` |
-| `qa-worker` | Unit / integration / E2E tests | `worker-scopes.json` | `skills-manifest.json` |
-| `admin-worker` | Admin/control-plane elevated APIs & UI (if any) | `worker-scopes.json` | `skills-manifest.json` |
-| `judge-agent` | Read-only review gate for protected changes | `docs/reviews/**` | `skills-manifest.json` |
+| `architect-planner` | Plan, ADR, task breakdown, scope definition | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `spike-agent` | PoC for `[UNCERTAIN]` tasks before formal plan detail; writes `docs/spikes/` only | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `contract-agent` | Draft/lock API schema contracts; `docs/contracts/` + shared types `packages/**` | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `scaffold-agent` | Bootstrap new module/page shells; update §3 paths | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `designer-worker` | UI/UX design, component specs, design tokens | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `backend-worker` | API features, services, DTOs, guards | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `frontend-worker` | Pages, forms, data fetching, client state | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `database-worker` | Migrations, entities, query optimization | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `devops-worker` | Docker, CI/CD, infra | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `security-worker` | Auth, RBAC, encryption, rate limiting | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `qa-worker` | Unit / integration / E2E tests | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `judge-agent` | Read-only review gate for protected changes | `docs/reviews/**` | `skills-manifest.v2.json` |
 
 > Add/remove domain worker agents (e.g. a queue/worker-process agent) to match your stack. Every agent you list here must have a matching entry in `worker-scopes.json`.
+>
+> Optional domain agents (`ai-worker`, `admin-worker`) and stack-gated skills: enable by restoring agent files under `.cursor/agents/` (and `worker-scopes.json`) and/or copying or activating skills from `.cursor/skills/optional/` when `AGENTS.md §2` requires them.
 
 ---
 
@@ -253,6 +254,15 @@ async findRecords(tenantId: string): Promise<Record[]> {
 ### Infrastructure
 - ❌ Deploy to production without passing staging first.
 - ❌ Change SSL/domain config without testing on staging first.
+
+### Maintainability
+- ❌ Magic numbers or hardcoded strings in implementation code — use named constants or config values.
+- ❌ Async operation without an explicit timeout — every LLM call, external API call, and queue job must have a timeout.
+- ❌ AI/LLM feature without a feature flag — each AI capability must be disableable without redeploy.
+
+### Test Data
+- ❌ Test fixtures that use production-like IDs (real tenant IDs, real user emails).
+- ❌ Seeding test data into a production database — even accidentally.
 
 ---
 

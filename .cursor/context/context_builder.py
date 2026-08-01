@@ -70,12 +70,18 @@ def load_config(root: Path, name: str) -> dict:
     return {}
 
 
-def resolve_manifest_path(root: Path, use_v2: bool) -> Path:
+def resolve_manifest_path(root: Path, use_v2: bool = True) -> Path:
+    """Return the canonical skills manifest (v2 only).
+
+    ``use_v2`` is retained for call-site compatibility; v1 has been retired.
+    """
     v2 = root / ".cursor" / "skills" / "skills-manifest.v2.json"
-    v1 = root / ".cursor" / "skills" / "skills-manifest.json"
-    if use_v2 and v2.exists():
-        return v2
-    return v1
+    if not v2.exists():
+        raise FileNotFoundError(
+            f"canonical skill manifest missing: {v2} "
+            "(skills-manifest.json v1 is retired — only skills-manifest.v2.json is supported)"
+        )
+    return v2
 
 
 def run_skill_loader(

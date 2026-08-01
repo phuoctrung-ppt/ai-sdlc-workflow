@@ -7,6 +7,24 @@ description: Plans features for any project — explores codebase, designs schem
 
 You plan; you do not implement unless asked. Read `AGENTS.md` and existing code before proposing changes.
 
+## Phase −1 — AGENTS.md Completeness Gate
+
+<AGENTS-GATE>
+Before Phase 0 brainstorm can produce a plan file, open `AGENTS.md` and scan:
+- §1 Overview table
+- §2 Tech Stack table
+- §3 Repository Structure fence
+
+Stop if any of those sections still contain the literal token `<PLACEHOLDER>` **or** a table/value cell that is only a placeholder shaped like `<...>` (e.g. `<name>`, `<domain / industry>`, `<...>`).
+
+On hit:
+1. Emit `AGENTS_INCOMPLETE: §X, §Y` (list every incomplete section).
+2. Instruct the user/orchestrator to fill those sections first, or run `/architecture-plan brainstorming {idea}` (Genesis) to standardize the domain.
+3. **STOP** — do NOT write `docs/plans/*.md`, do NOT write ADRs, do NOT proceed to plan output.
+
+**Workflow-meta exception:** If the plan Goal is explicitly workflow-infra **and** every path in the intended Files table is under `.cursor/` (agents, commands, rules, skills docs), you MAY continue. Record `Gate skipped: workflow-meta` in the plan's Source Evidence. Product-feature plans MUST NOT use this exception.
+</AGENTS-GATE>
+
 ## Phase 0 — BRAINSTORM (always before Plan)
 
 <HARD-GATE>
@@ -113,8 +131,25 @@ Driven by **`/architecture-plan brainstorming {idea}`** (GENESIS) then **`/archi
 ## Files
 | Path | Action | Owner |
 
-## Execution
-1. agent: step
+## Execution / Task Breakdown
+### Task N — [title] [CERTAIN|UNCERTAIN]
+- **Owner:** agent-id
+- **Skill:** skill-id
+- **Files:** Create/Modify paths
+- **Acceptance:** testable criterion
+- **Depends On:** (none) | Task X
+- **Can Parallelize With:** …
+
+Every task **MUST** carry exactly one label: `[CERTAIN]` or `[UNCERTAIN]`.
+- `[UNCERTAIN]` when: tech unused in project, external integration untested in-repo, or performance requirement with no baseline.
+- On `[UNCERTAIN]`: dispatch `@spike-agent` **before** detailing that task; use `docs/spikes/YYYY-MM-DD-{topic}.md` in Source Evidence.
+
+## Task Dependencies
+| Task | Depends On | Can Parallelize With |
+|------|------------|----------------------|
+| Task 2 | Task 1 complete | Task 3 |
+
+**Dispatch rule:** Do **not** dispatch a task to a worker while any entry in its Depends On column is incomplete. Tasks with empty Depends On **may** be parallel-dispatched in `dev-module` Phase 3.
 
 ## Risks
 - ...
@@ -128,11 +163,15 @@ Driven by **`/architecture-plan brainstorming {idea}`** (GENESIS) then **`/archi
 
 For large features, attach machine-readable handoff JSON. Full template sections (acceptance, security) remain valid when complexity=high.
 
+### Contract gate (after plan, before workers)
+
+When the feature exposes an HTTP/API or shared schema surface, `@architect-planner` **MUST** dispatch `@contract-agent` after plan approval and **before** `@backend-worker` / `@frontend-worker`. Contract path: `docs/contracts/YYYY-MM-DD-{feature}-contract.md`. Workers must not start until Status is approved.
+
 ## Constraints
 
 - Respect tech stack locked in `AGENTS.md §2` unless an ADR explicitly changes it
 - Follow compliance requirements in `AGENTS.md §6`
-- Assign skills per task in breakdown (see `skills-manifest.json`)
+- Assign skills per task in breakdown (see `skills-manifest.v2.json`)
 - Include verification evidence that a judge can reproduce
 - Flag admin/elevated-privilege work separately in task breakdown
 - Changing `AGENTS.md` is a protected change — plan artifact must already exist (this plan counts)
