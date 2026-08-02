@@ -1,6 +1,6 @@
 ---
 name: dev-module
-description: Full per-module development loop — brainstorm → plan → execute → test → verify → fix → loop → done + Memory/Learning distillation. Use for any new feature module from scratch. Automatically loops through fix cycles until judge approves or loop cap is reached.
+description: Full per-module development loop — brainstorm → plan → execute → test → verify → fix → loop → done + Memory distillation + dispatch learning-agent. Use for any new feature module from scratch. Automatically loops through fix cycles until judge approves or loop cap is reached.
 ---
 
 # Module Development Loop
@@ -287,11 +287,11 @@ Loop cap (3) reached. Human review needed.
 
 ---
 
-## Phase 6 — DONE ✅ + Memory Distillation
+## Phase 6 — DONE ✅ + Memory Distillation + Learning dispatch
 
 Save final state: `{ "phase": "done", "loopCount": N }`
 
-### Distillation (Memory + Learning Layer) — mandatory
+### A. Lightweight distillation (orchestrator — always)
 
 1. **Retrospective entry** — append to `docs/retrospective.md`:
 
@@ -304,14 +304,30 @@ Save final state: `{ "phase": "done", "loopCount": N }`
 - **Action**: ...
 ```
 
-2. **Extract facts** (1–5 max) into the Memory layer:
+2. **Extract obvious facts** (1–5 max) into the Memory layer when clear:
    - Locked decision → `docs/memory/decisions.md`
    - Failed pattern → `docs/memory/gotchas.md`
    - Proven shortcut → `docs/memory/shortcuts.md`
 
 3. **Update dependency graph** — set the module status to `done` in `docs/module-deps.md`.
 
-4. **Skill-updater trigger** — if 5 modules completed since last review (count entries in retrospective.md), surface a skill-update proposal.
+### B. Learning agent (true self-learning — do not invent skill patches here)
+
+Dispatch `@learning-agent` (skill `skill-updater`). **Do not** rewrite any `SKILL.md` inside this phase.
+
+```bash
+python3 .cursor/context/context-builder.py \
+  --phase review \
+  --task "post-module skill scan for {feature_name}" \
+  --agent learning-agent \
+  --keywords "retrospective,pattern,skill,learning,gotcha,shortcut" \
+  --budget 5000
+```
+
+- Lightweight scan after every module.
+- If ≥5 retrospective entries since last skill-update proposal → treat as full pass.
+- Agent writes `docs/reviews/YYYY-MM-DD-skill-update-proposal.md` when a pattern is found (PENDING_APPROVAL).
+- Apply patches only after orchestrator/human approval (or run `/skill-update` for an explicit full pass).
 
 Output summary:
 ```
@@ -322,6 +338,7 @@ Fix loops: N
 Files changed: [list]
 Memory updated: decisions/gotchas/shortcuts (yes/no)
 Retrospective: appended
+Learning: dispatched @learning-agent → [no pattern | proposal path]
 ```
 
 Clean up: optionally archive `.cursor/state/module-{feature_name}-loop.json` to `docs/plans/` for traceability.

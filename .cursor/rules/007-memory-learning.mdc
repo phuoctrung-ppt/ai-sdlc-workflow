@@ -1,5 +1,5 @@
 ---
-description: Memory + Learning layers — persistent compressed truth and self-improvement across sessions
+description: Memory + Learning layers — persistent compressed truth and self-improvement via learning-agent (not chat memory)
 globs: "**/*"
 alwaysApply: true
 ---
@@ -8,7 +8,7 @@ alwaysApply: true
 
 ## Memory Layer (Tầng 2)
 
-Source of truth for cross-session knowledge (read early, write only via distillation):
+Source of truth for cross-session knowledge (read early, write only via distillation / learning-agent):
 
 | File | Purpose |
 |------|---------|
@@ -25,22 +25,33 @@ Also keep the generated `.memory/*` files in sync (architecture, constraints, kn
 
 ## Learning Layer (Tầng 3)
 
-| File | Purpose |
-|------|---------|
+| File / Actor | Purpose |
+|--------------|---------|
 | `docs/retrospective.md` | Per-module metrics + root cause |
 | `docs/module-deps.md` | Dependency graph + hard-gate |
+| `@learning-agent` | Owns pattern detection + skill proposals |
+| `skill-updater` skill | Best practices for proposals / patches |
+| `/skill-update` | Explicit full learning pass |
 
-### Distillation (Phase 6 of /dev-module)
-After a module is marked Done:
-1. Append a retrospective entry (estimate vs actual, loops, root cause, pattern candidate).
-2. Extract 1–5 facts into the appropriate memory file (decision / gotcha / shortcut).
-3. Update `docs/module-deps.md` status for the module.
-4. If 5 modules have completed since last skill review → trigger skill-updater (see below).
+### Distillation vs Learning
 
-### Skill auto-update
-When retrospective shows a repeating pattern:
-- Propose a concrete patch to the relevant `SKILL.md` (or new pattern under `.cursor/patterns/`).
-- Do **not** silently rewrite skills; surface the proposal in the retrospective and wait for human/orchestrator approval unless the change is a pure gotcha/decision lock.
+**Phase 6 of `/dev-module` (lightweight — orchestrator or worker):**
+1. Append retrospective entry (estimate vs actual, loops, root cause, pattern candidate).
+2. Extract obvious 1–5 facts into memory files when clear.
+3. Update `docs/module-deps.md` status → `done`.
+4. **Dispatch `@learning-agent`** for pattern scan (do **not** invent skill patches inside dev-module itself).
+
+**Learning agent (true self-learning):**
+1. Read retrospective + memory using skill `skill-updater`.
+2. Identify repeating patterns (≥2 signals).
+3. Write `docs/reviews/YYYY-MM-DD-skill-update-proposal.md` (PENDING_APPROVAL) with minimal patch.
+4. Apply to `SKILL.md` / `.cursor/patterns/**` **only after** orchestrator/human approval.
+5. Full pass required when ≥5 modules completed since last proposal, or when `/skill-update` is run.
+
+### Forbidden
+- `/dev-module` or any product worker silently rewriting `SKILL.md`
+- Skill changes without a proposal trail
+- Treating chat history as a substitute for retrospective + memory files
 
 ### Module dependency hard-gate
 Before Phase 3 (Execute):
