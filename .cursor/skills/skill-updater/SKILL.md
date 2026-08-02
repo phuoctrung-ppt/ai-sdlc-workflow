@@ -3,7 +3,16 @@ name: skill-updater
 description: Read retrospective + memory, identify repeating patterns, propose concrete patches to SKILL.md or new patterns. True self-learning — never silent rewrite.
 ---
 
-# Skill Updater — Learning Best Practices
+# Skill Updater
+
+## Counter gate
+
+Read `.cursor/state/workflow-state.json` → `modulesSinceLastProposal`:
+- `>= 5` or task says full pass / `/skill-update` → full retrospective + memory scan.
+- `< 5` → lightweight (latest entries only) unless ≥2 strong signals justify a proposal.
+- After writing a proposal, reset counter to `0` and set `lastSkillProposalPath` / `lastSkillProposalAt`.
+
+Durable facts belong in `docs/memory/*` (primary SoT). `.memory/*` is AGENTS cache only.
 
 Portable skill for the Learning layer (Tầng 3). Used by `@learning-agent` after modules complete.
 
@@ -15,13 +24,14 @@ Turn retrospective signals into **durable skill improvements** so the next sessi
 
 1. `docs/retrospective.md` — newest entries first; look for repeating root causes / pattern candidates
 2. `docs/memory/decisions.md`, `gotchas.md`, `shortcuts.md` — existing compressed truth
-3. Target skill(s) under `.cursor/skills/**/SKILL.md` or patterns under `.cursor/patterns/**`
-4. Optional: related `docs/reviews/*` and plan for the modules that produced the signal
+3. `.cursor/state/workflow-state.json` — module counter
+4. Target skill(s) under `.cursor/skills/**/SKILL.md` or patterns under `.cursor/patterns/**`
+5. Optional: related `docs/reviews/*`
 
 ## When to run
 
 - After every module Done (lightweight scan — may conclude "no pattern yet")
-- **Mandatory full pass** when ≥5 new retrospective entries since last skill-update proposal
+- **Mandatory full pass** when `modulesSinceLastProposal >= 5`
 - When orchestrator / human runs `/skill-update` or dispatches `@learning-agent` explicitly
 
 ## Pattern identification rules
@@ -39,71 +49,34 @@ A **pattern** is actionable only if ≥2 of:
 **Non-patterns** (do not propose skill changes):
 - One-off bugs, typos, environment issues
 - Domain-specific product decisions (those go to `docs/memory/decisions.md` only)
-- Style nits already covered by existing rules
 
-## Output contract (mandatory)
+## Output (mandatory)
 
 Write a **proposal** file — never edit SKILL.md in place without approval:
 
 `docs/reviews/YYYY-MM-DD-skill-update-proposal.md`
 
-```markdown
-# Skill Update Proposal — YYYY-MM-DD
-
-Status: PENDING_APPROVAL
-
-## Trigger
-- Retrospective entries: [list dates/modules]
-- Pattern id: `kebab-case-id`
-- Confidence: high | medium | low
-
-## Evidence
-- Quote 2+ retrospective bullets / root causes
-- Related gotcha/shortcut if any
-
-## Proposed change
-### Target
-- Path: `.cursor/skills/<id>/SKILL.md`  OR  `.cursor/patterns/<area>/<name>.md`
-- Change type: amend checklist | add forbidden | add reference | new pattern file
-
-### Patch (unified diff or exact section to insert)
-```diff
-@@ ...
-+ - [ ] New checklist item from pattern
-```
-
-### Why this belongs in the skill
-One sentence: how the next agent will avoid the same failure.
-
-## Non-goals
-- What we deliberately did NOT change
-
-## Approval
-- [ ] Orchestrator / human approved
-- [ ] Applied (date + commit)
-```
+Status: `PENDING_APPROVAL`. Include trigger, evidence (2+), minimal patch, non-goals.
 
 ## Best practices
 
-1. **Propose, don't apply** — default is PENDING_APPROVAL. Only apply after explicit approval (or a documented auto-apply policy for pure gotcha locks).
-2. **Minimal patch** — one pattern → one focused change. Prefer a checklist bullet or a short "Avoid" block over rewriting the whole skill.
-3. **Prefer patterns folder** for reusable anti-patterns that are not skill-specific (`.cursor/patterns/<domain>/`).
-4. **Update memory in parallel** — if the pattern is a durable gotcha/shortcut/decision, also append to the matching `docs/memory/*` file (1–3 lines, dated).
-5. **Never** bulk-load or rewrite `skills-manifest.v2.json` unless registering a brand-new skill.
-6. **Idempotent** — if the same proposal already exists as PENDING or APPLIED, do not duplicate; refresh evidence only.
-7. **Token discipline** — proposal body ≤ ~800 tokens; patch itself should be the smallest correct change.
+1. **Propose, don't apply** by default.
+2. **Minimal patch** — one pattern → one focused change.
+3. Prefer `.cursor/patterns/<domain>/` for reusable anti-patterns.
+4. Update `docs/memory/*` in parallel when durable (1–3 lines, dated).
+5. Never bulk-rewrite `skills-manifest.v2.json` unless registering a new skill.
+6. Idempotent proposals.
+7. Proposal body ≤ ~800 tokens.
 
-## Anti-patterns (skill-updater must not)
+## Anti-patterns
 
 - Silent rewrite of any `SKILL.md`
 - Inventing patterns without retrospective evidence
-- Turning product domain rules into portable skills
 - Expanding scope to "improve all skills while we're here"
-- Writing implementation code for product features
 
 ## After approval
 
-1. Apply the patch to the target file.
-2. Set proposal Status to `APPLIED` with date.
-3. Optionally add a one-line note under the latest retrospective entry: `Skill updated: <path>`.
-4. If a new pattern file was created, ensure it is discoverable (pattern-matcher keywords / index if the repo maintains one).
+1. Apply the patch.
+2. Set proposal Status to `APPLIED`.
+3. Optional retrospective note: `Skill updated: <path>`.
+4. Register new pattern files in pattern index when required.
