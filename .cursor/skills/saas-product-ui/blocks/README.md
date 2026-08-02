@@ -1,53 +1,72 @@
 # SaaS Product UI — Block Library
 
-Concrete, drop-in patterns for **in-app** surfaces. Complements `saas-product-ui/SKILL.md`.
-
-Marketing / landing blocks live under taste-design (if any) — **do not** mix.
+Concrete patterns for **in-app** surfaces. Marketing blocks → taste-design only.
 
 ## Index
 
-| Block | Path | Use when |
-|-------|------|----------|
-| Sidebar nav | `app-shell/sidebar-nav.md` | Primary product navigation |
-| Top bar | `app-shell/top-bar.md` | Crumbs, search trigger, user menu |
-| Metric strip | `dashboard/metric-strip.md` | Home / overview KPIs (4–6 max) |
-| Data table + toolbar | `data/data-table.md` | Primary list/report surfaces |
-| Empty state | `states/empty-state.md` | First-use, no-results, error-empty |
-| Skeleton page | `states/skeleton-page.md` | Route-level loading |
-| Settings section | `settings/settings-section.md` | Workspace / profile / billing forms |
-| Onboarding checklist | `onboarding/checklist.md` | In-app setup progress |
-| Command palette | `navigation/command-palette.md` | ⌘K navigation + actions |
+### App shell
+| Block | Path |
+|-------|------|
+| Sidebar nav | `app-shell/sidebar-nav.md` |
+| Top bar | `app-shell/top-bar.md` |
+| Page header | `app-shell/page-header.md` |
 
-## Schema (every block file)
+### Dashboard & data
+| Block | Path |
+|-------|------|
+| Metric strip | `dashboard/metric-strip.md` |
+| Data table + toolbar | `data/data-table.md` |
+| Status badge | `data/status-badge.md` |
+| Filter sheet | `data/filter-sheet.md` |
+
+### States
+| Block | Path |
+|-------|------|
+| Empty state | `states/empty-state.md` |
+| Skeleton page | `states/skeleton-page.md` |
+| Confirm dialog | `states/confirm-dialog.md` |
+| Toast | `states/toast.md` |
+
+### Settings & onboarding
+| Block | Path |
+|-------|------|
+| Settings section | `settings/settings-section.md` |
+| Billing panel | `settings/billing-panel.md` |
+| Onboarding checklist | `onboarding/checklist.md` |
+
+### Navigation
+| Block | Path |
+|-------|------|
+| Command palette | `navigation/command-palette.md` |
+
+### Compositions (assemble, don't invent)
+| Recipe | Path |
+|--------|------|
+| Customers list page | `compositions/customers-page.md` |
+
+## Tokens
+
+Starter semantic tokens: `../references/tokens.md` → copy to `docs/design/tokens.md`.
+
+## Schema
+
+Every block file:
 
 ```yaml
 ---
 name: block-id
-category: app-shell | data | states | settings | onboarding | dashboard | navigation
-dial_compatibility:
-  variance: [min, max]
-  motion: [min, max]
-  density: [min, max]
-when_to_use: "..."
-not_for: "..."
-stack: [react, next, tailwind]
+category: ...
+dial_compatibility: { variance, motion, density }
+when_to_use / not_for / stack
 ---
 ```
 
-Body sections (required):
-1. Visual sketch (ASCII)
-2. Props API
-3. Code sketch (RSC-friendly; client only when needed)
-4. Mobile fallback
-5. Motion variants (bands 1–3 / 4–7 — product rarely uses 8–10)
-6. Dark-mode notes
-7. Anti-patterns
-8. References
+Body: sketch · props · code · mobile · motion · dark · anti-patterns · references.
 
-## Discipline
+## Quality bar (beautiful SaaS)
 
-- One block per file; standalone renderable sketch.
-- Spacing on **4px grid** only.
-- Product dials: low variance/motion, high density.
-- Prefer skeleton over spinner for page loads.
-- Empty first-use ≠ empty filtered results (different copy + CTA).
+1. **Quiet chrome** — hierarchy via type weight + spacing, not gradients
+2. **Density for work** — 13px body, tight rows, 4px grid
+3. **One accent** — primary CTA only; semantic colors for status
+4. **Complete states** — loading skeleton, dual empty, error, confirm
+5. **Compose blocks** — compositions/* before inventing new shells
