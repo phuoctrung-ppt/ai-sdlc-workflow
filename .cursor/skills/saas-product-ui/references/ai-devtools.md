@@ -3,7 +3,7 @@
 **Use when:** AI copilots, agent consoles, LLM ops, IDE-like tools, API platforms for builders.
 
 ## Aesthetic
-- **Dark-first friendly** (Linear / Raycast energy) with quiet chrome.
+- **Dark-first friendly** (Linear / Raycast / Vercel energy) with quiet chrome.
 - Mono for tokens, model names, latency, token counts.
 - Sparse decoration; keyboard-first density.
 
@@ -12,11 +12,12 @@
 - MOTION: 2–4
 - DENSITY: 7–8
 
-## Patterns
-- Command palette (`⌘K`) as primary navigation accelerator.
+## Patterns (2026)
+- Command palette (`⌘K`) as primary accelerator.
+- **Calm default** work list; Insights/metrics one click away (`insights-link`).
 - Stream/log panels with sticky filters; virtualize long lists.
-- "Calm default" list of work; analytics one click away.
-- Prompt / run history as first-class objects (table or timeline).
+- AI output in **`ai-summary-surface`** or result panels — never purple glow chrome.
+- Vercel-like: one question per ops view (“did it work?”) via `single-metric-focus` when relevant.
 
 ## Avoid
 - Purple glow AI clichés on every button

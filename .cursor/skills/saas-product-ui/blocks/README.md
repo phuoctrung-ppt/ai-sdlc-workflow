@@ -1,6 +1,8 @@
 # SaaS Product UI — Block Library
 
-Concrete patterns for **in-app** surfaces. Marketing blocks → taste-design only.
+In-app patterns only. Marketing → taste-design.
+
+Benchmark context: `../references/benchmarks-2026.md` (Linear, Stripe, Vercel, Attio, …).
 
 ## Index
 
@@ -11,13 +13,21 @@ Concrete patterns for **in-app** surfaces. Marketing blocks → taste-design onl
 | Top bar | `app-shell/top-bar.md` |
 | Page header | `app-shell/page-header.md` |
 
-### Dashboard & data
+### Dashboard
 | Block | Path |
 |-------|------|
 | Metric strip | `dashboard/metric-strip.md` |
+| Single-metric focus | `dashboard/single-metric-focus.md` |
+
+### Data
+| Block | Path |
+|-------|------|
 | Data table + toolbar | `data/data-table.md` |
 | Status badge | `data/status-badge.md` |
 | Filter sheet | `data/filter-sheet.md` |
+| Ranked list | `data/ranked-list.md` |
+| AI summary surface | `data/ai-summary-surface.md` |
+| Record preview | `data/record-preview.md` |
 
 ### States
 | Block | Path |
@@ -38,35 +48,22 @@ Concrete patterns for **in-app** surfaces. Marketing blocks → taste-design onl
 | Block | Path |
 |-------|------|
 | Command palette | `navigation/command-palette.md` |
+| Insights link | `navigation/insights-link.md` |
 
-### Compositions (assemble, don't invent)
+### Compositions
 | Recipe | Path |
 |--------|------|
-| Customers list page | `compositions/customers-page.md` |
+| Customers list | `compositions/customers-page.md` |
+| Dashboard home | `compositions/dashboard-home.md` |
 
 ## Tokens
 
-Starter semantic tokens: `../references/tokens.md` → copy to `docs/design/tokens.md`.
+`../references/tokens.md` → `docs/design/tokens.md`
 
-## Schema
+## Quality bar (2026)
 
-Every block file:
-
-```yaml
----
-name: block-id
-category: ...
-dial_compatibility: { variance, motion, density }
-when_to_use / not_for / stack
----
-```
-
-Body: sketch · props · code · mobile · motion · dark · anti-patterns · references.
-
-## Quality bar (beautiful SaaS)
-
-1. **Quiet chrome** — hierarchy via type weight + spacing, not gradients
-2. **Density for work** — 13px body, tight rows, 4px grid
-3. **One accent** — primary CTA only; semantic colors for status
-4. **Complete states** — loading skeleton, dual empty, error, confirm
-5. **Compose blocks** — compositions/* before inventing new shells
+1. Calm default / progressive disclosure
+2. Single-metric or ranked attention — not equal noise
+3. AI as layout surface, not decoration
+4. Multi-representation records (list · preview · ⌘K · page)
+5. Density 6–8, one accent, semantic status only

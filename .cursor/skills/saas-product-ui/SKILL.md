@@ -1,32 +1,32 @@
 ---
 name: saas-product-ui
-description: In-app SaaS product UI — app shell, sidebar, data tables, settings, empty/loading states, onboarding. Not marketing landings (use taste-design for those).
+description: In-app SaaS product UI — app shell, tables, ranked lists, settings, AI summary surfaces. Not marketing (use taste-design).
 ---
 
 # SaaS Product UI
 
-Portable skill for **product surfaces** inside a modern SaaS app. Complements `taste-design` (marketing / landing / portfolio only).
+Portable skill for **authenticated product surfaces**. Complements `taste-design` (marketing only).
 
-> References: Linear (calm default, keyboard density), Stripe Dashboard (tables + metric hierarchy),
-> Notion (modular views), Vercel (quiet chrome). 2025–2026 norms: collapsible sidebar, 4px grid,
-> neutral + one accent + semantic status.
+Benchmarks & patterns: `references/benchmarks-2026.md`  
+(Linear, Stripe, Vercel, Attio, Notion, PostHog — 2026 consensus).
 
 ## When to use
 
-| Surface | Use this skill |
-|---------|----------------|
-| App shell, sidebar, top bar, command palette | Yes |
-| Lists, data tables, filters, bulk actions | Yes |
-| Settings, billing, team/members, audit logs | Yes |
-| Empty / loading / error / confirm / toast | Yes |
-| Onboarding checklist | Yes |
-| Marketing landing, pricing page, portfolio | **No → taste-design** |
+| Surface | This skill |
+|---------|------------|
+| App shell, sidebar, ⌘K | Yes |
+| Lists, tables, ranked queues, filters | Yes |
+| Home / overview (metric or work-first) | Yes |
+| Record preview, AI summary panels | Yes |
+| Settings, billing, onboarding | Yes |
+| Marketing landing / pricing page | **No → taste-design** |
 
-## Step 0 — Surface + domain + tokens
+## Step 0 — Surface, domain, tokens, benchmark pattern
 
-1. Surface: `product` (this skill).
-2. Domain pack under `references/` when known: fintech, ai-devtools, marketplace, health-care, b2b-ops.
-3. Lock tokens from `references/tokens.md` into `docs/design/tokens.md` (one neutral family, one accent).
+1. Surface = `product`.
+2. Domain pack: `references/fintech.md` | `ai-devtools.md` | `marketplace.md` | `health-care.md` | `b2b-ops.md` | generic.
+3. Lock `references/tokens.md` → `docs/design/tokens.md`.
+4. Declare **home pattern** (see below) when designing overview.
 
 ## Product dials
 
@@ -36,70 +36,76 @@ Portable skill for **product surfaces** inside a modern SaaS app. Complements `t
 | MOTION | **2–4** | 6–8 |
 | DENSITY | **6–8** | 3–5 |
 
-Boring on purpose: scan speed > spectacle.
+## Hall-of-fame patterns (implement these)
 
-## Block library — prefer these
+| Pattern | Source | Block / composition |
+|---------|--------|---------------------|
+| Calm default — work list first | Linear | `data-table` / `ranked-list` + `insights-link` |
+| Single-metric focus | Stripe, Vercel | `single-metric-focus` |
+| Progressive disclosure | Linear, Notion | `insights-link`; depth not on first paint |
+| Ranked attention | Attio | `ranked-list` |
+| AI as surface | Attio | `ai-summary-surface` (no purple chrome) |
+| Multi-representation record | Attio | list + `record-preview` + ⌘K + page |
+| Quiet dense analytics | PostHog | table-first; personality without noise |
 
-Full index: `blocks/README.md`.
+Full narrative: `references/benchmarks-2026.md`.
 
-| Need | Block |
-|------|-------|
-| Nav / top / title | `blocks/app-shell/*` |
-| KPIs | `blocks/dashboard/metric-strip.md` |
-| Tables / badges / filters | `blocks/data/*` |
-| Empty / skeleton / confirm / toast | `blocks/states/*` |
-| Settings / billing | `blocks/settings/*` |
-| Onboarding | `blocks/onboarding/checklist.md` |
-| ⌘K | `blocks/navigation/command-palette.md` |
-| Full page recipe | `blocks/compositions/customers-page.md` |
+## Block library
 
-**Rule:** compose from blocks + compositions before inventing new chrome.
+Index: `blocks/README.md`.
+
+**Compose first** via:
+- `blocks/compositions/dashboard-home.md`
+- `blocks/compositions/customers-page.md`
+
+Core families: `app-shell/*`, `dashboard/*`, `data/*`, `states/*`, `settings/*`, `navigation/*`, `onboarding/*`.
 
 ## Foundations
 
-- Sidebar 240–280px (default 256); soft active state; mobile drawer
-- Spacing 4 / 8 / 12 / 16 / 24 / 32 / 48
-- Type: 18–20 title, 13–14 body/table, 12 label; mono for money/IDs
-- Semantic status only via `status-badge` tones
-- Dual empty: first-use ≠ filtered
-- Skeleton matching layout, not spinner-only pages
+- Sidebar 240–280px (256 default); soft active; mobile drawer
+- 4px grid; spacing 4–48
+- Type: 18–20 title, 13–14 body, 12 meta; tabular nums for money
+- One accent (CTA only); semantic chips via `status-badge`
+- Dual empty states; skeleton ≠ spinner-only page
+- Light + dark tokens from day one
 
 ## Anti-patterns
 
-- Marketing hero / bento / scroll-hijack in authenticated app
-- AI-purple chrome, three equal feature cards as dashboard
-- Same copy for first-use and filtered empty
-- Instant destructive actions without `confirm-dialog`
-- Second accent color mid-product
+- Chart wallpaper / 12 equal KPIs on home
+- Marketing bento or scroll-hijack in-app
+- AI-purple gradients, sparkle spam
+- Equal-weight rows when product should prioritize
+- Different field language across list vs preview vs page
+- Insights and daily work fighting for the same default screen
 
 ## Design spec must include
 
-1. Surface `product` + domain pack + dials  
-2. Tokens pointer  
-3. **Blocks used** (ids)  
-4. Shell widths + nav IA  
-5. States: loading / empty / error / confirm  
-6. Sketches: app frames under `docs/design/sketches/{feature}/`
+1. Surface + domain + dials  
+2. Benchmark pattern chosen (calm / single-metric / ranked / …)  
+3. Tokens pointer  
+4. Blocks + composition ids  
+5. States: loading, empty×2, error, confirm  
+6. App-frame sketches under `docs/design/sketches/{feature}/`
 
 ## Pre-flight
 
-- [ ] Tokens locked (neutral + one accent + semantic)
-- [ ] Blocks from library (or justify custom)
-- [ ] Composition followed when list/settings/billing
+- [ ] Pattern matches product job (not generic pretty dashboard)
+- [ ] Blocks composed; chrome not invented
 - [ ] Density 6–8; motion feedback-only
-- [ ] WCAG AA; reduced-motion respected
-- [ ] No marketing patterns inside shell
+- [ ] AI panels are useful surfaces, not decoration
+- [ ] WCAG AA; reduced-motion OK
 
 ## Handoff keywords
 
 ```
-saas,product-ui,app-shell,sidebar,dashboard,data-table,settings,billing,empty-state,onboarding,command-palette
+saas,product-ui,app-shell,sidebar,dashboard,data-table,ranked-list,ai-summary,settings,billing,empty-state,command-palette,insights
 ```
 
 ## References
 
 | File | When |
 |------|------|
-| `references/tokens.md` | Always for product track |
-| `references/*.md` domain packs | Known industry |
-| `blocks/README.md` | Implementing UI |
+| `references/benchmarks-2026.md` | Choosing patterns |
+| `references/tokens.md` | Always |
+| `references/<domain>.md` | Known industry |
+| `blocks/README.md` | Implementation |
