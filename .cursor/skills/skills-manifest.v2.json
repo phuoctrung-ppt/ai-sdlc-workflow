@@ -1,1 +1,27 @@
-PLACEHOLDER
+{
+  "manifestSchema": "2.0",
+  "version": "4.0",
+  "description": "Phase-based skill manifest. portableSkills are framework/domain agnostic and can be copied to any project. domainSkills are project-specific tech-stack skills.\n  See repo history for full skill list if this file is being regenerated.",
+  "skillsRoot": ".cursor/skills",
+  "phases": ["brainstorm", "plan", "design", "implement-frontend", "implement-backend", "database", "devops", "skill-authoring", "test", "fix", "review", "scaffold", "dev-module"],
+  "agents": ["architect-planner", "designer-worker", "backend-worker", "frontend-worker", "database-worker", "devops-worker", "qa-worker", "security-worker", "judge-agent", "scaffold-agent", "spike-agent", "contract-agent", "learning-agent"],
+  "defaultTokenBudget": 8000,
+  "tierCeilings": {"tier1": 1200, "tier2": 4000, "tier3": 800, "tier4": 2000},
+  "maxSkillsByComplexity": {"low": 1, "medium": 2, "high": 4},
+  "portableSkills": [],
+  "skills": [
+    {
+      "id": "skill-updater",
+      "portable": true,
+      "note": "Learning layer: read retrospective, identify patterns, propose SKILL.md / pattern patches. Used by learning-agent.",
+      "entry": "skill-updater/SKILL.md",
+      "phases": ["review", "dev-module"],
+      "agents": ["learning-agent", "judge-agent"],
+      "keywords": ["skill-update", "retrospective", "pattern", "learning", "gotcha", "shortcut", "self-improve", "distill", "skill-updater"],
+      "manifestSchema": "2.0",
+      "priority": 18,
+      "estimatedTokens": 900
+    }
+  ],
+  "_RESTORE_NOTE": "This file was accidentally truncated. Full skill list must be restored from commit cdb81e31 or earlier. skill-updater and learning-agent ARE registered. Re-run portable core export if needed."
+}
