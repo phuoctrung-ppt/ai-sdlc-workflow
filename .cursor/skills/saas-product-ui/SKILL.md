@@ -47,6 +47,26 @@ Portable skill for **product surfaces** inside a modern SaaS app. Complements `t
 - Motion only for feedback (open modal, row select, toast) — not scroll theater.
 - Density serves data work; do not apply gallery spacing (`py-32`) to app content.
 
+## Block library (implement from these first)
+
+Prefer composition from `blocks/` instead of inventing new chrome:
+
+| Need | Block file |
+|------|------------|
+| Primary nav | `blocks/app-shell/sidebar-nav.md` |
+| Top chrome | `blocks/app-shell/top-bar.md` |
+| Home KPIs | `blocks/dashboard/metric-strip.md` |
+| Lists / reports | `blocks/data/data-table.md` |
+| No data | `blocks/states/empty-state.md` |
+| Loading | `blocks/states/skeleton-page.md` |
+| Settings | `blocks/settings/settings-section.md` |
+| First-run setup | `blocks/onboarding/checklist.md` |
+| ⌘K | `blocks/navigation/command-palette.md` |
+
+Index + schema: `blocks/README.md`.
+
+Each block includes: ASCII sketch, props API, code sketch, mobile fallback, motion bands, dark notes, anti-patterns.
+
 ## Foundations (2026 SaaS norms)
 
 ### Navigation
@@ -89,42 +109,17 @@ Portable skill for **product surfaces** inside a modern SaaS app. Complements `t
 │          │ canvas)                     │
 └──────────┴─────────────────────────────┘
 ```
-- Sidebar: product switcher (if multi-product), primary nav, secondary (settings/help) at bottom.
-- Top bar stays thin (48–56px). No giant agency headers.
 
-### Data tables (Stripe-informed)
-- Tables are a **primary interface**, not a leftover.
-- Sticky header; row hover; selectable rows when bulk actions exist.
-- Toolbar above: search, filters, view switch, primary action (right-aligned).
-- Empty filter results ≠ empty state (different copy).
-- Numeric columns right-aligned; dates monospace or tabular nums.
+### Data tables
+- Sticky header; row hover; selection + bulk bar when needed.
+- Toolbar: search + filters left; primary action right.
+- **first-use empty ≠ filtered empty** (different copy + CTA).
 
-### Metric strip (dashboard home)
-- 4–6 KPI cards max; one **north-star metric** emphasized (Stripe pattern).
-- Calm default: numbers first, charts optional one click away (Linear Insights pattern).
-- Skeleton loaders matching card shape — no generic spinners for whole page.
+### Metric strip
+- 4–6 KPIs; one north-star emphasized; skeleton while loading.
 
-### Settings
-- Left sub-nav or vertical section list + content panel.
-- Group by task (Profile, Workspace, Billing, Security) — not by engineering module name.
-- Destructive actions: confirm dialog; never instant.
-
-### Empty / loading / error
-| State | Requirement |
-|-------|-------------|
-| Loading | Skeleton matching final layout |
-| Empty (first use) | Illustration optional; clear CTA to create first object |
-| Empty (filters) | "No results" + clear filters |
-| Error | Inline or banner; retry when safe; no blameful copy |
-
-### Onboarding
-- Checklist in product > long marketing carousel.
-- Progressive: complete setup steps without leaving the app shell.
-- Dismissible; never block power users permanently.
-
-### Command palette / keyboard
-- Power-tool SaaS (Linear-like): `⌘K` / `Ctrl+K` for navigation and actions.
-- Document shortcuts in UI sparingly (tooltip or `?` sheet).
+### Settings / onboarding / command palette
+- See corresponding blocks under `blocks/`.
 
 ## Anti-patterns (product UI)
 
@@ -134,48 +129,46 @@ Portable skill for **product surfaces** inside a modern SaaS app. Complements `t
 - Centered "welcome" manifesto instead of the user's work list
 - Fake div screenshots of the product inside the product
 - Mixing Fluent + shadcn in the same tree
-- Dense charts on the home view when a simple list is the daily driver (prefer Linear "calm default")
+- Dense charts on the home view when a simple list is the daily driver
 
 ## Design spec requirements (product track)
-
-When `@designer-worker` uses this skill, the design spec MUST include:
 
 1. **Surface type:** `product`
 2. **Domain pack** used (or `generic`)
 3. **Product dials** (V/M/D)
-4. **Shell:** sidebar width, nav IA, top bar contents
-5. **Components:** table / form / empty states with all interaction states
-6. **Tokens:** pointer to `docs/design/tokens.md` updates (surfaces, accent, semantic)
-7. **Sketches:** key screens under `docs/design/sketches/{feature}/` (app frames, not marketing heroes)
-8. **Asset pack:** usually N/A for pure chrome; required only if branded empty-state illustration or custom icons ship
+4. **Blocks used** (list ids from `blocks/`)
+5. **Shell:** sidebar width, nav IA, top bar contents
+6. **Components:** table / form / empty states with all interaction states
+7. **Tokens:** `docs/design/tokens.md` updates
+8. **Sketches:** app frames under `docs/design/sketches/{feature}/`
+9. **Asset pack:** N/A unless branded empty-state art / custom icons
 
 ## Pre-flight (product)
 
-- [ ] Surface type declared `product` (not marketing dials)
-- [ ] Domain pack applied or explicitly generic
+- [ ] Surface type `product`
+- [ ] Domain pack applied or generic
+- [ ] Blocks chosen from library (or justify custom)
 - [ ] Sidebar/top-nav: one primary pattern; width 240–280px if sidebar
 - [ ] Spacing on 4px grid only
 - [ ] One accent + semantic status only
-- [ ] Table/list: sticky header, toolbar, empty + loading states
+- [ ] Table/list: sticky header, toolbar, dual empty states
 - [ ] No marketing layout families inside app shell
 - [ ] Light + dark tokens considered
-- [ ] WCAG AA on text and interactive elements
-- [ ] Motion ≤ feedback level; `prefers-reduced-motion` respected
+- [ ] WCAG AA; `prefers-reduced-motion` respected
 
-## Handoff keywords for context-builder
+## Handoff keywords
 
 ```
-saas,product-ui,app-shell,sidebar,dashboard,data-table,settings,empty-state,onboarding,billing
+saas,product-ui,app-shell,sidebar,dashboard,data-table,settings,empty-state,onboarding,billing,command-palette
 ```
-
-Plus domain keywords: `fintech` | `ai,devtools` | `marketplace` | `health` | `b2b,ops,admin`
 
 ## References (lazy)
 
 | File | When |
 |------|------|
-| `references/fintech.md` | Payments, banking, compliance-heavy |
-| `references/ai-devtools.md` | AI products, agent UIs, eng tools |
-| `references/marketplace.md` | Listings, multi-vendor, discovery |
-| `references/health-care.md` | Clinical / wellness calm UI |
-| `references/b2b-ops.md` | Admin, multi-tenant ops |
+| `references/fintech.md` | Payments, banking |
+| `references/ai-devtools.md` | AI / eng tools |
+| `references/marketplace.md` | Listings / multi-vendor |
+| `references/health-care.md` | Clinical / wellness |
+| `references/b2b-ops.md` | Admin / multi-tenant |
+| `blocks/README.md` | Block index + schema |
