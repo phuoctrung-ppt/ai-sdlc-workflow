@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "modulesSinceLastProposal": 0,
+  "lastSkillProposalPath": null,
+  "lastSkillProposalAt": null,
+  "lastModuleCompleted": null,
+  "note": "Orchestrator updates modulesSinceLastProposal on each /dev-module Phase 6. Reset to 0 when a skill-update proposal is written (or /skill-update full pass). learning-agent treats count >= 5 as full-pass required."
+}

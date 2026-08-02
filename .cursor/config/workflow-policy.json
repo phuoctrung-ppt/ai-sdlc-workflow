@@ -1,61 +1,33 @@
 {
-  "schemaVersion": 2,
-  "workflowName": "Agentic Planner-Worker-Judge Workflow V2",
-  "description": "Domain-agnostic agentic workflow with deterministic context orchestration. Project identity in AGENTS.md; runtime context via .memory/ and context-builder.",
-  "standardsDocs": [
-    "AGENTS.md",
-    ".memory/constraints.md"
+  "schemaVersion": 1,
+  "description": "Domain-agnostic agentic workflow with deterministic context orchestration. Durable memory: docs/memory/*; AGENTS.md identity; .memory/* generated cache only.",
+  "projectIdentity": "AGENTS.md",
+  "durableMemory": [
+    "docs/memory/decisions.md",
+    "docs/memory/gotchas.md",
+    "docs/memory/shortcuts.md"
   ],
-  "entrypointDocs": [
+  "runtimeContextCache": [
+    ".memory/constraints.md",
     ".memory/architecture.md",
-    "AGENTS.md"
+    ".memory/coding-style.md"
   ],
-  "contextBuilder": {
+  "context": {
     "entrypoint": ".cursor/context/context-builder.py",
     "intentDetector": ".cursor/context/intent-detector.py",
     "memoryLoader": ".cursor/context/memory-loader.py",
     "patternMatcher": ".cursor/context/pattern-matcher.py",
-    "agentMatrix": ".cursor/config/agent-matrix.json",
-    "contextBudget": ".cursor/config/context-budget.json",
-    "skillsManifestV2": ".cursor/skills/skills-manifest.v2.json",
-    "legacySkillLoader": ".cursor/skills/scripts/skill-loader.py"
+    "note": "Hyphen paths are CLI entrypoints. Underscore modules (context_builder.py, etc.) are internal libraries — do not invoke as scripts."
   },
-  "artifactDirs": {
-    "plans": "docs/plans",
-    "adrs": "docs/adr",
-    "reviews": "docs/reviews",
-    "patterns": ".cursor/patterns",
-    "memory": ".memory",
-    "handoffs": ".cursor/context/handoffs"
+  "learning": {
+    "stateFile": ".cursor/state/workflow-state.json",
+    "fullPassAfterModules": 5,
+    "counterKey": "modulesSinceLastProposal"
   },
-  "cycle": [
-    "classify",
-    "intent-detect",
-    "context-build",
-    "plan",
-    "execute",
-    "verify",
-    "review",
-    "loop-or-complete"
-  ],
-  "protectedChanges": {
-    "classifier": ".cursor/config/protected-paths.json",
-    "requirePlan": true,
-    "requireReview": true,
-    "failClosedOnlyWhenProtected": true,
-    "stopRetryCap": 2,
-    "overrideLog": "docs/reviews/review-overrides.log"
-  },
-  "workerScopes": {
-    "config": ".cursor/config/worker-scopes.json",
-    "enforcement": "preToolUse"
-  },
-  "portableSetupNotes": [
-    "To port to another repo:",
-    "1. Copy .cursor/ folder, .memory/, and AGENTS.md.",
+  "porting": [
+    "1. Copy .cursor/ folder, .memory/, docs/memory/, and AGENTS.md.",
     "2. Fill AGENTS.md; run: python3 .cursor/context/memory-loader.py --sync",
-    "3. Update protected-paths.json projectProtectedGlobs.",
-    "4. Register domain skills in skills-manifest.v2.json.",
-    "5. Use context-builder.py before every agent task."
+    "3. Treat docs/memory/* as durable SoT; regenerate .memory/* after AGENTS changes.",
+    "4. Use context-builder.py (hyphen) before every agent task."
   ]
 }
