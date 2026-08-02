@@ -12,12 +12,15 @@
 - MOTION: 2–3
 - DENSITY: 7–8
 
-## Patterns
-- North-star metric: balance, revenue, or volume (Stripe-style permanent home).
-- Status chips: cleared / pending / failed — semantic colors only.
-- Confirmation on transfers, payouts, API key reveal.
-- Audit trail views: mono timestamps, immutable copy tone.
+## Patterns (2026)
+- **North-star metric** permanent home — `single-metric-focus` (Stripe-style revenue seat).
+- Secondary KPIs quiet under hero or `metric-strip` ≤4.
+- Tables as primary interface for transactions (`data-table`).
+- Status chips: cleared / pending / failed — semantic only (`status-badge`).
+- Confirmation on transfers, payouts, API key reveal (`confirm-dialog`).
+- Mercury/Ramp calm language — no gamified money UI.
 
 ## Avoid
 - Gamified gradients, stock-photo lifestyles in app chrome
 - Hiding fees or primary amounts in low-contrast text
+- Chart-first home when balance/revenue is the daily question
