@@ -1,14 +1,23 @@
 ---
-description: Memory + Learning layers — persistent compressed truth and self-improvement via learning-agent (not chat memory)
+description: Memory + Learning layers — docs/memory primary SoT; .memory generated cache; learning-agent gated by workflow-state counter
 globs: "**/*"
 alwaysApply: true
 ---
 
 # Memory & Learning Rules (V2+)
 
-## Memory Layer (Tầng 2)
+## Two memory locations — not peers
 
-Source of truth for cross-session knowledge (read early, write only via distillation / learning-agent):
+| Location | Role | Who writes |
+|----------|------|------------|
+| **`docs/memory/*`** | **Primary source of truth** — durable cross-session decisions / gotchas / shortcuts | Phase 6 distillation, `@learning-agent` |
+| **`.memory/*`** | **Generated cache** for context-builder (short extracts from `AGENTS.md`) | `memory-loader.py --sync` only |
+
+**Read order for agents:** `docs/memory/decisions.md`, `gotchas.md`, `shortcuts.md` first. Use `.memory/constraints.md` (etc.) only as a compressed stand-in for full `AGENTS.md` — never as a substitute for `docs/memory/*` facts.
+
+If the two disagree on a **product/workflow decision**, **`docs/memory/*` wins**. Regenerate `.memory/*` via `python3 .cursor/context/memory-loader.py --sync` after AGENTS.md changes — do not hand-edit `.memory/*` as if it were durable memory.
+
+### Primary files (SoT)
 
 | File | Purpose |
 |------|---------|
@@ -16,10 +25,18 @@ Source of truth for cross-session knowledge (read early, write only via distilla
 | `docs/memory/gotchas.md` | Patterns that already failed |
 | `docs/memory/shortcuts.md` | Patterns that already worked |
 
-Also keep the generated `.memory/*` files in sync (architecture, constraints, known-decisions, known-issues).
+### Generated cache (not SoT)
+
+| File | Purpose |
+|------|---------|
+| `.memory/architecture.md` | Short architecture extract from AGENTS |
+| `.memory/constraints.md` | Stack/compliance constraints extract |
+| `.memory/coding-style.md` | Style extract |
+| `.memory/known-decisions.md` | Cache only — prefer `docs/memory/decisions.md` |
+| `.memory/known-issues.md` | Cache only — prefer gotchas/retrospective |
 
 ### Rules
-- Every agent that plans or implements MUST consider the three memory files above.
+- Every agent that plans or implements MUST consider **`docs/memory/*`**.
 - Do **not** invent solutions that contradict a locked decision or known gotcha.
 - Prefer shortcuts over rediscovery.
 
@@ -29,29 +46,31 @@ Also keep the generated `.memory/*` files in sync (architecture, constraints, kn
 |--------------|---------|
 | `docs/retrospective.md` | Per-module metrics + root cause |
 | `docs/module-deps.md` | Dependency graph + hard-gate |
-| `@learning-agent` | Owns pattern detection + skill proposals |
+| `.cursor/state/workflow-state.json` | `modulesSinceLastProposal` counter |
+| `@learning-agent` | Pattern detection + skill proposals |
 | `skill-updater` skill | Best practices for proposals / patches |
 | `/skill-update` | Explicit full learning pass |
 
 ### Distillation vs Learning
 
-**Phase 6 of `/dev-module` (lightweight — orchestrator or worker):**
-1. Append retrospective entry (estimate vs actual, loops, root cause, pattern candidate).
-2. Extract obvious 1–5 facts into memory files when clear.
+**Phase 6 of `/dev-module` (lightweight — orchestrator):**
+1. Append retrospective entry.
+2. Extract obvious 1–5 facts into **`docs/memory/*`** only (not `.memory/*`).
 3. Update `docs/module-deps.md` status → `done`.
-4. **Dispatch `@learning-agent`** for pattern scan (do **not** invent skill patches inside dev-module itself).
+4. Increment `modulesSinceLastProposal` in `.cursor/state/workflow-state.json`.
+5. **Dispatch `@learning-agent`** with the counter value in the task text.
 
-**Learning agent (true self-learning):**
-1. Read retrospective + memory using skill `skill-updater`.
-2. Identify repeating patterns (≥2 signals).
-3. Write `docs/reviews/YYYY-MM-DD-skill-update-proposal.md` (PENDING_APPROVAL) with minimal patch.
-4. Apply to `SKILL.md` / `.cursor/patterns/**` **only after** orchestrator/human approval.
-5. Full pass required when ≥5 modules completed since last proposal, or when `/skill-update` is run.
+**Learning agent hard-gate:**
+1. Read `.cursor/state/workflow-state.json` → `modulesSinceLastProposal`.
+2. If `modulesSinceLastProposal < 5` **and** no explicit `/skill-update` / "full pass" in task → **lightweight scan only** (may still propose if ≥2 strong signals in latest entries).
+3. If `modulesSinceLastProposal >= 5` **or** full pass requested → mandatory full retrospective + memory scan; write proposal or explicit `NO_PATTERN` note.
+4. When a proposal file is written, set `modulesSinceLastProposal` to `0` and record `lastSkillProposalPath` / `lastSkillProposalAt`.
 
 ### Forbidden
 - `/dev-module` or any product worker silently rewriting `SKILL.md`
 - Skill changes without a proposal trail
-- Treating chat history as a substitute for retrospective + memory files
+- Treating chat history as durable memory
+- Treating `.memory/*` as equal authority to `docs/memory/*`
 
 ### Module dependency hard-gate
 Before Phase 3 (Execute):
