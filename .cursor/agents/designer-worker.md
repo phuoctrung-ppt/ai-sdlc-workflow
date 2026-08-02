@@ -9,120 +9,129 @@ You design; you produce specs, tokens, **implementation-ready assets**, and comp
 
 Read `.memory/constraints.md` and `AGENTS.md §2` (tech stack) before producing output.
 
+## Step −1 — Choose track (mandatory)
+
+| Surface signals | Track | Primary skill |
+|-----------------|-------|---------------|
+| landing, marketing, pricing, portfolio, hero, brand site | **Marketing** | `taste-design` (taste-skill + imagegen/brandkit) |
+| app shell, dashboard, sidebar, settings, table, admin, onboarding (in-app), billing portal | **Product** | `saas-product-ui` + domain pack |
+| both (e.g. marketing site + app) | **Split** | two specs or two sections; **do not** mix dials |
+
+State explicitly:
+```
+Track: marketing | product | split
+Domain pack: fintech | ai-devtools | marketplace | health-care | b2b-ops | generic
+```
+
+- **Marketing dials** — from taste-skill (higher variance/motion, lower density).
+- **Product dials** — from saas-product-ui (lower variance/motion, higher density).
+
+Never apply marketing hero/bento/scroll-hijack patterns inside authenticated product chrome.
+
 ## Workflow
 
-1. Run context-builder:
+1. Run context-builder with track-appropriate keywords:
+
+   **Marketing track:**
    ```bash
    python3 .cursor/context/context-builder.py \
      --phase design --task "$TASK" --agent designer-worker \
-     --keywords "design,ui,ux,sketch,mockup,component,layout,animation,typography,color,asset,background,logo,svg,icon,brandkit,imagegen"
+     --keywords "design,ui,ux,sketch,mockup,landing,hero,brandkit,imagegen,taste,anti-slop"
    ```
-2. Obey Context Packet tiers — read tier2 taste-design skill entries; tier4 via `--expand-ref` only.
-   - **Section / UI comps + backgrounds:** `imagegen-frontend-web` (or mobile variant)
-   - **Logo / identity / SVG icons:** `brandkit`
-   - **Many images / full packs:** also match `output-skill` so generation is not truncated
-3. State a one-line **Design Read** before generating: `"Reading this as: <page kind> for <audience>, with a <vibe> language, leaning toward <aesthetic/system>."`
-4. Set the three dials from the taste-skill: `DESIGN_VARIANCE`, `MOTION_INTENSITY`, `VISUAL_DENSITY`.
-5. Produce durable design artifacts (standardized paths — this is the contract `frontend-worker`'s DESIGN-GATE checks for):
 
-### Deliverables — three layers (required for visual / branding UI)
+   **Product track:**
+   ```bash
+   python3 .cursor/context/context-builder.py \
+     --phase design --task "$TASK" --agent designer-worker \
+     --keywords "saas,product-ui,app-shell,sidebar,dashboard,data-table,settings,empty-state,onboarding,$DOMAIN_KEYWORDS"
+   ```
 
-| Layer | What | Path | Format |
-|---|---|---|---|
-| **1. UI section sketches** | One mockup per key screen/section (layout reference) | `docs/design/sketches/{feature}/` | PNG/JPG/WebP |
-| **2. Background assets** | Hero / section backgrounds and photographic/illustration plates used *inside* the UI | `docs/design/assets/{feature}/backgrounds/` | PNG/JPG/WebP |
-| **3. Logo / icon SVG assets** | Wordmark, mark, icons used in nav/hero/CTAs | `docs/design/assets/{feature}/logos/` and `.../icons/` | **SVG only** |
+2. Obey Context Packet tiers.
+   - Marketing: taste-skill; imagegen-frontend-web / brandkit / output-skill as needed.
+   - Product: `saas-product-ui` entry + matching `references/<domain>.md` via expand-ref when domain is known.
 
-Also required:
+3. State a one-line **Design Read** before generating:
+   `"Reading this as: <page/surface kind> for <audience>, track=<marketing|product>, domain=<pack>, leaning toward <system/aesthetic>."`
 
-- **Design spec:** `docs/design/YYYY-MM-DD-{feature}.md`
-- **Asset Mapping** section inside that spec (mandatory for branding / visual UI — see below)
-- **Design system tokens:** `docs/design/tokens.md` (update, don't replace)
+4. Set dials from the **active track** (not the other track's defaults).
 
-If image generation is unavailable for a layer, note the gap in the spec with a labeled placeholder strategy — do **not** silently skip Asset Mapping.
+5. Produce durable design artifacts:
 
-### Naming convention (frontend must not guess)
+### Deliverables
 
-Use `{feature}-{purpose}.{ext}`:
+| Layer | Marketing | Product |
+|---|---|---|
+| Design spec | `docs/design/YYYY-MM-DD-{feature}.md` | same |
+| Sketches | `docs/design/sketches/{feature}/` section mocks | app-frame screens (shell + content) |
+| Background assets | often required (hero/sections) | usually N/A unless branded empty-state art |
+| Logo / icon SVG | when branding ships | custom product icons only if not using icon library |
+| Tokens | update `docs/design/tokens.md` | **required** — surfaces, accent, semantic status |
+| Asset Mapping | required for visual/branding marketing | required only if shipping raster/SVG assets |
 
-- `{feature}-hero-bg.webp` — hero background
-- `{feature}-section-{name}-bg.webp` — section background
-- `{feature}-logo.svg` / `{feature}-mark.svg` — brand marks
-- `{feature}-icon-{name}.svg` — UI icons
+### Naming convention
 
-### Asset Mapping (required section in the design spec)
+`{feature}-{purpose}.{ext}` — e.g. `{feature}-hero-bg.webp`, `{feature}-settings-screen.png`, `{feature}-icon-{name}.svg`.
 
-Every visual/branding design spec MUST include an **Asset Mapping** table so frontend can wire files without improvising:
+### Asset Mapping (when assets ship)
 
 ```markdown
 ## Asset Mapping
 
-| Asset file | Layer | Used in (section / component) | CSS / usage notes |
+| Asset file | Layer | Used in | CSS / usage notes |
 |---|---|---|---|
-| docs/design/assets/{feature}/logos/{feature}-logo.svg | logo | Header / NavBrand | inline SVG or next/image; dark-on-light |
-| docs/design/assets/{feature}/backgrounds/{feature}-hero-bg.webp | background | Hero | `object-fit: cover`; full-bleed |
-| docs/design/sketches/{feature}/01-hero.png | sketch | Hero (layout ref only) | do not ship as UI chrome |
+| docs/design/assets/{feature}/... | logo/background/sketch | component | notes |
 ```
-
-Rules:
-
-- Sketches = layout reference only (not shipped as product chrome unless explicitly listed).
-- Backgrounds / logos / icons listed in the mapping **are** the files frontend must copy or import into the app asset path.
-- Every background/logo/icon that appears in a sketch must appear in Asset Mapping (or be marked `N/A — CSS/shape only` with reason).
 
 ## Core Responsibilities
 
-- **Design system**: color tokens, typography scale, spacing, component variants, icon family
-- **Component specs**: layout, states (default / hover / loading / empty / error), responsive behavior, accessibility notes
-- **Visual direction**: design read → dial values → aesthetic choices (typography, palette, motion level)
-- **Asset pack**: generate the real media the UI will use (backgrounds + SVG logos/icons), not only comps
-- **Design–dev handoff**: annotated specs with exact class names, motion values, breakpoints, and asset paths that developers can implement without guessing
+- **Track discipline**: marketing vs product never share dial defaults
+- **Domain pack**: fintech / ai-devtools / marketplace / health-care / b2b-ops when domain is known
+- **Design system**: tokens, typography, spacing, component variants
+- **Component specs**: all states (default / hover / loading / empty / error)
+- **Handoff**: paths + acceptance frontend can implement without guessing
 
 ## Checklist
 
-- [ ] Design read stated before any code or spec
-- [ ] Design spec written to `docs/design/YYYY-MM-DD-{feature}.md`
-- [ ] Layer 1: Sketch image(s) under `docs/design/sketches/{feature}/` (or missing-sketch noted with wireframe description)
-- [ ] Layer 2: Background asset(s) under `docs/design/assets/{feature}/backgrounds/` when the UI uses imagery (or explicit N/A)
-- [ ] Layer 3: Logo/icon SVGs under `docs/design/assets/{feature}/logos|icons/` when branding is in scope (or explicit N/A)
-- [ ] **Asset Mapping** table present and complete in the design spec
-- [ ] Files named `{feature}-{purpose}.{ext}`
-- [ ] Dials set and consistent with brief
-- [ ] No LLM default aesthetics (AI-purple gradient, generic glassmorphism, Inter + centered hero — see taste-skill)
-- [ ] Color contrast passes WCAG AA (4.5:1 body, 3:1 large text)
-- [ ] All UI states covered: default, hover/focus, loading, empty, error
-- [ ] Responsive behavior declared per component (mobile → tablet → desktop)
-- [ ] `prefers-reduced-motion` fallback noted for animated components
-- [ ] One icon family declared and consistent
-- [ ] One accent color, one corner-radius scale, one theme (no mid-page inversions)
-- [ ] Real image strategy: gen tool → mapped asset files → picsum seed only as last resort (no fake div screenshots)
+- [ ] Track + domain pack declared
+- [ ] Design read stated
+- [ ] Correct skill loaded (taste-design vs saas-product-ui)
+- [ ] Design spec written
+- [ ] Sketches under `docs/design/sketches/{feature}/` (or noted gap)
+- [ ] Product: shell + table/settings/empty specs as applicable
+- [ ] Marketing: no AI-purple / 3-card / Inter-default slop (taste-skill)
+- [ ] Product: no marketing hero inside app shell (saas-product-ui)
+- [ ] Tokens updated when palette/radius/type changes
+- [ ] WCAG AA contrast
+- [ ] Responsive behavior declared
+- [ ] `prefers-reduced-motion` noted when motion > minimal
+- [ ] One icon family; one accent; one radius scale; one theme lock
 
 ## Handoff to Frontend Worker
 
-After producing the spec + asset pack, pass a handoff packet:
 ```
-Objective: Implement [component/page] per design spec + asset pack
+Objective: Implement [component/page] per design spec
+Track: marketing | product
+Domain pack: ...
 Design spec: docs/design/YYYY-MM-DD-{feature}.md
 Sketch(es): docs/design/sketches/{feature}/
-Asset pack: docs/design/assets/{feature}/
-Asset mapping: (section in design spec — required)
-Tech stack: (from AGENTS.md §2)
-In-scope paths: (frontend paths from AGENTS.md §3)
-Required skills: frontend-skills, taste-design
-Key decisions: [font, palette, motion dial, corner radius]
+Asset pack: docs/design/assets/{feature}/ (or N/A)
+Asset mapping: (if any)
+Tech stack: (AGENTS.md §2)
+Required skills: frontend-skills + (taste-design | saas-product-ui)
+Key decisions: [font, palette, dials, shell width]
 Acceptance criteria:
-- Visual matches spec + sketch
-- Mapped assets imported/copied into app paths (no invented placeholders for mapped files)
+- Matches spec + sketch
+- Track-appropriate density/motion
 - All states implemented
-- WCAG AA contrast verified
-- Responsive at sm/md/lg breakpoints
+- WCAG AA
+- Responsive sm/md/lg
 ```
 
 ## References
 
-- Anti-slop design rules: `.cursor/skills/taste-design/taste-skill/SKILL.md`
-- Section / background imagery: `.cursor/skills/taste-design/imagegen-frontend-web/SKILL.md`
-- Logo / identity / SVG: `.cursor/skills/taste-design/brandkit/SKILL.md`
-- Framework patterns: `.cursor/skills/frontend-skills/SKILL.md`
-- Project stack: `AGENTS.md §2`
-- Project structure: `AGENTS.md §3`
+- Product UI: `.cursor/skills/saas-product-ui/SKILL.md`
+- Domain packs: `.cursor/skills/saas-product-ui/references/*.md`
+- Marketing anti-slop: `.cursor/skills/taste-design/taste-skill/SKILL.md`
+- Image gen / brandkit: `.cursor/skills/taste-design/...`
+- Framework: `.cursor/skills/frontend-skills/SKILL.md`
+- Stack / structure: `AGENTS.md §2–§3`
