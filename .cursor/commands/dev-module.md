@@ -1,6 +1,6 @@
 ---
 name: dev-module
-description: Full per-module development loop — brainstorm → plan → execute → test → verify → fix → loop → done. Use for any new feature module from scratch. Automatically loops through fix cycles until judge approves or loop cap is reached.
+description: Full per-module development loop — brainstorm → plan → execute → test → verify → fix → loop → done + Memory/Learning distillation. Use for any new feature module from scratch. Automatically loops through fix cycles until judge approves or loop cap is reached.
 ---
 
 # Module Development Loop
@@ -22,6 +22,13 @@ Check if `.cursor/state/module-{feature_name}-loop.json` exists. If it does, rea
 - If `docs/plans/.active-plan` (or a `docs/plans/*-{feature_name}.md`) holds a `PLAN_APPROVED` breakdown covering this module → set `state.phase = execute` (or `scaffold` if shells are missing) and start there.
 - Otherwise start fresh at Phase 1.
 
+Also load Memory layer early:
+```bash
+# Always consider these before planning/executing
+cat docs/memory/decisions.md docs/memory/gotchas.md docs/memory/shortcuts.md 2>/dev/null || true
+cat docs/module-deps.md 2>/dev/null || true
+```
+
 ---
 
 ## Phase 1 — BRAINSTORM
@@ -37,6 +44,7 @@ Explore:
 - Similar existing modules in the codebase
 - Relevant patterns in `AGENTS.md §2` (stack) and `§3` (structure)
 - Prior art in `docs/plans/` and `docs/adr/`
+- **Memory layer**: decisions / gotchas / shortcuts
 - 2–3 viable design approaches with tradeoffs
 
 Output a short **Brainstorm Summary** (not a full plan yet) — options, constraints, recommendation.
@@ -96,8 +104,9 @@ Before leaving Phase 2, `@architect-planner` MUST answer every item against the 
 - [ ] Multi-tenancy respected where required (`workspace_id` / tenant filter)?
 - [ ] No placeholder tokens anywhere?
 - [ ] Domain Config Sync items each resolved (done or `N/A — reason`)?
+- [ ] Memory layer consulted (no conflict with decisions.md / gotchas.md)?
 
-Report pass/fail per item in chat or in the plan file. The orchestrator MUST NOT set `state.phase = execute` until all six boxes are reported as pass.
+Report pass/fail per item in chat or in the plan file. The orchestrator MUST NOT set `state.phase = execute` until all boxes are reported as pass.
 
 ### Phase 2b — SYNC DOMAIN CONFIG (before execute)
 
@@ -107,6 +116,7 @@ After the plan is drafted **and** Rule 5 self-verify passed, `@architect-planner
 - Update affected `AGENTS.md` sections (§2–§15 as applicable)
 - Update `.cursor/config/*` if worker scopes / protected paths changed
 - Set `docs/plans/.active-plan` to this plan
+- **Register module in `docs/module-deps.md`** (status: planned, depends_on: [...])
 
 **⏸️ STOP — wait for orchestrator approval of plan + sync diffs before Phase 1.5 scaffold / Phase 3.**
 
@@ -131,6 +141,10 @@ Save state: `{ "phase": "execute", "scaffoldComplete": true }`
 ---
 
 ## Phase 3 — EXECUTE
+
+> **Hard-gate — Module Dependencies**
+> Before any worker dispatch, read `docs/module-deps.md`.
+> If any entry in `depends_on` is not `status: done` (or lacks an approved contract), **STOP** and report the missing upstream module.
 
 > **Design-first for UI:** For any task that creates/changes UI, a design artifact MUST exist before `@frontend-worker` runs — a spec `docs/design/YYYY-MM-DD-{feature}.md` **and** sketches under `docs/design/sketches/{feature}/`.
 >
@@ -273,9 +287,31 @@ Loop cap (3) reached. Human review needed.
 
 ---
 
-## Phase 6 — DONE ✅
+## Phase 6 — DONE ✅ + Memory Distillation
 
 Save final state: `{ "phase": "done", "loopCount": N }`
+
+### Distillation (Memory + Learning Layer) — mandatory
+
+1. **Retrospective entry** — append to `docs/retrospective.md`:
+
+```markdown
+### YYYY-MM-DD — {feature_name}
+- **Estimate vs Actual**: ...
+- **Fix loops**: N (Critical only)
+- **Root cause** (if loops > 0): ...
+- **Pattern candidate**: ...
+- **Action**: ...
+```
+
+2. **Extract facts** (1–5 max) into the Memory layer:
+   - Locked decision → `docs/memory/decisions.md`
+   - Failed pattern → `docs/memory/gotchas.md`
+   - Proven shortcut → `docs/memory/shortcuts.md`
+
+3. **Update dependency graph** — set the module status to `done` in `docs/module-deps.md`.
+
+4. **Skill-updater trigger** — if 5 modules completed since last review (count entries in retrospective.md), surface a skill-update proposal.
 
 Output summary:
 ```
@@ -284,6 +320,8 @@ Plan: docs/plans/...
 Review: docs/reviews/...
 Fix loops: N
 Files changed: [list]
+Memory updated: decisions/gotchas/shortcuts (yes/no)
+Retrospective: appended
 ```
 
 Clean up: optionally archive `.cursor/state/module-{feature_name}-loop.json` to `docs/plans/` for traceability.

@@ -1,0 +1,50 @@
+---
+description: Memory + Learning layers — persistent compressed truth and self-improvement across sessions
+globs: "**/*"
+alwaysApply: true
+---
+
+# Memory & Learning Rules (V2+)
+
+## Memory Layer (Tầng 2)
+
+Source of truth for cross-session knowledge (read early, write only via distillation):
+
+| File | Purpose |
+|------|---------|
+| `docs/memory/decisions.md` | Locked decisions — never re-debate |
+| `docs/memory/gotchas.md` | Patterns that already failed |
+| `docs/memory/shortcuts.md` | Patterns that already worked |
+
+Also keep the generated `.memory/*` files in sync (architecture, constraints, known-decisions, known-issues).
+
+### Rules
+- Every agent that plans or implements MUST consider the three memory files above.
+- Do **not** invent solutions that contradict a locked decision or known gotcha.
+- Prefer shortcuts over rediscovery.
+
+## Learning Layer (Tầng 3)
+
+| File | Purpose |
+|------|---------|
+| `docs/retrospective.md` | Per-module metrics + root cause |
+| `docs/module-deps.md` | Dependency graph + hard-gate |
+
+### Distillation (Phase 6 of /dev-module)
+After a module is marked Done:
+1. Append a retrospective entry (estimate vs actual, loops, root cause, pattern candidate).
+2. Extract 1–5 facts into the appropriate memory file (decision / gotcha / shortcut).
+3. Update `docs/module-deps.md` status for the module.
+4. If 5 modules have completed since last skill review → trigger skill-updater (see below).
+
+### Skill auto-update
+When retrospective shows a repeating pattern:
+- Propose a concrete patch to the relevant `SKILL.md` (or new pattern under `.cursor/patterns/`).
+- Do **not** silently rewrite skills; surface the proposal in the retrospective and wait for human/orchestrator approval unless the change is a pure gotcha/decision lock.
+
+### Module dependency hard-gate
+Before Phase 3 (Execute):
+```
+Read docs/module-deps.md
+If any depends_on is not done → STOP and report missing upstream module/contract.
+```
