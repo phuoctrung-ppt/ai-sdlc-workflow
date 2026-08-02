@@ -22,7 +22,13 @@ On hit:
 2. Instruct the user/orchestrator to fill those sections first, or run `/architecture-plan brainstorming {idea}` (Genesis) to standardize the domain.
 3. **STOP** — do NOT write `docs/plans/*.md`, do NOT write ADRs, do NOT proceed to plan output.
 
-**Workflow-meta exception:** If the plan Goal is explicitly workflow-infra **and** every path in the intended Files table is under `.cursor/` (agents, commands, rules, skills docs), you MAY continue. Record `Gate skipped: workflow-meta` in the plan's Source Evidence. Product-feature plans MUST NOT use this exception.
+**Workflow-meta exception (narrow):** Only when **all** of the following hold:
+1. Plan Goal is explicitly **workflow-infra** (agents, skills, rules, hooks, context tooling) — not a product feature.
+2. Every path in the intended Files table is under an **allowlist**: `.cursor/agents/`, `.cursor/commands/`, `.cursor/rules/`, `.cursor/skills/`, `.cursor/hooks/`, `.cursor/context/`, `.cursor/config/`, `.cursor/state/`, `.cursor/patterns/` (optional: `docs/plans/`, `docs/reviews/` for workflow-meta docs only).
+3. **No** path touches application code, `AGENTS.md` product placeholders that should be filled for a product plan, or `docs/memory/` product facts for a feature module.
+4. Record `Gate skipped: workflow-meta` + allowlist paths in Source Evidence.
+
+Product-feature plans **MUST NOT** use this exception. "Everything is under `.cursor/`" alone is **not** sufficient if the Goal is product work or AGENTS.md still needs domain fill for that work.
 </AGENTS-GATE>
 
 ## Phase 0 — BRAINSTORM (always before Plan)
