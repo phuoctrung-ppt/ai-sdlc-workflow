@@ -209,12 +209,49 @@ async findRecords(tenantId: string): Promise<Record[]> {
 
 ## 11. Git Conventions
 
-- **Commits:** Conventional Commits — `type(scope): description` (`feat` / `fix` / `chore` / `refactor` / `docs` / `test`).
-  - Example: `feat(<module>): <what changed>`
-  - Example: `fix(<module>): <bug fixed>`
-- **Branches:** `feature/<ticket>-short-description` | `fix/<ticket>-bug-name` | `chore/update-deps`
-- **PR size:** keep PRs small (target ≤ ~400 lines). Split large features by layer: DB → API → Frontend.
-- **PR template:** must include story/ticket reference, test plan, and screenshot/video if UI changed.
+### Commit message structure
+
+```
+<type>(<scope>): <subject>
+
+[body — optional]
+
+[footer — optional]
+```
+
+| Part | Rules |
+|------|--------|
+| **Subject** | `type(scope): imperative summary` · ≤72 chars preferred · no trailing period · lowercase after `:` |
+| **type** | `feat` \| `fix` \| `refactor` \| `docs` \| `test` \| `chore` \| `perf` \| `style` \| `ci` |
+| **scope** | Short area: module / package / workflow (`auth`, `web`, `api`, `db`, `skills`, `workflow`). Omit only if truly repo-wide |
+| **body** | Blank line after subject · wrap ~72 · **why** / tradeoffs when not obvious |
+| **footer** | `BREAKING CHANGE: …` · `Refs:` · `Closes: #n` when needed |
+
+**Examples**
+
+```
+feat(auth): add refresh token rotation
+
+fix(api): apply tenant filter on customer list
+
+chore(skills): register saas-product-ui in manifest
+
+docs(plans): add v2 implementation summary
+
+feat(billing): expose invoice history in settings
+
+In-product list only; plan changes stay on Stripe portal.
+```
+
+**Avoid:** vague subjects (`fix: updates`), past tense (`added`), file-only subjects (`update SKILL.md`), mixing unrelated changes.
+
+Agents: follow `.cursor/skills/incremental-commit/SKILL.md` (gates, size, anti-patterns).
+
+### Branches & PRs
+
+- **Branches:** `feature/<ticket>-short-description` \| `fix/<ticket>-bug-name` \| `chore/update-deps`
+- **PR size:** target ≤ ~400 lines. Split large features by layer: DB → API → Frontend.
+- **PR template:** story/ticket reference, test plan, screenshot/video if UI changed.
 - **Protected branches:** `<main / develop>` — require PR + at least 1 review.
 - **Deploy order:** `<staging> → verify → <production>`. Never deploy straight to production.
 
