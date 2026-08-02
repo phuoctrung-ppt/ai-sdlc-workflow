@@ -1,7 +1,7 @@
 {
   "manifestSchema": "2.0",
   "version": "4.0",
-  "description": "Phase-based skill manifest (restored). Full skill entries preserved from pre-truncation state with learning-agent + skill-updater added.",
+  "description": "Phase-based skill manifest. Legacy landing/parallax/3d phases removed.",
   "skillsRoot": ".cursor/skills",
   "phases": [
     "brainstorm",
@@ -16,10 +16,7 @@
     "fix",
     "review",
     "scaffold",
-    "dev-module",
-    "create-landing-page",
-    "parallax",
-    "interactive-3d"
+    "dev-module"
   ],
   "agents": [
     "architect-planner",
@@ -37,17 +34,8 @@
     "learning-agent"
   ],
   "defaultTokenBudget": 8000,
-  "tierCeilings": {
-    "tier1": 1200,
-    "tier2": 4000,
-    "tier3": 800,
-    "tier4": 2000
-  },
-  "maxSkillsByComplexity": {
-    "low": 1,
-    "medium": 2,
-    "high": 4
-  },
+  "tierCeilings": {"tier1": 1200, "tier2": 4000, "tier3": 800, "tier4": 2000},
+  "maxSkillsByComplexity": {"low": 1, "medium": 2, "high": 4},
   "portableSkills": [
     {
       "id": "agentic-workflow",
@@ -78,37 +66,20 @@
     {
       "id": "saas-product-ui",
       "portable": true,
-      "note": "In-app SaaS product UI (app shell, tables, settings). Not marketing — use taste-design for landings.",
+      "note": "In-app SaaS product UI. Not marketing.",
       "entry": "saas-product-ui/SKILL.md",
       "referencesDir": "saas-product-ui/references",
       "phases": ["design", "implement-frontend", "plan", "brainstorm"],
       "agents": ["designer-worker", "frontend-worker", "architect-planner"],
       "keywords": ["saas", "product-ui", "app-shell", "sidebar", "dashboard", "data-table", "settings", "empty-state", "onboarding", "billing", "admin", "console", "fintech", "devtools", "marketplace", "health", "b2b", "ops", "tenant"],
-      "refKeywords": {
-        "fintech.md": ["fintech", "payments", "banking", "ledger", "invoice"],
-        "ai-devtools.md": ["ai", "devtools", "agent", "console", "llm", "ide"],
-        "marketplace.md": ["marketplace", "listings", "commerce", "vendor"],
-        "health-care.md": ["health", "clinical", "wellness", "patient"],
-        "b2b-ops.md": ["b2b", "ops", "admin", "tenant", "audit"]
-      },
       "manifestSchema": "2.0",
       "priority": 17,
-      "estimatedTokens": 2200,
-      "references": {
-        "lazy": true,
-        "optional": [
-          {"path": "fintech.md", "triggers": ["fintech", "payments", "banking", "ledger"]},
-          {"path": "ai-devtools.md", "triggers": ["ai", "devtools", "agent", "console", "llm"]},
-          {"path": "marketplace.md", "triggers": ["marketplace", "listings", "commerce"]},
-          {"path": "health-care.md", "triggers": ["health", "clinical", "wellness"]},
-          {"path": "b2b-ops.md", "triggers": ["b2b", "ops", "admin", "tenant", "audit"]}
-        ]
-      }
+      "estimatedTokens": 2200
     },
     {
       "id": "skill-updater",
       "portable": true,
-      "note": "Learning layer: read retrospective, identify patterns, propose SKILL.md / pattern patches. Used by learning-agent.",
+      "note": "Learning layer skill proposals.",
       "entry": "skill-updater/SKILL.md",
       "phases": ["review", "dev-module"],
       "agents": ["learning-agent", "judge-agent"],
@@ -217,5 +188,5 @@
       "estimatedTokens": 2000
     }
   ],
-  "_note": "Core portable skills + skill-updater + saas-product-ui. Optional domain skills under .cursor/skills/optional/ may need re-registration from commit 31be2699 for full fidelity."
+  "_note": "Legacy phases create-landing-page/parallax/interactive-3d removed. ai-career-orchestrator removed."
 }
