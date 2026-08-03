@@ -1,6 +1,6 @@
 ---
 name: dev-module
-description: Full per-module development loop — brainstorm → plan → execute → test → verify → fix → loop → done + Memory distillation + dispatch learning-agent. Use for any new feature module from scratch. Automatically loops through fix cycles until judge approves or loop cap is reached.
+description: Full per-module development loop — brainstorm → plan → execute → test → verify → fix → loop → done + Memory distillation + learning-agent + office UI events.
 ---
 
 # Module Development Loop
@@ -9,23 +9,32 @@ Act as **Orchestrator**. Run the full development loop for module: **{feature_na
 
 State file: `.cursor/state/module-{feature_name}-loop.json` (created/updated at each phase transition)
 
-> **Upstream:** `/dev-module` is the **execution** loop. If planning was already done by
-> `/architecture-plan` (a `PLAN_APPROVED` breakdown for this module exists under `docs/plans/`),
-> **skip Phase 1–2** — confirm the existing plan and jump to Phase 1.5 (scaffold) / Phase 3
-> (execute). Only run Phase 1–2 when no approved plan/breakdown exists for this module.
+> **Upstream:** If a `PLAN_APPROVED` breakdown for this module exists under `docs/plans/`, **skip Phase 1–2** — jump to Phase 1.5 / Phase 3.
+
+## Office UI (mandatory)
+
+When `.aisdlc/` exists, **emit an event on every phase enter/exit** so `ai-sdlc ui` (:9669) shows live desks:
+
+```bash
+python3 .cursor/scripts/office-event.py --agent <agent-id> --status <working|waiting|done|error|idle> --task "<short>" --phase <phase>
+```
+
+See `.cursor/rules/008-office-ui-events.mdc`. Prefer the script above (no global `ai-sdlc` required).
 
 ---
 
 ## Phase 0 — Restore State (if resuming)
 
-Check if `.cursor/state/module-{feature_name}-loop.json` exists. If it does, read it and resume from `state.phase`. If not:
-- If `docs/plans/.active-plan` (or a `docs/plans/*-{feature_name}.md`) holds a `PLAN_APPROVED` breakdown covering this module → set `state.phase = execute` (or `scaffold` if shells are missing) and start there.
-- Otherwise start fresh at Phase 1.
+Check `.cursor/state/module-{feature_name}-loop.json` or approved plan; set starting phase.
 
-Also load Memory layer early (primary SoT = `docs/memory/*`):
+Load memory:
 ```bash
 cat docs/memory/decisions.md docs/memory/gotchas.md docs/memory/shortcuts.md 2>/dev/null || true
 cat docs/module-deps.md 2>/dev/null || true
+```
+
+```bash
+python3 .cursor/scripts/office-event.py --agent architect-planner --status working --task "Restore state / load memory for {feature_name}" --phase restore
 ```
 
 ---
@@ -35,13 +44,17 @@ cat docs/module-deps.md 2>/dev/null || true
 **Agent:** `@architect-planner`
 
 ```bash
+python3 .cursor/scripts/office-event.py --agent architect-planner --status working --task "Brainstorm {feature_name}" --phase brainstorm
 python3 .cursor/context/context-builder.py \
   --phase brainstorm --task "{feature_name}" --agent architect-planner
 ```
 
-Explore similar modules, AGENTS.md §2–§3, prior plans/ADRs, and **docs/memory/***.
-Output a short Brainstorm Summary — options, constraints, recommendation.
-Save state: `{ "feature": "{feature_name}", "phase": "plan", "loopCount": 0 }`
+Explore similar modules, AGENTS.md §2–§3, prior plans/ADRs, **docs/memory/***.
+Output Brainstorm Summary. Save state → `phase: plan`.
+
+```bash
+python3 .cursor/scripts/office-event.py --agent architect-planner --status done --task "Brainstorm complete: {feature_name}" --phase brainstorm
+```
 
 ---
 
@@ -50,39 +63,74 @@ Save state: `{ "feature": "{feature_name}", "phase": "plan", "loopCount": 0 }`
 **Agent:** `@architect-planner`
 
 ```bash
+python3 .cursor/scripts/office-event.py --agent architect-planner --status working --task "Plan {feature_name}" --phase plan
 python3 .cursor/context/context-builder.py \
   --phase plan --task "{feature_name}" --agent architect-planner \
   --handoff docs/plans/.active-plan
 ```
 
-Follow architect-planner Phase −1 gate and anti-laziness contract. Write plan under `docs/plans/`.
-⏸️ STOP for approval when required.
+Follow Phase −1 gate + anti-laziness. Write `docs/plans/…`.
+On wait for user approval:
 
-After plan drafted and Rule 5 self-verify passed, complete Phase 1.5 domain config sync from architect-planner.
+```bash
+python3 .cursor/scripts/office-event.py --agent architect-planner --status waiting --task "Await plan approval: {feature_name}" --phase plan
+```
+
+After approval / plan finalized:
+
+```bash
+python3 .cursor/scripts/office-event.py --agent architect-planner --status done --task "Plan ready: {feature_name}" --phase plan
+```
 
 ---
 
 ## Phase 1.5 — Scaffold (if needed)
 
-Dispatch `@scaffold-agent` when shells are missing. Update `.cursor/config/*` if scopes changed.
+```bash
+python3 .cursor/scripts/office-event.py --agent scaffold-agent --status working --task "Scaffold shells for {feature_name}" --phase scaffold
+```
+
+Dispatch `@scaffold-agent` when shells are missing.
+
+```bash
+python3 .cursor/scripts/office-event.py --agent scaffold-agent --status done --task "Scaffold done" --phase scaffold
+python3 .cursor/scripts/office-event.py --agent scaffold-agent --status idle --task "" --phase scaffold
+```
 
 ---
 
 ## Phase 3 — EXECUTE
 
-> **Hard-gate — Module Dependencies**
-> Read `docs/module-deps.md`. If any `depends_on` is not `done` → STOP.
+> **Hard-gate — Module Dependencies** — read `docs/module-deps.md`; stop if upstream not `done`.
 
-Dispatch workers per task breakdown (respect Depends On / parallelization).
-Each worker runs `context-builder.py` with its agent id before starting.
+For **each** task in the breakdown, before dispatching the worker:
+
+```bash
+python3 .cursor/scripts/office-event.py --agent <owner-agent-id> --status working --task "<task title>" --phase implement
+```
+
+Worker runs `context-builder.py` with its agent id, implements, then:
+
+```bash
+python3 .cursor/scripts/office-event.py --agent <owner-agent-id> --status done --task "<task title> done" --phase implement
+python3 .cursor/scripts/office-event.py --agent <owner-agent-id> --status idle --task "" --phase implement
+```
+
+Parallel tasks → multiple agents `working` at once (emit for each).
 
 ---
 
 ## Phase 4 — TEST
 
 ```bash
+python3 .cursor/scripts/office-event.py --agent qa-worker --status working --task "Test {feature_name}" --phase test
 python3 .cursor/context/context-builder.py \
   --phase test --task "{feature_name}" --agent qa-worker
+```
+
+```bash
+python3 .cursor/scripts/office-event.py --agent qa-worker --status done --task "Tests finished" --phase test
+python3 .cursor/scripts/office-event.py --agent qa-worker --status idle --task "" --phase test
 ```
 
 ---
@@ -90,76 +138,72 @@ python3 .cursor/context/context-builder.py \
 ## Phase 5 — JUDGE + FIX LOOP
 
 ```bash
+python3 .cursor/scripts/office-event.py --agent judge-agent --status working --task "Review {feature_name}" --phase review
 python3 .cursor/context/context-builder.py \
   --phase review --task "{feature_name}" --agent judge-agent
 ```
 
-Judge status uses severity tiers (see `.cursor/agents/judge-agent.md`):
-- `*_APPROVED` → Phase 6
-- `*_CHANGES_REQUESTED` with **Critical** → fix loop (increment loopCount)
-- **Minor** only → Phase 6 (record; do not burn fix loop)
+- `*_APPROVED` → Phase 6  
+- Critical `*_CHANGES_REQUESTED` → fix loop (`loopCount++`)  
+- Minor only → Phase 6  
 
-Only **Critical** findings trigger the fix loop and count toward `loopCount`.
+On Critical fix, for each assigned worker:
+
+```bash
+python3 .cursor/scripts/office-event.py --agent <worker> --status working --task "Fix Critical: …" --phase fix
+# … after fix …
+python3 .cursor/scripts/office-event.py --agent <worker> --status done --task "Fix applied" --phase fix
+python3 .cursor/scripts/office-event.py --agent judge-agent --status working --task "Re-review {feature_name}" --phase review
+```
+
+When approved:
+
+```bash
+python3 .cursor/scripts/office-event.py --agent judge-agent --status done --task "APPROVED {feature_name}" --phase review
+python3 .cursor/scripts/office-event.py --agent judge-agent --status idle --task "" --phase review
+```
 
 ---
 
-## Phase 6 — DONE ✅ + Memory Distillation + Learning dispatch
+## Phase 6 — DONE ✅ + Memory + Learning
 
 Save final state: `{ "phase": "done", "loopCount": N }`
 
-### A. Lightweight distillation (orchestrator — always)
+### A. Distillation
 
-1. **Retrospective entry** — append to `docs/retrospective.md`:
-
-```markdown
-### YYYY-MM-DD — {feature_name}
-- **Estimate vs Actual**: ...
-- **Fix loops**: N (Critical only)
-- **Root cause** (if loops > 0): ...
-- **Pattern candidate**: ...
-- **Action**: ...
-```
-
-2. **Extract obvious facts** (1–5 max) into **`docs/memory/*` only** (primary SoT — not `.memory/*`) when clear:
-   - Locked decision → `docs/memory/decisions.md`
-   - Failed pattern → `docs/memory/gotchas.md`
-   - Proven shortcut → `docs/memory/shortcuts.md`
-
-3. **Update dependency graph** — set the module status to `done` in `docs/module-deps.md`.
-
-### B. Learning counter + agent dispatch
-
-1. **Update** `.cursor/state/workflow-state.json` **before** dispatch:
-   - `modulesSinceLastProposal` = (current or 0) + 1
-   - `lastModuleCompleted` = `{feature_name}`
-2. Read back `N = modulesSinceLastProposal`.
-3. Dispatch `@learning-agent` (skill `skill-updater`). **Do not** rewrite any `SKILL.md` inside this phase.
+1. Append `docs/retrospective.md`
+2. Facts → **`docs/memory/*` only** (1–5)
+3. `docs/module-deps.md` → module `done`
 
 ```bash
+python3 .cursor/scripts/office-event.py --agent architect-planner --status working --task "Distill memory for {feature_name}" --phase done
+```
+
+### B. Learning counter + dispatch
+
+1. Increment `modulesSinceLastProposal` in `.cursor/state/workflow-state.json`
+2. Dispatch `@learning-agent`:
+
+```bash
+python3 .cursor/scripts/office-event.py --agent learning-agent --status working --task "Skill scan after {feature_name}" --phase review
 python3 .cursor/context/context-builder.py \
   --phase review \
   --task "post-module skill scan for {feature_name}; modulesSinceLastProposal=N; pass=full|lightweight" \
   --agent learning-agent \
   --keywords "retrospective,pattern,skill,learning,gotcha,shortcut" \
   --budget 5000
+python3 .cursor/scripts/office-event.py --agent learning-agent --status done --task "Learning pass finished" --phase review
+python3 .cursor/scripts/office-event.py --agent learning-agent --status idle --task "" --phase review
+python3 .cursor/scripts/office-event.py --agent architect-planner --status idle --task "" --phase done
 ```
 
-- Replace `N` with the real counter. Set `pass=full` when `N >= 5`, else `pass=lightweight`.
-- **Hard-gate:** learning-agent must re-read the state file; do not rely on chat memory for `N`.
-- Agent writes `docs/reviews/YYYY-MM-DD-skill-update-proposal.md` when a pattern is found (`PENDING_APPROVAL`) and **resets** `modulesSinceLastProposal` to `0`.
-- Apply patches only after orchestrator/human approval (or run `/skill-update` for an explicit full pass).
+Output summary includes Memory / Retrospective / Learning / **office events emitted**.
 
-Output summary:
-```
-✅ Module {feature_name} complete
-Plan: docs/plans/...
-Review: docs/reviews/...
-Fix loops: N
-Files changed: [list]
-Memory updated: decisions/gotchas/shortcuts (yes/no)
-Retrospective: appended
-Learning: dispatched @learning-agent → [no pattern | proposal path]
-modulesSinceLastProposal: N
-```
+---
 
-Clean up: optionally archive `.cursor/state/module-{feature_name}-loop.json` to `docs/plans/` for traceability.
+## Orchestrator checklist
+
+- [ ] Emit on every phase enter/exit
+- [ ] Emit per worker task in Phase 3 / fix loop
+- [ ] Never skip emits when `.aisdlc/` exists
+- [ ] No secrets in `--task`
