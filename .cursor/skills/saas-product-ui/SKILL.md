@@ -1,14 +1,16 @@
 ---
 name: saas-product-ui
-description: In-app SaaS product UI — app shell, tables, ranked lists, settings, AI summary surfaces. Not marketing (use taste-design).
+description: In-app SaaS product UI — app shell, tables, ranked lists, settings, AI summary. Knowledge-hub / VN SME domain packs included. Not marketing (use taste-design).
 ---
 
 # SaaS Product UI
 
 Portable skill for **authenticated product surfaces**. Complements `taste-design` (marketing only).
 
-Benchmarks & patterns: `references/benchmarks-2026.md`  
-(Linear, Stripe, Vercel, Attio, Notion, PostHog — 2026 consensus).
+**Hard rules (always):** `references/hard-rules-product.md` — paste into every product design spec.
+
+Benchmarks: `references/benchmarks-2026.md`  
+Visual pipeline (Grok imagegen / MCP): `../taste-design/ui-visual-pipeline.md`
 
 ## When to use
 
@@ -16,17 +18,20 @@ Benchmarks & patterns: `references/benchmarks-2026.md`
 |---------|------------|
 | App shell, sidebar, ⌘K | Yes |
 | Lists, tables, ranked queues, filters | Yes |
-| Home / overview (metric or work-first) | Yes |
-| Record preview, AI summary panels | Yes |
+| Knowledge hub / upload / sync confirm | Yes — `references/knowledge-hub-saas.md` |
+| Home / overview | Yes |
 | Settings, billing, onboarding | Yes |
-| Marketing landing / pricing page | **No → taste-design** |
+| Marketing landing / pricing | **No → taste-design** (+ `references/sme-marketing-vn.md` for VN SME copy) |
 
-## Step 0 — Surface, domain, tokens, benchmark pattern
+## Step 0 — Surface, domain, tokens, benchmark
 
 1. Surface = `product`.
-2. Domain pack: `references/fintech.md` | `ai-devtools.md` | `marketplace.md` | `health-care.md` | `b2b-ops.md` | generic.
+2. Domain pack:
+   - Knowledge / multi-module business AI → **`knowledge-hub-saas.md`**
+   - Else: `fintech` | `ai-devtools` | `marketplace` | `health-care` | `b2b-ops` | generic
 3. Lock `references/tokens.md` → `docs/design/tokens.md`.
-4. Declare **home pattern** (see below) when designing overview.
+4. Declare home pattern (calm list-first default for knowledge products).
+5. Paste **hard-rules-product** into the design spec.
 
 ## Product dials
 
@@ -36,76 +41,38 @@ Benchmarks & patterns: `references/benchmarks-2026.md`
 | MOTION | **2–4** | 6–8 |
 | DENSITY | **6–8** | 3–5 |
 
-## Hall-of-fame patterns (implement these)
+## Hall-of-fame patterns
 
-| Pattern | Source | Block / composition |
-|---------|--------|---------------------|
-| Calm default — work list first | Linear | `data-table` / `ranked-list` + `insights-link` |
+| Pattern | Source | Block |
+|---------|--------|-------|
+| Calm default — work list first | Linear | `data-table` / `ranked-list` |
 | Single-metric focus | Stripe, Vercel | `single-metric-focus` |
-| Progressive disclosure | Linear, Notion | `insights-link`; depth not on first paint |
 | Ranked attention | Attio | `ranked-list` |
-| AI as surface | Attio | `ai-summary-surface` (no purple chrome) |
-| Multi-representation record | Attio | list + `record-preview` + ⌘K + page |
-| Quiet dense analytics | PostHog | table-first; personality without noise |
-
-Full narrative: `references/benchmarks-2026.md`.
+| AI as surface | Attio | `ai-summary-surface` |
 
 ## Block library
 
-Index: `blocks/README.md`.
-
-**Compose first** via:
-- `blocks/compositions/dashboard-home.md`
-- `blocks/compositions/customers-page.md`
-
-Core families: `app-shell/*`, `dashboard/*`, `data/*`, `states/*`, `settings/*`, `navigation/*`, `onboarding/*`.
-
-## Foundations
-
-- Sidebar 240–280px (256 default); soft active; mobile drawer
-- 4px grid; spacing 4–48
-- Type: 18–20 title, 13–14 body, 12 meta; tabular nums for money
-- One accent (CTA only); semantic chips via `status-badge`
-- Dual empty states; skeleton ≠ spinner-only page
-- Light + dark tokens from day one
+`blocks/README.md` — prefer compositions `dashboard-home`, `customers-page`.
 
 ## Anti-patterns
 
-- Chart wallpaper / 12 equal KPIs on home
-- Marketing bento or scroll-hijack in-app
+- Chart wallpaper / 12 equal KPIs
+- Marketing bento inside app
 - AI-purple gradients, sparkle spam
-- Equal-weight rows when product should prioritize
-- Different field language across list vs preview vs page
-- Insights and daily work fighting for the same default screen
+- Skipping design sketch (violates DESIGN-GATE)
 
 ## Design spec must include
 
-1. Surface + domain + dials  
-2. Benchmark pattern chosen (calm / single-metric / ranked / …)  
-3. Tokens pointer  
-4. Blocks + composition ids  
-5. States: loading, empty×2, error, confirm  
-6. App-frame sketches under `docs/design/sketches/{feature}/`
-
-## Pre-flight
-
-- [ ] Pattern matches product job (not generic pretty dashboard)
-- [ ] Blocks composed; chrome not invented
-- [ ] Density 6–8; motion feedback-only
-- [ ] AI panels are useful surfaces, not decoration
-- [ ] WCAG AA; reduced-motion OK
+1. Track product + domain pack id  
+2. Hard-rules checklist (copied)  
+3. Benchmark pattern  
+4. Tokens pointer  
+5. Blocks + composition ids  
+6. States: loading, empty×2, error  
+7. Sketch path under `docs/design/sketches/{feature}/`
 
 ## Handoff keywords
 
 ```
-saas,product-ui,app-shell,sidebar,dashboard,data-table,ranked-list,ai-summary,settings,billing,empty-state,command-palette,insights
+saas,product-ui,app-shell,knowledge-hub,sidebar,dashboard,data-table,ranked-list,ai-summary,settings,empty-state,command-palette
 ```
-
-## References
-
-| File | When |
-|------|------|
-| `references/benchmarks-2026.md` | Choosing patterns |
-| `references/tokens.md` | Always |
-| `references/<domain>.md` | Known industry |
-| `blocks/README.md` | Implementation |
