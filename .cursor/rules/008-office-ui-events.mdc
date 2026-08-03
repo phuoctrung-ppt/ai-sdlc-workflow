@@ -1,62 +1,51 @@
 ---
-description: Emit office UI events so localhost:9669 reflects agent work during /dev-module and all worker turns
+description: Emit office UI events (Minecraft department board) with optional token audit fields
 globs: "**/*"
 alwaysApply: true
 ---
 
-# Office UI events (mandatory when `.aisdlc/` exists)
+# Office UI events
 
-If the workspace has `.aisdlc/` (created by `ai-sdlc --init`), **every agent turn that starts or finishes real work MUST emit an event** so the office board stays live.
-
-## Command (prefer portable script — no pip required)
+If `.aisdlc/` exists, emit on every agent turn start/end.
 
 ```bash
-python3 .cursor/scripts/office-event.py --agent <agent-id> --status <status> --task "<short task>" --phase <phase>
+python3 .cursor/scripts/office-event.py \
+  --agent <agent-id> \
+  --status working|waiting|done|error|idle \
+  --task "<short task>" \
+  --phase <phase> \
+  --workflow <module-or-workflow-id> \
+  [--tokens N] [--tokens-in N] [--tokens-out N]
 ```
 
-Fallback if `ai-sdlc` is on PATH:
+## Token audit (required on `done` when known)
+
+When finishing a turn / phase, if you can estimate or read usage:
 
 ```bash
-ai-sdlc event --agent <agent-id> --status <status> --task "<short task>" --phase <phase>
+python3 .cursor/scripts/office-event.py \
+  --agent backend-worker \
+  --status done \
+  --task "API done" \
+  --phase implement-backend \
+  --workflow {feature_name} \
+  --tokens 25000 \
+  --tokens-in 19000 \
+  --tokens-out 6000
 ```
 
-## Status values
+- `--workflow` groups costs for the TOKEN AUDIT panel (per module).
+- Tokens accumulate in `.aisdlc/state.json` and `.aisdlc/benchmarks.json`.
+- Prefer real usage meters when the host exposes them; otherwise estimate and label in `--detail` as `est`.
+
+## Status
 
 | Status | When |
 |--------|------|
-| `working` | Agent begins the task |
-| `waiting` | Blocked on human/judge/upstream |
-| `done` | Task finished successfully |
-| `error` | Task failed |
-| `idle` | Clear desk after handoff (empty `--task`) |
+| `working` | Start task |
+| `waiting` | Blocked |
+| `done` | Success (+ tokens when possible) |
+| `error` | Failed |
+| `idle` | Clear desk |
 
-## Who emits
-
-| Actor | `--agent` value |
-|-------|------------------|
-| Orchestrator / planner | `architect-planner` |
-| Scaffold | `scaffold-agent` |
-| Design | `designer-worker` |
-| Backend | `backend-worker` |
-| Frontend | `frontend-worker` |
-| Database | `database-worker` |
-| QA | `qa-worker` |
-| Security | `security-worker` |
-| DevOps | `devops-worker` |
-| Judge | `judge-agent` |
-| Learning | `learning-agent` |
-| Spike / contract | `spike-agent` / `contract-agent` |
-
-## Minimum cadence
-
-1. **Start of turn** → `working` + task one-liner + phase  
-2. **End of turn** → `done` or `error`  
-3. **Handoff / idle** → `idle` with empty task  
-
-Orchestrator running `/dev-module` emits on **every phase transition** (see command file). Workers emit even if orchestrator already emitted for the phase.
-
-## Do not
-
-- Skip emits because the UI is not open (still write the log)
-- Invent agent ids not in `.cursor/agents/`
-- Print secrets/PII in `--task` / `--detail`
+UI: `ai-sdlc ui` → http://127.0.0.1:9669 — click a desk to inspect task + tokens; LIVE BOARD updates **in place** per agent.

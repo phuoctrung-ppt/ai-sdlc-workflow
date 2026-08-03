@@ -1,4 +1,4 @@
-"""localhost office UI — agent team floor + live event feed."""
+"""localhost office UI — Minecraft-style department floor + token audit."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from ai_sdlc_cli.agents import discover_agents
-from ai_sdlc_cli.events import read_config, read_events, read_state
+from ai_sdlc_cli.events import read_benchmarks, read_config, read_events, read_state
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -18,7 +18,6 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 def make_handler(work_root: Path):
     class OfficeHandler(BaseHTTPRequestHandler):
         def log_message(self, fmt: str, *args) -> None:
-            # quieter default
             if args and str(args[0]).startswith("200"):
                 return
             super().log_message(fmt, *args)
@@ -40,8 +39,7 @@ def make_handler(work_root: Path):
             path = parsed.path
 
             if path in ("/", "/index.html"):
-                html = (STATIC_DIR / "office.html").read_bytes()
-                self._send(200, html, "text/html; charset=utf-8")
+                self._send(200, (STATIC_DIR / "office.html").read_bytes(), "text/html; charset=utf-8")
                 return
 
             if path.startswith("/static/"):
@@ -58,18 +56,20 @@ def make_handler(work_root: Path):
                 return
 
             if path == "/api/snapshot":
-                agents = discover_agents(work_root)
-                state = read_state(work_root)
-                config = read_config(work_root)
                 self._json(
                     200,
                     {
                         "work_root": str(work_root),
-                        "config": config,
-                        "agents": agents,
-                        "state": state,
+                        "config": read_config(work_root),
+                        "agents": discover_agents(work_root),
+                        "state": read_state(work_root),
+                        "benchmarks": read_benchmarks(work_root),
                     },
                 )
+                return
+
+            if path == "/api/benchmarks":
+                self._json(200, read_benchmarks(work_root))
                 return
 
             if path == "/api/events":
@@ -92,7 +92,12 @@ def make_handler(work_root: Path):
                         events, cursor = read_events(work_root, after_line=cursor, limit=50)
                         if events:
                             payload = json.dumps(
-                                {"events": events, "cursor": cursor, "state": read_state(work_root)},
+                                {
+                                    "events": events,
+                                    "cursor": cursor,
+                                    "state": read_state(work_root),
+                                    "benchmarks": read_benchmarks(work_root),
+                                },
                                 ensure_ascii=False,
                             )
                             self.wfile.write(f"data: {payload}\n\n".encode("utf-8"))
