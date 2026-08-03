@@ -34,12 +34,11 @@
   let cursor = 0;
   const boardRows = new Map();
   const mobNodes = new Map();
-  const deskAnchors = new Map(); // agentId -> {x,y} relative to world
+  const deskAnchors = new Map();
+  const mobPos = new Map(); // last drawn x,y for face direction
 
-  // warehouse zone (left) target for "check plan" walks
   function warehouseTarget(i) {
-    const rect = world.getBoundingClientRect();
-    return { x: 40 + (i % 3) * 18, y: 120 + (i % 5) * 28 };
+    return { x: 36 + (i % 3) * 22, y: 100 + (i % 5) * 32 };
   }
 
   function escapeHtml(s) {
@@ -65,14 +64,12 @@
     if (n >= 1e3) return (n / 1e3).toFixed(1) + "k";
     return String(n);
   }
-
   function skinIndex(id) {
     let h = 0;
     for (let i = 0; i < id.length; i++) h = (h + id.charCodeAt(i) * (i + 1)) % 10;
     return h;
   }
 
-  /** Map status/phase → action label + where mob walks */
   function actionFor(id) {
     const m = meta(id);
     const status = st(id);
@@ -81,7 +78,6 @@
     if (status === "waiting") return { label: "waiting (path)", target: "path", walking: false };
     if (status === "error") return { label: "stuck", target: "desk", walking: false };
     if (status === "done") return { label: "report done", target: "desk", walking: false };
-    // working
     if (/plan|brainstorm|restore|review/.test(phase) || /plan|brainstorm|architect/i.test(m.task || "")) {
       return { label: "→ vault: check plan", target: "warehouse", walking: true };
     }
@@ -95,7 +91,6 @@
     const tasks = plan.tasks || [];
     const byOwner = tasks.find((t) => t.owner && t.owner === id);
     if (byOwner) return byOwner.title;
-    // fuzzy: task text contains role keyword
     const role = (agents.find((a) => a.id === id) || {}).role || "";
     const fuzzy = tasks.find((t) =>
       (t.title || "").toLowerCase().includes(role.toLowerCase().slice(0, 4))
@@ -120,7 +115,7 @@
     for (const t of tasks) {
       const li = document.createElement("li");
       const activeOwner = Object.entries(agentState).some(
-        ([id, s]) => s.status === "working" && (s.task || "").includes((t.title || "").slice(0, 16))
+        ([, s]) => s.status === "working" && (s.task || "").includes((t.title || "").slice(0, 16))
       );
       if (activeOwner) li.classList.add("active");
       li.innerHTML = `${escapeHtml(t.title)}${
@@ -133,7 +128,7 @@
   function renderDesks() {
     floor.innerHTML = "";
     deskAnchors.clear();
-    agents.forEach((a, i) => {
+    agents.forEach((a) => {
       const pad = document.createElement("div");
       pad.className = "desk-pad" + (selectedId === a.id ? " selected" : "");
       pad.dataset.agent = a.id;
@@ -145,30 +140,31 @@
       pad.addEventListener("click", () => selectAgent(a.id));
       floor.appendChild(pad);
     });
-    // measure anchors after layout
     requestAnimationFrame(() => {
       const worldRect = world.getBoundingClientRect();
       floor.querySelectorAll(".desk-pad").forEach((pad) => {
         const r = pad.getBoundingClientRect();
         deskAnchors.set(pad.dataset.agent, {
-          x: r.left - worldRect.left + r.width / 2 - 12,
-          y: r.top - worldRect.top + 8,
+          x: r.left - worldRect.left + r.width / 2 - 16,
+          y: r.top - worldRect.top + 4,
         });
       });
       renderMobs();
     });
   }
 
-  function ensureMob(a, index) {
+  function ensureMob(a) {
     let el = mobNodes.get(a.id);
     if (!el) {
       el = document.createElement("div");
-      el.className = "mob skin-" + skinIndex(a.id);
       el.dataset.agent = a.id;
       el.innerHTML = `
         <div class="mob-tag"></div>
-        <div class="head"></div>
-        <div class="body">
+        <div class="mob-inner">
+          <div class="head"></div>
+          <div class="arm-l"></div>
+          <div class="arm-r"></div>
+          <div class="body"></div>
           <div class="leg-l"></div>
           <div class="leg-r"></div>
         </div>`;
@@ -184,21 +180,29 @@
 
   function renderMobs() {
     agents.forEach((a, i) => {
-      const el = ensureMob(a, i);
+      const el = ensureMob(a);
       const status = st(a.id);
       const act = actionFor(a.id);
-      el.className = `mob skin-${skinIndex(a.id)} ${status}` + (act.walking ? " walking" : "");
-      const tag = el.querySelector(".mob-tag");
-      tag.textContent = a.role || a.id.split("-")[0];
 
       let pos;
       if (act.target === "warehouse") {
         pos = warehouseTarget(i);
       } else if (act.target === "path") {
-        pos = { x: 210, y: 80 + (i % 8) * 36 };
+        pos = { x: 208, y: 70 + (i % 8) * 40 };
       } else {
-        pos = deskAnchors.get(a.id) || { x: 280 + (i % 4) * 40, y: 60 + Math.floor(i / 4) * 50 };
+        pos = deskAnchors.get(a.id) || { x: 280 + (i % 4) * 44, y: 50 + Math.floor(i / 4) * 54 };
       }
+
+      const prev = mobPos.get(a.id) || pos;
+      const faceLeft = pos.x < prev.x - 2 || act.target === "warehouse";
+      mobPos.set(a.id, pos);
+
+      el.className =
+        `mob skin-${skinIndex(a.id)} ${status}` +
+        (act.walking ? " walking" : "") +
+        (faceLeft ? " face-left" : "");
+
+      el.querySelector(".mob-tag").textContent = (a.role || a.id.split("-")[0]).slice(0, 10);
       el.style.left = pos.x + "px";
       el.style.top = pos.y + "px";
     });
@@ -257,7 +261,13 @@
     ins.hint.classList.add("hidden");
     ins.body.classList.remove("hidden");
     ins.sprite.className = "mob-preview skin-" + skinIndex(id);
-    ins.sprite.innerHTML = `<div class="head"></div><div class="body"></div>`;
+    ins.sprite.innerHTML = `
+      <div class="mob-inner">
+        <div class="head"></div>
+        <div class="body"></div>
+        <div class="leg-l"></div>
+        <div class="leg-r"></div>
+      </div>`;
     ins.id.textContent = a.id;
     ins.role.textContent = a.role || "agent";
     ins.status.textContent = st(id);
@@ -352,20 +362,19 @@
     };
   }
 
-  // idle wander: occasionally walk idle agents a few pixels
+  // gentle idle sway at desk (no leg desync)
   setInterval(() => {
     agents.forEach((a, i) => {
       if (st(a.id) !== "idle") return;
       const el = mobNodes.get(a.id);
-      if (!el) return;
       const base = deskAnchors.get(a.id);
-      if (!base) return;
-      const jitter = Math.sin(Date.now() / 800 + i) * 6;
+      if (!el || !base) return;
+      const jitter = Math.sin(Date.now() / 900 + i) * 4;
       el.style.left = base.x + jitter + "px";
       el.classList.add("walking");
-      setTimeout(() => el.classList.remove("walking"), 400);
+      setTimeout(() => el.classList.remove("walking"), 380);
     });
-  }, 2000);
+  }, 2200);
 
   loadSnapshot()
     .then(connectStream)
