@@ -1,4 +1,4 @@
-"""localhost office UI — Minecraft-style department floor + token audit."""
+"""localhost office UI — Minecraft department + plan warehouse."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlparse
 
 from ai_sdlc_cli.agents import discover_agents
 from ai_sdlc_cli.events import read_benchmarks, read_config, read_events, read_state
+from ai_sdlc_cli.plan_loader import load_active_plan
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -64,8 +65,13 @@ def make_handler(work_root: Path):
                         "agents": discover_agents(work_root),
                         "state": read_state(work_root),
                         "benchmarks": read_benchmarks(work_root),
+                        "plan": load_active_plan(work_root),
                     },
                 )
+                return
+
+            if path == "/api/plan":
+                self._json(200, load_active_plan(work_root))
                 return
 
             if path == "/api/benchmarks":
@@ -90,22 +96,18 @@ def make_handler(work_root: Path):
                 try:
                     while True:
                         events, cursor = read_events(work_root, after_line=cursor, limit=50)
-                        if events:
-                            payload = json.dumps(
-                                {
-                                    "events": events,
-                                    "cursor": cursor,
-                                    "state": read_state(work_root),
-                                    "benchmarks": read_benchmarks(work_root),
-                                },
-                                ensure_ascii=False,
-                            )
-                            self.wfile.write(f"data: {payload}\n\n".encode("utf-8"))
-                            self.wfile.flush()
-                        else:
-                            self.wfile.write(b": ping\n\n")
-                            self.wfile.flush()
-                        time.sleep(1.0)
+                        payload = {
+                            "events": events,
+                            "cursor": cursor,
+                            "state": read_state(work_root),
+                            "benchmarks": read_benchmarks(work_root),
+                            "plan": load_active_plan(work_root),
+                        }
+                        self.wfile.write(
+                            f"data: {json.dumps(payload, ensure_ascii=False)}\n\n".encode("utf-8")
+                        )
+                        self.wfile.flush()
+                        time.sleep(1.2)
                 except (BrokenPipeError, ConnectionResetError):
                     return
 
