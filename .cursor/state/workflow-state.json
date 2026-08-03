@@ -4,5 +4,9 @@
   "lastSkillProposalPath": null,
   "lastSkillProposalAt": null,
   "lastModuleCompleted": null,
-  "note": "Orchestrator updates modulesSinceLastProposal on each /dev-module Phase 6. Reset to 0 when a skill-update proposal is written (or /skill-update full pass). learning-agent treats count >= 5 as full-pass required."
+  "editedFiles": [],
+  "stopBlockCount": 0,
+  "overrides": [],
+  "events": [],
+  "_comment": "Agents must NOT cat this file. Learning counter: python3 .cursor/scripts/learning-counter.py get|inc|reset. editedFiles is workflow-guard only; ignores .cursor/state and .aisdlc."
 }

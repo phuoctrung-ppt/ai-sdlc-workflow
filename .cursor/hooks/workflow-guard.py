@@ -7,9 +7,9 @@ Modes:
   stop          Read hook JSON from stdin and require review artifacts for protected changes.
   skip-review   Log a manual review override with an audit trail.
 
-The implementation is deliberately defensive: it fail-opens for non-protected or
-unparseable payloads, and fail-closes only after the shared protected classifier
-is triggered.
+editedFiles tracking IGNORES:
+  - .cursor/state/**  (learning counter + hook runtime — not product edits)
+  - .aisdlc/**        (office UI event log)
 """
 from __future__ import annotations
 
@@ -23,15 +23,18 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# ROOT is resolved by walking up 2 levels from this script's location (.cursor/hooks/).
-# This assumes the script always lives at <project-root>/.cursor/hooks/workflow-guard.py.
-# If you move the file, update the parents[2] index accordingly.
 ROOT = Path(__file__).resolve().parents[2]
-AGENTS_MD = ROOT / "AGENTS.md"  # Project domain config hub (fill in for each project)
+AGENTS_MD = ROOT / "AGENTS.md"
 CONFIG = ROOT / ".cursor" / "config" / "protected-paths.json"
 SCOPES = ROOT / ".cursor" / "config" / "worker-scopes.json"
 STATE_DIR = ROOT / ".cursor" / "state"
 STATE = STATE_DIR / "workflow-state.json"
+
+# Paths that must never accumulate in editedFiles (not product changes)
+EDIT_IGNORE_PREFIXES = (
+    ".cursor/state/",
+    ".aisdlc/",
+)
 
 
 def now() -> str:
@@ -72,6 +75,11 @@ def rel(path: str) -> str | None:
     return p.as_posix().lstrip("./")
 
 
+def ignored_edit_path(path: str) -> bool:
+    p = path.lstrip("./")
+    return any(p == pref.rstrip("/") or p.startswith(pref) for pref in EDIT_IGNORE_PREFIXES)
+
+
 def extract_paths(obj: Any) -> list[str]:
     paths: list[str] = []
     path_keys = {"file_path", "filePath", "path", "filename", "file", "target_file", "targetFile"}
@@ -84,7 +92,9 @@ def extract_paths(obj: Any) -> list[str]:
             for v in value:
                 walk(v, key)
         elif isinstance(value, str):
-            if key in path_keys or "/" in value or value.endswith((".ts", ".tsx", ".js", ".json", ".md", ".yml", ".yaml", ".sh", ".py")):
+            if key in path_keys or "/" in value or value.endswith(
+                (".ts", ".tsx", ".js", ".json", ".md", ".yml", ".yaml", ".sh", ".py")
+            ):
                 rp = rel(value)
                 if rp and not rp.startswith(".."):
                     paths.append(rp)
@@ -105,7 +115,9 @@ def matches(path: str, patterns: list[str]) -> bool:
 
 def current_git_changed() -> list[str]:
     try:
-        out = subprocess.check_output(["git", "status", "--short"], cwd=ROOT, text=True, stderr=subprocess.DEVNULL)
+        out = subprocess.check_output(
+            ["git", "status", "--short"], cwd=ROOT, text=True, stderr=subprocess.DEVNULL
+        )
     except Exception:
         return []
     paths = []
@@ -121,7 +133,22 @@ def current_git_changed() -> list[str]:
 
 
 def state() -> dict[str, Any]:
-    return load_json(STATE, {"editedFiles": [], "stopBlockCount": 0, "overrides": [], "events": []})
+    """Load shared state; preserve learning + guard fields."""
+    default = {
+        "schemaVersion": 1,
+        "modulesSinceLastProposal": 0,
+        "lastSkillProposalPath": None,
+        "lastSkillProposalAt": None,
+        "lastModuleCompleted": None,
+        "editedFiles": [],
+        "stopBlockCount": 0,
+        "overrides": [],
+        "events": [],
+    }
+    data = load_json(STATE, default)
+    for k, v in default.items():
+        data.setdefault(k, v)
+    return data
 
 
 def save_state(s: dict[str, Any]) -> None:
@@ -130,8 +157,6 @@ def save_state(s: dict[str, Any]) -> None:
 
 def protected_reasons(paths: list[str]) -> list[str]:
     cfg = load_json(CONFIG, {})
-    # Merge generic + project globs. The flat 'protectedGlobs' key is kept for
-    # backward-compat but is no longer required — merging at runtime avoids duplication.
     if "protectedGlobs" in cfg:
         protected_globs = cfg["protectedGlobs"]
     else:
@@ -139,6 +164,8 @@ def protected_reasons(paths: list[str]) -> list[str]:
     keywords = cfg.get("protectedKeywords", [])
     threshold = int(cfg.get("multiFileThreshold", 3))
     reasons: list[str] = []
+    # Product-path view: ignore state/aisdlc when classifying protection noise
+    paths = [p for p in paths if not ignored_edit_path(p)]
     protected_paths = [p for p in paths if matches(p, protected_globs)]
     if protected_paths:
         reasons.append("protected path(s): " + ", ".join(protected_paths[:8]))
@@ -183,12 +210,17 @@ def output_block(reason: str, *, stop: bool = False, followup: str | None = None
 
 def command_record_edit(_: argparse.Namespace) -> int:
     payload = load_stdin()
-    paths = extract_paths(payload)
+    paths = [p for p in extract_paths(payload) if not ignored_edit_path(p)]
     s = state()
     edited = set(s.get("editedFiles", []))
+    # Drop any legacy state/aisdlc entries already stored
+    edited = {p for p in edited if not ignored_edit_path(p)}
     edited.update(paths)
     s["editedFiles"] = sorted(edited)
-    s.setdefault("events", []).append({"time": now(), "type": "record-edit", "paths": paths})
+    # Cap event log growth — keep last 50 only
+    events = s.setdefault("events", [])
+    events.append({"time": now(), "type": "record-edit", "paths": paths})
+    s["events"] = events[-50:]
     save_state(s)
     return output_allow()
 
@@ -220,8 +252,6 @@ def command_pre_tool_use(_: argparse.Namespace) -> int:
 
 
 def has_artifact(paths: list[str], globs: list[str]) -> bool:
-    # Only current edited/diff paths count. Pre-existing artifacts do not satisfy
-    # the gate because they do not prove this change was reviewed/planned.
     return any(matches(p, globs) for p in paths)
 
 
@@ -248,7 +278,13 @@ def active_override(s: dict[str, Any]) -> dict[str, Any] | None:
 def command_stop(_: argparse.Namespace) -> int:
     _payload = load_stdin()
     s = state()
-    paths = sorted(set(s.get("editedFiles", []) + current_git_changed()))
+    paths = sorted(
+        set(
+            p
+            for p in (s.get("editedFiles", []) + current_git_changed())
+            if not ignored_edit_path(p)
+        )
+    )
     reasons = protected_reasons(paths)
     if not reasons:
         s["stopBlockCount"] = 0
@@ -276,12 +312,16 @@ def command_stop(_: argparse.Namespace) -> int:
     cap = int(cfg.get("stopRetryCap", 2))
     count = int(s.get("stopBlockCount", 0)) + 1
     s["stopBlockCount"] = count
-    s.setdefault("events", []).append({"time": now(), "type": "stop-block", "count": count, "reasons": reasons})
+    events = s.setdefault("events", [])
+    events.append({"time": now(), "type": "stop-block", "count": count, "reasons": reasons})
+    s["events"] = events[-50:]
     save_state(s)
 
     if count <= cap:
         reason = (
-            "Protected change detected without required artifact(s): " + ", ".join(missing) + ". "
+            "Protected change detected without required artifact(s): "
+            + ", ".join(missing)
+            + ". "
             f"Reason(s): {'; '.join(reasons)}. "
             "Create/update the plan and run /workflow-eval to persist the review, or use `.cursor/hooks/review-override.sh --skip-review \"reason\"` for a logged manual override."
         )
@@ -294,29 +334,49 @@ def command_stop(_: argparse.Namespace) -> int:
         "# Protected Review Gate Escalation\n\n"
         f"Date: {dt.date.today().isoformat()}\n\n"
         "The stop hook reached its retry cap while a protected change lacked required plan/review artifacts.\n\n"
-        "## Protected Reasons\n\n" + "\n".join(f"- {r}" for r in reasons) + "\n\n"
-        "## Changed Files\n\n" + "\n".join(f"- `{p}`" for p in paths) + "\n\n"
-        "## Missing Artifacts\n\n" + "\n".join(f"- {m}" for m in missing) + "\n\n"
+        "## Protected Reasons\n\n"
+        + "\n".join(f"- {r}" for r in reasons)
+        + "\n\n"
+        "## Changed Files\n\n"
+        + "\n".join(f"- `{p}`" for p in paths)
+        + "\n\n"
+        "## Missing Artifacts\n\n"
+        + "\n".join(f"- {m}" for m in missing)
+        + "\n\n"
         "## Required Human Action\n\nCreate real plan/review artifacts for this change or approve a logged skip-review override.\n"
     )
     s["stopBlockCount"] = 0
-    s.setdefault("events", []).append({"time": now(), "type": "stop-escalation", "path": escalation.relative_to(ROOT).as_posix()})
+    events = s.setdefault("events", [])
+    events.append(
+        {
+            "time": now(),
+            "type": "stop-escalation",
+            "path": escalation.relative_to(ROOT).as_posix(),
+        }
+    )
+    s["events"] = events[-50:]
     save_state(s)
-    return output_allow({"reason": f"retry cap reached; escalation written to {escalation.relative_to(ROOT).as_posix()}"})
+    return output_allow(
+        {"reason": f"retry cap reached; escalation written to {escalation.relative_to(ROOT).as_posix()}"}
+    )
 
 
 def command_skip_review(args: argparse.Namespace) -> int:
     reason = args.reason.strip()
     if not reason:
-        print("usage: review-override.sh --skip-review \"reason\"", file=sys.stderr)
+        print('usage: review-override.sh --skip-review "reason"', file=sys.stderr)
         return 2
     cfg = load_json(CONFIG, {})
     log_path = ROOT / cfg.get("overrideLog", "docs/reviews/review-overrides.log")
     s = state()
-    paths = sorted(set(s.get("editedFiles", []) + current_git_changed()))
+    paths = sorted(
+        set(p for p in (s.get("editedFiles", []) + current_git_changed()) if not ignored_edit_path(p))
+    )
     entry = {"time": now(), "reason": reason, "changedFiles": paths}
     s.setdefault("overrides", []).append(entry)
-    s.setdefault("events", []).append({"time": now(), "type": "skip-review", "reason": reason})
+    events = s.setdefault("events", [])
+    events.append({"time": now(), "type": "skip-review", "reason": reason})
+    s["events"] = events[-50:]
     save_state(s)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with log_path.open("a") as f:
