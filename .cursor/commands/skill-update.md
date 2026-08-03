@@ -1,11 +1,13 @@
 ---
 name: skill-update
-description: Run the Learning layer — read retrospective, identify patterns, propose SKILL.md / pattern patches via @learning-agent. True self-learning entrypoint.
+description: Run the Learning layer — read retrospective, identify patterns, propose SKILL.md / pattern patches via @learning-agent. True self-learning entrypoint (full pass).
 ---
 
 # Skill Update (Learning Layer)
 
 Act as **Orchestrator**. Dispatch the learning loop (does not implement product features).
+
+**Do not** open `.cursor/state/**` or `.aisdlc/*.json`.
 
 ## Steps
 
@@ -13,12 +15,12 @@ Act as **Orchestrator**. Dispatch the learning loop (does not implement product 
    - `docs/retrospective.md`
    - `docs/memory/decisions.md`, `gotchas.md`, `shortcuts.md`
 
-2. Dispatch `@learning-agent`:
+2. Dispatch `@learning-agent` with an explicit **full pass**:
 
 ```bash
 python3 .cursor/context/context-builder.py \
   --phase review \
-  --task "skill update from retrospective" \
+  --task "skill update full pass from retrospective" \
   --agent learning-agent \
   --keywords "retrospective,pattern,skill,learning,gotcha,shortcut" \
   --budget 5000
@@ -36,5 +38,5 @@ python3 .cursor/context/context-builder.py \
 
 ## Notes
 
-- This command is the explicit Learning entrypoint.
-- `/dev-module` Phase 6 only does lightweight distillation + a short learning-agent scan; use this command for a full skill-update pass.
+- This command is the explicit **full** Learning entrypoint.
+- `/dev-module` Phase 6 only does lightweight distillation + a short learning-agent scan.

@@ -1,5 +1,5 @@
 ---
-description: Memory + Learning layers — docs/memory primary SoT; .memory generated cache; learning-agent gated by workflow-state counter
+description: Memory + Learning layers — docs/memory primary SoT; .memory generated cache; no state.json in agent context
 globs: "**/*"
 alwaysApply: true
 ---
@@ -40,16 +40,24 @@ If the two disagree on a **product/workflow decision**, **`docs/memory/*` wins**
 - Do **not** invent solutions that contradict a locked decision or known gotcha.
 - Prefer shortcuts over rediscovery.
 
+## State JSON — out of agent context
+
+These paths may exist for **tooling / office UI only**. Agents must **not** `cat`, open, or hand-edit them as part of planning or learning:
+
+- `.cursor/state/**` (including `workflow-state.json`, `module-*-loop.json`)
+- `.aisdlc/state.json`, `.aisdlc/events.jsonl`, `.aisdlc/benchmarks.json`
+
+Resume and learning decisions use **`docs/plans/`**, **`docs/module-deps.md`**, **`docs/retrospective.md`**, and **`docs/memory/*`** only.
+
 ## Learning Layer (Tầng 3)
 
 | File / Actor | Purpose |
 |--------------|---------|
 | `docs/retrospective.md` | Per-module metrics + root cause |
 | `docs/module-deps.md` | Dependency graph + hard-gate |
-| `.cursor/state/workflow-state.json` | `modulesSinceLastProposal` counter |
 | `@learning-agent` | Pattern detection + skill proposals |
 | `skill-updater` skill | Best practices for proposals / patches |
-| `/skill-update` | Explicit full learning pass |
+| `/skill-update` | Explicit **full** learning pass |
 
 ### Distillation vs Learning
 
@@ -57,20 +65,18 @@ If the two disagree on a **product/workflow decision**, **`docs/memory/*` wins**
 1. Append retrospective entry.
 2. Extract obvious 1–5 facts into **`docs/memory/*`** only (not `.memory/*`).
 3. Update `docs/module-deps.md` status → `done`.
-4. Increment `modulesSinceLastProposal` in `.cursor/state/workflow-state.json`.
-5. **Dispatch `@learning-agent`** with the counter value in the task text.
+4. **Dispatch `@learning-agent`** for a lightweight scan (no state counter).
 
-**Learning agent hard-gate:**
-1. Read `.cursor/state/workflow-state.json` → `modulesSinceLastProposal`.
-2. If `modulesSinceLastProposal < 5` **and** no explicit `/skill-update` / "full pass" in task → **lightweight scan only** (may still propose if ≥2 strong signals in latest entries).
-3. If `modulesSinceLastProposal >= 5` **or** full pass requested → mandatory full retrospective + memory scan; write proposal or explicit `NO_PATTERN` note.
-4. When a proposal file is written, set `modulesSinceLastProposal` to `0` and record `lastSkillProposalPath` / `lastSkillProposalAt`.
+**Learning agent modes:**
+- Default / post-module → lightweight (latest retrospective entries).
+- `/skill-update` or task says `full pass` → full retrospective + memory scan; write proposal or explicit `NO_PATTERN`.
 
 ### Forbidden
 - `/dev-module` or any product worker silently rewriting `SKILL.md`
 - Skill changes without a proposal trail
 - Treating chat history as durable memory
 - Treating `.memory/*` as equal authority to `docs/memory/*`
+- Loading state JSON into the context packet
 
 ### Module dependency hard-gate
 Before Phase 3 (Execute):

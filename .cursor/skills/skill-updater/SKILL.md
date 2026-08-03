@@ -1,16 +1,16 @@
 ---
 name: skill-updater
-description: Read retrospective + memory, identify repeating patterns, propose concrete patches to SKILL.md or new patterns. True self-learning — never silent rewrite.
+description: Read retrospective + memory, identify repeating patterns, propose concrete patches to SKILL.md or new patterns. True self-learning — never silent rewrite. No state.json.
 ---
 
 # Skill Updater
 
-## Counter gate
+## Pass mode (no state file)
 
-Read `.cursor/state/workflow-state.json` → `modulesSinceLastProposal`:
-- `>= 5` or task says full pass / `/skill-update` → full retrospective + memory scan.
-- `< 5` → lightweight (latest entries only) unless ≥2 strong signals justify a proposal.
-- After writing a proposal, reset counter to `0` and set `lastSkillProposalPath` / `lastSkillProposalAt`.
+- Task mentions `/skill-update` or `full pass` → **full** retrospective + memory scan.
+- Otherwise → **lightweight** (latest retrospective entries only) unless ≥2 strong signals justify a proposal.
+
+**Do not** read or write `.cursor/state/workflow-state.json` (or any `.cursor/state/**`, `.aisdlc/*.json`). Those files are tooling/UI only and must stay out of the context packet.
 
 Durable facts belong in `docs/memory/*` (primary SoT). `.memory/*` is AGENTS cache only.
 
@@ -24,15 +24,13 @@ Turn retrospective signals into **durable skill improvements** so the next sessi
 
 1. `docs/retrospective.md` — newest entries first; look for repeating root causes / pattern candidates
 2. `docs/memory/decisions.md`, `gotchas.md`, `shortcuts.md` — existing compressed truth
-3. `.cursor/state/workflow-state.json` — module counter
-4. Target skill(s) under `.cursor/skills/**/SKILL.md` or patterns under `.cursor/patterns/**`
-5. Optional: related `docs/reviews/*`
+3. Target skill(s) under `.cursor/skills/**/SKILL.md` or patterns under `.cursor/patterns/**`
+4. Optional: related `docs/reviews/*`
 
 ## When to run
 
 - After every module Done (lightweight scan — may conclude "no pattern yet")
-- **Mandatory full pass** when `modulesSinceLastProposal >= 5`
-- When orchestrator / human runs `/skill-update` or dispatches `@learning-agent` explicitly
+- Full pass when orchestrator / human runs `/skill-update`
 
 ## Pattern identification rules
 
@@ -73,6 +71,7 @@ Status: `PENDING_APPROVAL`. Include trigger, evidence (2+), minimal patch, non-g
 - Silent rewrite of any `SKILL.md`
 - Inventing patterns without retrospective evidence
 - Expanding scope to "improve all skills while we're here"
+- Opening state JSON files into the context window
 
 ## After approval
 
