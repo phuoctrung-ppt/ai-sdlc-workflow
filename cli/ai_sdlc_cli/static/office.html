@@ -3,39 +3,79 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ai-sdlc office</title>
+  <title>ai-sdlc · Agent Department</title>
   <link rel="stylesheet" href="/static/office.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <header class="top">
+  <div class="sky"></div>
+
+  <header class="top bar">
     <div class="brand">
-      <span class="logo">◈</span>
+      <span class="logo-block"></span>
       <div>
-        <h1>ai-sdlc office</h1>
-        <p class="sub">Agent team floor · live task board</p>
+        <h1>AGENT DEPT</h1>
+        <p class="sub">ai-sdlc office · block floor</p>
       </div>
     </div>
     <div class="meta">
       <span id="provider" class="pill">—</span>
-      <span id="workRoot" class="path">—</span>
-      <span id="conn" class="pill muted">connecting…</span>
+      <span id="workflowPill" class="pill">wf: —</span>
+      <span id="conn" class="pill muted">…</span>
     </div>
   </header>
 
   <main class="layout">
-    <section class="floor" id="floor" aria-label="Agent desks"></section>
-    <aside class="feed">
-      <h2>Task feed</h2>
-      <ul id="feed"></ul>
+    <section class="room-wrap">
+      <div class="room-label">DEPARTMENT FLOOR</div>
+      <div class="room" id="room" aria-label="Agent department room"></div>
+    </section>
+
+    <aside class="side">
+      <div class="panel" id="inspector">
+        <h2>INSPECT</h2>
+        <p class="hint" id="inspectHint">Click an agent desk</p>
+        <div id="inspectBody" class="hidden">
+          <div class="inspect-head">
+            <span id="insEmoji" class="px-avatar">🤖</span>
+            <div>
+              <div id="insId" class="ins-id"></div>
+              <div id="insRole" class="ins-role"></div>
+            </div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat"><span class="k">STATUS</span><span id="insStatus" class="v">—</span></div>
+            <div class="stat"><span class="k">PHASE</span><span id="insPhase" class="v">—</span></div>
+            <div class="stat wide"><span class="k">TASK</span><span id="insTask" class="v task">—</span></div>
+            <div class="stat"><span class="k">TOKENS</span><span id="insTokens" class="v">0</span></div>
+            <div class="stat"><span class="k">IN / OUT</span><span id="insTokensIO" class="v">0 / 0</span></div>
+            <div class="stat wide"><span class="k">WORKFLOW</span><span id="insWf" class="v">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>LIVE BOARD</h2>
+        <p class="hint">One row per agent · updates in place</p>
+        <ul id="board" class="board"></ul>
+      </div>
+
+      <div class="panel">
+        <h2>TOKEN AUDIT</h2>
+        <p class="hint">Per workflow · for optimising phases</p>
+        <div id="benchmarks" class="bench"></div>
+      </div>
     </aside>
   </main>
 
-  <footer class="legend">
-    <span><i class="dot idle"></i> idle</span>
-    <span><i class="dot working"></i> working</span>
-    <span><i class="dot waiting"></i> waiting</span>
-    <span><i class="dot done"></i> done</span>
-    <span><i class="dot error"></i> error</span>
+  <footer class="legend bar">
+    <span><i class="dot idle"></i>idle</span>
+    <span><i class="dot working"></i>working</span>
+    <span><i class="dot waiting"></i>waiting</span>
+    <span><i class="dot done"></i>done</span>
+    <span><i class="dot error"></i>error</span>
+    <span class="path" id="workRoot"></span>
   </footer>
 
   <script src="/static/office.js"></script>
