@@ -3,7 +3,6 @@
   --bg2: #3f7a28;
   --wood: #9a6b3f;
   --wood2: #6e4a2b;
-  --stone: #8a8a8a;
   --panel: #1e1e1e;
   --text: #f2f2f2;
   --muted: #9a9a9a;
@@ -13,6 +12,8 @@
   --error: #e05a5a;
   --idle: #888;
   --pixel: "Press Start 2P", monospace;
+  --mob-w: 32px;
+  --mob-h: 48px;
 }
 
 * { box-sizing: border-box; }
@@ -121,11 +122,7 @@ h1 { margin: 0; font-size: 11px; }
 .wh-tasks li .own { display: block; color: #9cdcfe; font-size: 9px; }
 
 .path {
-  background: repeating-linear-gradient(
-    180deg,
-    #c2a06a 0 10px,
-    #a8844e 10px 20px
-  );
+  background: repeating-linear-gradient(180deg, #c2a06a 0 10px, #a8844e 10px 20px);
   border-left: 2px solid #6a5030;
   border-right: 2px solid #6a5030;
   z-index: 2;
@@ -171,104 +168,238 @@ h1 { margin: 0; font-size: 11px; }
   border: 1px solid #000;
 }
 
-/* ===== MOBS (Minecraft-ish villagers) ===== */
+/* ===== MOB SPRITE (aligned stack) ===== */
 .mobs {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 5;
 }
+
+/*
+  Layout (32×48 box, everything centered on X):
+  y=0  tag
+  y=10 head 16×16
+  y=26 body 16×14
+  y=40 legs 6×8 each
+*/
 .mob {
   position: absolute;
-  width: 24px;
-  height: 36px;
-  transition: left 1.1s steps(8), top 1.1s steps(8);
+  width: var(--mob-w);
+  height: var(--mob-h);
+  margin: 0;
+  padding: 0;
+  transition: left 0.9s linear, top 0.9s linear;
   pointer-events: auto;
   cursor: pointer;
-  filter: drop-shadow(1px 1px 0 #000);
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.55));
+  will-change: left, top;
 }
-.mob .body {
-  width: 16px;
-  height: 18px;
-  margin: 10px auto 0;
-  border: 1px solid #000;
-  position: relative;
-}
-.mob .head {
-  width: 14px;
-  height: 14px;
-  margin: 0 auto;
-  border: 1px solid #000;
-  background: #c6a786;
-  position: relative;
-  z-index: 1;
-}
-.mob .head::before {
-  content: "";
-  position: absolute;
-  left: 2px; top: 5px;
-  width: 2px; height: 2px;
-  background: #222;
-  box-shadow: 8px 0 #222;
-}
-.mob .leg-l, .mob .leg-r {
-  position: absolute;
-  bottom: -8px;
-  width: 5px; height: 8px;
-  background: #3d4a7a;
-  border: 1px solid #000;
-}
-.mob .leg-l { left: 2px; }
-.mob .leg-r { right: 2px; }
-.mob.walking .leg-l { animation: stepL 0.35s steps(2) infinite; }
-.mob.walking .leg-r { animation: stepR 0.35s steps(2) infinite; }
-@keyframes stepL { 50% { transform: translateY(-2px); } }
-@keyframes stepR { 50% { transform: translateY(2px); } }
-
-/* skin colors by role index */
-.skin-0 .body { background: #3d9cfe; }
-.skin-1 .body { background: #e05a9c; }
-.skin-2 .body { background: #5dcc5d; }
-.skin-3 .body { background: #e6a04a; }
-.skin-4 .body { background: #9b7bde; }
-.skin-5 .body { background: #5accc8; }
-.skin-6 .body { background: #e05a5a; }
-.skin-7 .body { background: #aaaaaa; }
-.skin-8 .body { background: #f0d060; }
-.skin-9 .body { background: #6a8cff; }
-
-.mob.working .body { box-shadow: 0 0 0 2px var(--working); }
-.mob.waiting .body { box-shadow: 0 0 0 2px var(--waiting); }
-.mob.done .body { box-shadow: 0 0 0 2px var(--done); }
-.mob.error .body { box-shadow: 0 0 0 2px var(--error); }
 
 .mob-tag {
   position: absolute;
   left: 50%;
-  top: -10px;
+  top: 0;
   transform: translateX(-50%);
   font-size: 5px;
+  line-height: 1;
   white-space: nowrap;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0, 0, 0, 0.8);
   padding: 2px 3px;
   border: 1px solid #000;
-  max-width: 72px;
+  max-width: 64px;
   overflow: hidden;
   text-overflow: ellipsis;
+  z-index: 3;
 }
 
+.mob-inner {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  width: 16px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  transform: translateX(-50%);
+}
+
+.mob .head {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  background: #c6a786;
+  border: 1px solid #000;
+  z-index: 2;
+}
+/* eyes */
+.mob .head::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  width: 2px;
+  height: 2px;
+  background: #1a1a1a;
+  box-shadow: 8px 0 0 #1a1a1a;
+}
+/* hair fringe */
+.mob .head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 3px;
+  background: #3a2a1a;
+}
+
+.mob .body {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 16px;
+  height: 14px;
+  margin: 0;
+  border: 1px solid #000;
+  z-index: 1;
+}
+
+/* arms glued to body sides */
+.mob .arm-l,
+.mob .arm-r {
+  position: absolute;
+  top: 16px;
+  width: 4px;
+  height: 10px;
+  border: 1px solid #000;
+  background: #c6a786;
+  z-index: 0;
+}
+.mob .arm-l { left: -4px; }
+.mob .arm-r { right: -4px; left: auto; }
+
+.mob .leg-l,
+.mob .leg-r {
+  position: absolute;
+  top: 30px;
+  width: 6px;
+  height: 8px;
+  margin: 0;
+  background: #2f3a66;
+  border: 1px solid #000;
+  transform-origin: top center;
+  z-index: 1;
+}
+.mob .leg-l { left: 1px; }
+.mob .leg-r { left: 9px; }
+
+/* walk: alternate legs + slight arm swing, keep torso fixed */
+.mob.walking .leg-l {
+  animation: walk-leg-l 0.4s steps(2, end) infinite;
+}
+.mob.walking .leg-r {
+  animation: walk-leg-r 0.4s steps(2, end) infinite;
+}
+.mob.walking .arm-l {
+  animation: walk-arm-l 0.4s steps(2, end) infinite;
+}
+.mob.walking .arm-r {
+  animation: walk-arm-r 0.4s steps(2, end) infinite;
+}
+.mob.walking .mob-inner {
+  animation: walk-bob 0.4s steps(2, end) infinite;
+}
+
+@keyframes walk-leg-l {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes walk-leg-r {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(0); }
+}
+@keyframes walk-arm-l {
+  0%, 100% { transform: translateY(-1px); }
+  50% { transform: translateY(1px); }
+}
+@keyframes walk-arm-r {
+  0%, 100% { transform: translateY(1px); }
+  50% { transform: translateY(-1px); }
+}
+@keyframes walk-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-1px); }
+}
+
+/* face direction when going to warehouse (left) */
+.mob.face-left .mob-inner { transform: translateX(-50%) scaleX(-1); }
+.mob.face-left.walking .mob-inner {
+  animation-name: walk-bob-flip;
+}
+@keyframes walk-bob-flip {
+  0%, 100% { transform: translateX(-50%) scaleX(-1) translateY(0); }
+  50% { transform: translateX(-50%) scaleX(-1) translateY(-1px); }
+}
+
+/* skin / shirt colors */
+.skin-0 .body, .skin-0.mob-preview .body { background: #3d9cfe; }
+.skin-1 .body, .skin-1.mob-preview .body { background: #e05a9c; }
+.skin-2 .body, .skin-2.mob-preview .body { background: #5dcc5d; }
+.skin-3 .body, .skin-3.mob-preview .body { background: #e6a04a; }
+.skin-4 .body, .skin-4.mob-preview .body { background: #9b7bde; }
+.skin-5 .body, .skin-5.mob-preview .body { background: #5accc8; }
+.skin-6 .body, .skin-6.mob-preview .body { background: #e05a5a; }
+.skin-7 .body, .skin-7.mob-preview .body { background: #aaaaaa; }
+.skin-8 .body, .skin-8.mob-preview .body { background: #f0d060; }
+.skin-9 .body, .skin-9.mob-preview .body { background: #6a8cff; }
+
+.mob.working .body { box-shadow: inset 0 0 0 1px #fff, 0 0 0 2px var(--working); }
+.mob.waiting .body { box-shadow: inset 0 0 0 1px #fff, 0 0 0 2px var(--waiting); }
+.mob.done .body { box-shadow: inset 0 0 0 1px #fff, 0 0 0 2px var(--done); }
+.mob.error .body { box-shadow: inset 0 0 0 1px #fff, 0 0 0 2px var(--error); }
+
+/* inspector preview — same proportions */
 .mob-preview {
-  width: 28px; height: 40px;
+  width: 32px;
+  height: 44px;
   position: relative;
+  flex-shrink: 0;
+}
+.mob-preview .mob-inner {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 16px;
+  height: 38px;
+  transform: translateX(-50%);
 }
 .mob-preview .head {
-  width: 16px; height: 16px; margin: 0 auto;
-  background: #c6a786; border: 1px solid #000;
-}
-.mob-preview .body {
-  width: 18px; height: 20px; margin: 0 auto;
+  position: absolute;
+  left: 0; top: 0;
+  width: 16px; height: 16px;
+  background: #c6a786;
   border: 1px solid #000;
 }
+.mob-preview .body {
+  position: absolute;
+  left: 0; top: 16px;
+  width: 16px; height: 14px;
+  border: 1px solid #000;
+}
+.mob-preview .leg-l,
+.mob-preview .leg-r {
+  position: absolute;
+  top: 30px;
+  width: 6px; height: 8px;
+  background: #2f3a66;
+  border: 1px solid #000;
+}
+.mob-preview .leg-l { left: 1px; }
+.mob-preview .leg-r { left: 9px; }
 
 /* side panels */
 .side { display: flex; flex-direction: column; gap: 10px; }
