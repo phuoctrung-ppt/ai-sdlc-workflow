@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ai-sdlc · Agent Department</title>
+  <title>ai-sdlc · Treasure Dig</title>
   <link rel="stylesheet" href="/static/office.css" />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
 </head>
@@ -12,44 +12,63 @@
     <div class="brand">
       <div class="grass-block"></div>
       <div>
-        <h1>AGENT DEPARTMENT</h1>
-        <p class="sub">Mobs · Plan warehouse · Live desks</p>
+        <h1>TREASURE DIG</h1>
+        <p class="sub">8-bit SDLC · map → dig → loot → skills</p>
       </div>
     </div>
     <div class="meta">
       <span id="provider" class="pill">—</span>
-      <span id="workflowPill" class="pill">wf: —</span>
+      <span id="workflowPill" class="pill">quest: —</span>
       <span id="conn" class="pill muted">…</span>
     </div>
   </header>
 
   <main class="stage">
-    <!-- World: warehouse LEFT, path, desks RIGHT -->
     <section class="world" id="world">
-      <div class="warehouse" id="warehouse" title="Plan warehouse">
-        <div class="chest-row">
-          <div class="chest"></div>
-          <div class="chest"></div>
-          <div class="chest open"></div>
+      <!-- LEFT: Treasure map (plan) + skill storage -->
+      <div class="vault-col">
+        <div class="map-board" id="mapBoard">
+          <div class="map-title">🗺 TREASURE MAP</div>
+          <div class="wh-plan" id="whPlanName">No map yet</div>
+          <div class="wh-goal" id="whGoal">Planning writes the map &amp; spawns chests</div>
         </div>
-        <div class="wh-label">PLAN VAULT</div>
-        <div class="wh-plan" id="whPlanName">No active plan</div>
-        <div class="wh-goal" id="whGoal"></div>
-        <ul class="wh-tasks" id="whTasks"></ul>
+
+        <div class="skill-vault" id="skillVault">
+          <div class="map-title">📦 SKILL STORAGE</div>
+          <p class="hint-sm">Learning miner stores patterns here after digs</p>
+          <ul class="skill-list" id="skillList">
+            <li class="empty">No skill updates yet</li>
+          </ul>
+        </div>
       </div>
 
       <div class="path" aria-hidden="true"></div>
 
-      <div class="floor" id="floor"></div>
+      <!-- DIG SITE: chests from plan tasks -->
+      <div class="dig-site">
+        <div class="site-label">DIG SITE · chests = plan tasks</div>
+        <div class="chest-field" id="chestField"></div>
+        <div class="camp" id="camp"><!-- miner home pads --></div>
+      </div>
 
-      <!-- animated mobs layer -->
       <div class="mobs" id="mobs"></div>
     </section>
 
     <aside class="side">
+      <div class="panel lore">
+        <h2>HOW TO PLAY</h2>
+        <ol class="lore-list">
+          <li><b>Map</b> — planner draws quest (plan)</li>
+          <li><b>Chests</b> — each plan task spawns a chest</li>
+          <li><b>Dig</b> — miners work the chest; speech = live task</li>
+          <li><b>Loot</b> — done → gold; error → run to skill storage</li>
+          <li><b>Skills</b> — learning miner updates storage</li>
+        </ol>
+      </div>
+
       <div class="panel">
-        <h2>INSPECT MOB</h2>
-        <p class="hint" id="inspectHint">Click a villager / desk</p>
+        <h2>INSPECT MINER</h2>
+        <p class="hint" id="inspectHint">Click a miner or chest</p>
         <div id="inspectBody" class="hidden">
           <div class="inspect-head">
             <div id="insSprite" class="mob-preview skin-0"></div>
@@ -61,31 +80,31 @@
           <div class="stat-grid">
             <div class="stat"><span class="k">STATUS</span><span id="insStatus" class="v">—</span></div>
             <div class="stat"><span class="k">ACTION</span><span id="insAction" class="v">—</span></div>
-            <div class="stat wide"><span class="k">TASK</span><span id="insTask" class="v task">—</span></div>
-            <div class="stat wide"><span class="k">FROM PLAN</span><span id="insPlanTask" class="v">—</span></div>
-            <div class="stat"><span class="k">TOKENS</span><span id="insTokens" class="v">0</span></div>
+            <div class="stat wide"><span class="k">SAYING</span><span id="insQuote" class="v task">—</span></div>
+            <div class="stat wide"><span class="k">CHEST / PLAN TASK</span><span id="insPlanTask" class="v">—</span></div>
+            <div class="stat"><span class="k">LOOT (TOKENS)</span><span id="insTokens" class="v">0</span></div>
             <div class="stat"><span class="k">PHASE</span><span id="insPhase" class="v">—</span></div>
           </div>
         </div>
       </div>
 
       <div class="panel">
-        <h2>LIVE BOARD</h2>
-        <p class="hint">One row / agent · in-place</p>
+        <h2>PARTY BOARD</h2>
         <ul id="board" class="board"></ul>
       </div>
 
       <div class="panel">
-        <h2>TOKEN AUDIT</h2>
+        <h2>LOOT LEDGER</h2>
         <div id="benchmarks" class="bench"></div>
       </div>
     </aside>
   </main>
 
   <footer class="legend">
-    <span>🚶 warehouse = check plan</span>
-    <span>⛏ desk = implement</span>
-    <span>⏸ waiting · ✔ done</span>
+    <span>🗺 map = plan</span>
+    <span>💎 chest = task</span>
+    <span>⛏ dig = implement</span>
+    <span>📦 storage = skills</span>
     <span class="path-label" id="workRoot"></span>
   </footer>
   <script src="/static/office.js"></script>
