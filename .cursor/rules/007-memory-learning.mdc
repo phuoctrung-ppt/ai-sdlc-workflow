@@ -1,86 +1,37 @@
 ---
-description: Memory + Learning layers — docs/memory primary SoT; .memory generated cache; no state.json in agent context
+description: Memory SoT + learning counter via CLI; no raw state.json in agent context
 globs: "**/*"
 alwaysApply: true
 ---
 
-# Memory & Learning Rules (V2+)
+# Memory & Learning Rules
 
-## Two memory locations — not peers
+## Memory
 
-| Location | Role | Who writes |
-|----------|------|------------|
-| **`docs/memory/*`** | **Primary source of truth** — durable cross-session decisions / gotchas / shortcuts | Phase 6 distillation, `@learning-agent` |
-| **`.memory/*`** | **Generated cache** for context-builder (short extracts from `AGENTS.md`) | `memory-loader.py --sync` only |
+| Location | Role |
+|----------|------|
+| **`docs/memory/*`** | Primary durable SoT |
+| **`.memory/*`** | Generated AGENTS cache only (`memory-loader.py --sync`) |
 
-**Read order for agents:** `docs/memory/decisions.md`, `gotchas.md`, `shortcuts.md` first. Use `.memory/constraints.md` (etc.) only as a compressed stand-in for full `AGENTS.md` — never as a substitute for `docs/memory/*` facts.
+Read `docs/memory/*` first. Never hand-edit `.memory/*` as durable memory.
 
-If the two disagree on a **product/workflow decision**, **`docs/memory/*` wins**. Regenerate `.memory/*` via `python3 .cursor/context/memory-loader.py --sync` after AGENTS.md changes — do not hand-edit `.memory/*` as if it were durable memory.
+## workflow-state.json — split concerns
 
-### Primary files (SoT)
+| Keys | Owner | Agent access |
+|------|-------|----------------|
+| `modulesSinceLastProposal`, `lastModuleCompleted`, `lastSkillProposal*` | Learning | **Only** via `python3 .cursor/scripts/learning-counter.py get\|inc\|reset` |
+| `editedFiles`, `stopBlockCount`, `overrides`, `events` | `workflow-guard.py` | **Never** in agent context |
 
-| File | Purpose |
-|------|---------|
-| `docs/memory/decisions.md` | Locked decisions — never re-debate |
-| `docs/memory/gotchas.md` | Patterns that already failed |
-| `docs/memory/shortcuts.md` | Patterns that already worked |
+**Forbidden:** `cat` / open / hand-edit `.cursor/state/workflow-state.json`.
 
-### Generated cache (not SoT)
+`record-edit` **ignores** `.cursor/state/**` and `.aisdlc/**` so counter updates do not pollute `editedFiles`.
 
-| File | Purpose |
-|------|---------|
-| `.memory/architecture.md` | Short architecture extract from AGENTS |
-| `.memory/constraints.md` | Stack/compliance constraints extract |
-| `.memory/coding-style.md` | Style extract |
-| `.memory/known-decisions.md` | Cache only — prefer `docs/memory/decisions.md` |
-| `.memory/known-issues.md` | Cache only — prefer gotchas/retrospective |
+## Learning
 
-### Rules
-- Every agent that plans or implements MUST consider **`docs/memory/*`**.
-- Do **not** invent solutions that contradict a locked decision or known gotcha.
-- Prefer shortcuts over rediscovery.
+- Phase 6 `/dev-module`: distill memory + `learning-counter.py inc --module <name>` + lightweight `@learning-agent`
+- Full pass: `/skill-update` or when `get` returns `fullPassRecommended: true`
+- Proposal written → `learning-counter.py reset --proposal <path>`
 
-## State JSON — out of agent context
+## Module deps
 
-These paths may exist for **tooling / office UI only**. Agents must **not** `cat`, open, or hand-edit them as part of planning or learning:
-
-- `.cursor/state/**` (including `workflow-state.json`, `module-*-loop.json`)
-- `.aisdlc/state.json`, `.aisdlc/events.jsonl`, `.aisdlc/benchmarks.json`
-
-Resume and learning decisions use **`docs/plans/`**, **`docs/module-deps.md`**, **`docs/retrospective.md`**, and **`docs/memory/*`** only.
-
-## Learning Layer (Tầng 3)
-
-| File / Actor | Purpose |
-|--------------|---------|
-| `docs/retrospective.md` | Per-module metrics + root cause |
-| `docs/module-deps.md` | Dependency graph + hard-gate |
-| `@learning-agent` | Pattern detection + skill proposals |
-| `skill-updater` skill | Best practices for proposals / patches |
-| `/skill-update` | Explicit **full** learning pass |
-
-### Distillation vs Learning
-
-**Phase 6 of `/dev-module` (lightweight — orchestrator):**
-1. Append retrospective entry.
-2. Extract obvious 1–5 facts into **`docs/memory/*`** only (not `.memory/*`).
-3. Update `docs/module-deps.md` status → `done`.
-4. **Dispatch `@learning-agent`** for a lightweight scan (no state counter).
-
-**Learning agent modes:**
-- Default / post-module → lightweight (latest retrospective entries).
-- `/skill-update` or task says `full pass` → full retrospective + memory scan; write proposal or explicit `NO_PATTERN`.
-
-### Forbidden
-- `/dev-module` or any product worker silently rewriting `SKILL.md`
-- Skill changes without a proposal trail
-- Treating chat history as durable memory
-- Treating `.memory/*` as equal authority to `docs/memory/*`
-- Loading state JSON into the context packet
-
-### Module dependency hard-gate
-Before Phase 3 (Execute):
-```
-Read docs/module-deps.md
-If any depends_on is not done → STOP and report missing upstream module/contract.
-```
+Before execute: read `docs/module-deps.md`; stop if upstream not `done`.
