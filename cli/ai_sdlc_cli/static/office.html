@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ai-sdlc office</title>
+  <link rel="stylesheet" href="/static/office.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo">◈</span>
+      <div>
+        <h1>ai-sdlc office</h1>
+        <p class="sub">Agent team floor · live task board</p>
+      </div>
+    </div>
+    <div class="meta">
+      <span id="provider" class="pill">—</span>
+      <span id="workRoot" class="path">—</span>
+      <span id="conn" class="pill muted">connecting…</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="floor" id="floor" aria-label="Agent desks"></section>
+    <aside class="feed">
+      <h2>Task feed</h2>
+      <ul id="feed"></ul>
+    </aside>
+  </main>
+
+  <footer class="legend">
+    <span><i class="dot idle"></i> idle</span>
+    <span><i class="dot working"></i> working</span>
+    <span><i class="dot waiting"></i> waiting</span>
+    <span><i class="dot done"></i> done</span>
+    <span><i class="dot error"></i> error</span>
+  </footer>
+
+  <script src="/static/office.js"></script>
+</body>
+</html>
