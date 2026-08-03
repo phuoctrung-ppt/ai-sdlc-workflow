@@ -2,60 +2,73 @@
 
 CLI wrapper around the **v2** agentic workflow. Initialize a work folder for **Cursor** or **Claude**, then open the **office UI** to watch the agent team.
 
-## Install (dev)
+## Install (dev / global)
 
 ```bash
 cd cli
 pip install -e .
+# or: pipx install --editable .
 ```
 
 ## Commands
 
 ```bash
-# Scaffold workspace in current directory (or --path)
 ai-sdlc --init cursor
 ai-sdlc --init claude
-ai-sdlc init cursor --path ./my-app
+ai-sdlc init cursor --path ./my-app --repo /path/to/ai-sdlc-workflow
 
-# Start office UI (default http://127.0.0.1:9669)
-ai-sdlc ui
-ai-sdlc ui --port 9669 --path ./my-app
-
-# Emit a demo event stream (agents appear busy in the UI)
-ai-sdlc demo --path ./my-app
-
-# Log a manual agent event (for wrappers / hooks)
-ai-sdlc event --agent architect-planner --status working --task "Plan auth module"
-
-# Show workspace status
+ai-sdlc ui                  # http://127.0.0.1:9669
+ai-sdlc demo
+ai-sdlc event --agent architect-planner --status working --task "Plan auth"
 ai-sdlc status
 ```
+
+## Auto events from `/dev-module` (important)
+
+After this branch’s workflow wiring:
+
+| Piece | Role |
+|-------|------|
+| `.cursor/scripts/office-event.py` | Portable emitter → `.aisdlc/events.jsonl` (no pip) |
+| `.cursor/rules/008-office-ui-events.mdc` | Agents **must** emit start/end of every turn |
+| `.cursor/commands/dev-module.md` | Orchestrator emits on **every phase** + each worker task |
+
+**You still need:**
+
+1. Workspace with `.aisdlc/` (`ai-sdlc --init …`)
+2. `ai-sdlc ui` running
+3. Cursor session using **updated** `.cursor/` from this branch (re-init or copy `.cursor/scripts` + rule `008` + `dev-module.md`)
+
+If you init’d before the wiring commit, refresh:
+
+```bash
+cd /your/app
+ai-sdlc --init cursor --repo /path/to/ai-sdlc-workflow --force
+# or manually copy:
+#   .cursor/scripts/office-event.py
+#   .cursor/rules/008-office-ui-events.mdc
+#   .cursor/commands/dev-module.md
+```
+
+Then run `/dev-module <name>` in Cursor — desks should move as phases progress.
 
 ## Office UI
 
 Open **http://localhost:9669** after `ai-sdlc ui`.
 
-- Desks for each agent defined under `.cursor/agents/`
-- Live task feed from `.aisdlc/events.jsonl` (SSE)
-- Status colors: idle / working / waiting / done / error
+- Desks from `.cursor/agents/`
+- Live feed from `.aisdlc/events.jsonl` (SSE)
 
 ## Layout after `--init`
 
 ```text
 .
 ├── .aisdlc/
-│   ├── config.json          # provider, port, created_at
-│   ├── events.jsonl         # append-only event log
-│   └── state.json           # last known agent statuses
-├── AGENTS.md                # domain template (from repo)
-├── docs/memory/             # durable memory SoT
-├── docs/retrospective.md
-├── .cursor/                 # full workflow (cursor init)
-│   ├── agents/
-│   ├── skills/
-│   ├── commands/
-│   └── ...
-└── .claude/                 # claude adapter notes + CLAUDE.md (claude init)
+│   ├── config.json
+│   ├── events.jsonl
+│   └── state.json
+├── AGENTS.md
+├── docs/memory/
+├── .cursor/          # includes scripts/office-event.py + rule 008
+└── .claude/          # claude init only
 ```
-
-Claude init still copies `.cursor/` skills/agents as the source of truth and adds `.claude/CLAUDE.md` pointing at the same workflow so both hosts can share the folder.
