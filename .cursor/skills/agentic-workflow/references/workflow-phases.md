@@ -3,8 +3,24 @@
 ## Standard Phase Chain
 
 ```text
-classify → plan → execute → verify → review → loop-or-complete
+explore → plan → execute → verify → review → loop-or-complete
 ```
+
+## UI-scoped chain (Design Specification)
+
+When the module has visible UI:
+
+```text
+brainstorm → planning-overview → design-specification ⏸️ → design-judge
+                → breakdown → breakdown-judge → execute → test → verify
+```
+
+- **design-specification:** `@designer-worker` writes Design Contract + sketches  
+  (`docs/design/_templates/design-contract.v1.md`)
+- **design-judge:** `@judge-agent` mode design-contract → `DESIGN_APPROVED`
+- Non-UI modules: `DESIGN-SPEC: N/A — no visible UI`
+
+See `.cursor/skills/planning/references/design-specification-phase.md`.
 
 ## Per-Module Development Loop (`/dev-module`)
 
@@ -16,12 +32,15 @@ brainstorm → plan ⏸️ → execute → test → verify
                               CHANGES_REQUESTED (loop ≥ 3) ───▶ escalate ⏸️
 ```
 
+For UI modules, expand `plan` into: overview → design-specification → design-judge → breakdown.
+
 ## Phase Routing
 
 | User intent | Loader phase | Typical owner |
 |---|---|---|
 | Explore options, prior art | `brainstorm` | architect-planner |
 | Create task breakdown, ADR | `plan` | architect-planner |
+| Design Contract + sketches | `design` | designer-worker |
 | Define contracts / schema | `design` | planner + specialist |
 | Implement backend / server | `implement-backend` | backend-worker |
 | Implement frontend / UI | `implement-frontend` | frontend-worker |
@@ -39,9 +58,10 @@ Per-module loop state: `.cursor/state/module-{name}-loop.json`
 ```json
 {
   "feature": "feature-name",
-  "phase": "brainstorm | plan | execute | test | verify | fix | done | escalate",
+  "phase": "brainstorm | plan | design-specification | execute | test | verify | fix | done | escalate",
   "loopCount": 0,
   "planPath": "docs/plans/YYYY-MM-DD-feature.md",
+  "designContractPath": "docs/design/YYYY-MM-DD-feature.spec.md",
   "reviewPath": "docs/reviews/YYYY-MM-DD-feature-review.md"
 }
 ```

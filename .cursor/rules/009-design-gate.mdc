@@ -1,5 +1,5 @@
 ---
-description: DESIGN-GATE — no UI implementation without design artifacts; track split; visual pipeline
+description: DESIGN-GATE — no UI without Design Contract + sketches; specificity required; track split
 globs: "**/*.{tsx,jsx,vue,svelte,css,scss}"
 alwaysApply: true
 ---
@@ -8,22 +8,37 @@ alwaysApply: true
 
 Any task that **creates or changes visible UI** requires, before implementation:
 
-1. **Design spec:** `docs/design/YYYY-MM-DD-{feature}.md`
+1. **Design Contract:** `docs/design/YYYY-MM-DD-{feature}.spec.md`  
+   (template: `docs/design/_templates/design-contract.v1.md`)
 2. **Sketch or visual reference:** ≥1 file under `docs/design/sketches/{feature}/`
 3. **Track** declared: `marketing` | `product` | `split`
 4. **Hard-rules** section pasted from:
    - product → `.cursor/skills/saas-product-ui/references/hard-rules-product.md`
    - marketing → `.cursor/skills/taste-design/hard-rules-marketing.md`
 5. **Domain pack** when known: `knowledge-hub-saas` | `sme-marketing-vn` | other saas-product-ui references
+6. **Specificity (Critical if missing):** contract MUST include numeric/enum fields:
+   - `layout.max_width_px`, `layout.content_padding_px`, `layout.section_gap_px`
+   - `layout.app_shell` enum
+   - `typography` sizes/weights for page_title, section, body, meta
+   - `components` strategy enums (card, table, button variants)
+   - `states.loading`, `states.empty_never`, `states.empty_filter`, `states.error`
+   - `dials.variance`, `dials.motion`, `dials.density`
 
-**Missing any of 1–2 → STOP** and dispatch `@designer-worker` (use visual pipeline: `.cursor/skills/taste-design/ui-visual-pipeline.md`).
+**Soft-only prose without numbers** (`premium`, `generous whitespace`, `Linear-like` alone) → treat as **missing contract**.
+
+**Missing any of 1–2 or failing specificity → STOP** and dispatch `@designer-worker`  
+(visual pipeline: `.cursor/skills/taste-design/ui-visual-pipeline.md`).
 
 ## Plan requirements
 
-Plans with UI scope MUST include a **designer-worker task before** frontend-worker UI tasks, with acceptance = spec path + sketch path exist.
+UI-scoped plans MUST run **Design Specification → Design Judge** before Breakdown UI tasks.  
+See `.cursor/skills/planning/references/design-specification-phase.md`.
+
+Plans with UI scope MUST include a **designer-worker task before** frontend-worker UI tasks, with acceptance = contract path + sketch path exist + specificity pass.
 
 ## Forbidden
 
-- Frontend inventing palette/layout without spec
+- Frontend inventing palette/layout/type scale without contract numbers
 - Mixing marketing hero patterns inside product app shell
 - Skipping sketches because “simple page”
+- Implementing from guideline prose only (no `.spec.md`)
