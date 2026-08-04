@@ -1,0 +1,51 @@
+---
+description: Emit office UI events (Minecraft department board) with optional token audit fields
+globs: "**/*"
+alwaysApply: true
+---
+
+# Office UI events
+
+If `.aisdlc/` exists, emit on every agent turn start/end.
+
+```bash
+python3 .cursor/scripts/office-event.py \
+  --agent <agent-id> \
+  --status working|waiting|done|error|idle \
+  --task "<short task>" \
+  --phase <phase> \
+  --workflow <module-or-workflow-id> \
+  [--tokens N] [--tokens-in N] [--tokens-out N]
+```
+
+## Token audit (required on `done` when known)
+
+When finishing a turn / phase, if you can estimate or read usage:
+
+```bash
+python3 .cursor/scripts/office-event.py \
+  --agent backend-worker \
+  --status done \
+  --task "API done" \
+  --phase implement-backend \
+  --workflow {feature_name} \
+  --tokens 25000 \
+  --tokens-in 19000 \
+  --tokens-out 6000
+```
+
+- `--workflow` groups costs for the TOKEN AUDIT panel (per module).
+- Tokens accumulate in `.aisdlc/state.json` and `.aisdlc/benchmarks.json`.
+- Prefer real usage meters when the host exposes them; otherwise estimate and label in `--detail` as `est`.
+
+## Status
+
+| Status | When |
+|--------|------|
+| `working` | Start task |
+| `waiting` | Blocked |
+| `done` | Success (+ tokens when possible) |
+| `error` | Failed |
+| `idle` | Clear desk |
+
+UI: `ai-sdlc ui` → http://127.0.0.1:9669 — click a desk to inspect task + tokens; LIVE BOARD updates **in place** per agent.

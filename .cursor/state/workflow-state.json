@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "modulesSinceLastProposal": 0,
+  "lastSkillProposalPath": null,
+  "lastSkillProposalAt": null,
+  "lastModuleCompleted": null,
+  "editedFiles": [],
+  "stopBlockCount": 0,
+  "overrides": [],
+  "events": [],
+  "_comment": "Agents must NOT cat this file. Learning counter: python3 .cursor/scripts/learning-counter.py get|inc|reset. editedFiles is workflow-guard only; ignores .cursor/state and .aisdlc."
+}

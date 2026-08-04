@@ -1,0 +1,29 @@
+---
+description: DESIGN-GATE — no UI implementation without design artifacts; track split; visual pipeline
+globs: "**/*.{tsx,jsx,vue,svelte,css,scss}"
+alwaysApply: true
+---
+
+# DESIGN-GATE (UI work)
+
+Any task that **creates or changes visible UI** requires, before implementation:
+
+1. **Design spec:** `docs/design/YYYY-MM-DD-{feature}.md`
+2. **Sketch or visual reference:** ≥1 file under `docs/design/sketches/{feature}/`
+3. **Track** declared: `marketing` | `product` | `split`
+4. **Hard-rules** section pasted from:
+   - product → `.cursor/skills/saas-product-ui/references/hard-rules-product.md`
+   - marketing → `.cursor/skills/taste-design/hard-rules-marketing.md`
+5. **Domain pack** when known: `knowledge-hub-saas` | `sme-marketing-vn` | other saas-product-ui references
+
+**Missing any of 1–2 → STOP** and dispatch `@designer-worker` (use visual pipeline: `.cursor/skills/taste-design/ui-visual-pipeline.md`).
+
+## Plan requirements
+
+Plans with UI scope MUST include a **designer-worker task before** frontend-worker UI tasks, with acceptance = spec path + sketch path exist.
+
+## Forbidden
+
+- Frontend inventing palette/layout without spec
+- Mixing marketing hero patterns inside product app shell
+- Skipping sketches because “simple page”

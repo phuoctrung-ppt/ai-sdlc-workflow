@@ -1,0 +1,37 @@
+---
+description: Memory SoT + learning counter via CLI; no raw state.json in agent context
+globs: "**/*"
+alwaysApply: true
+---
+
+# Memory & Learning Rules
+
+## Memory
+
+| Location | Role |
+|----------|------|
+| **`docs/memory/*`** | Primary durable SoT |
+| **`.memory/*`** | Generated AGENTS cache only (`memory-loader.py --sync`) |
+
+Read `docs/memory/*` first. Never hand-edit `.memory/*` as durable memory.
+
+## workflow-state.json — split concerns
+
+| Keys | Owner | Agent access |
+|------|-------|----------------|
+| `modulesSinceLastProposal`, `lastModuleCompleted`, `lastSkillProposal*` | Learning | **Only** via `python3 .cursor/scripts/learning-counter.py get\|inc\|reset` |
+| `editedFiles`, `stopBlockCount`, `overrides`, `events` | `workflow-guard.py` | **Never** in agent context |
+
+**Forbidden:** `cat` / open / hand-edit `.cursor/state/workflow-state.json`.
+
+`record-edit` **ignores** `.cursor/state/**` and `.aisdlc/**` so counter updates do not pollute `editedFiles`.
+
+## Learning
+
+- Phase 6 `/dev-module`: distill memory + `learning-counter.py inc --module <name>` + lightweight `@learning-agent`
+- Full pass: `/skill-update` or when `get` returns `fullPassRecommended: true`
+- Proposal written → `learning-counter.py reset --proposal <path>`
+
+## Module deps
+
+Before execute: read `docs/module-deps.md`; stop if upstream not `done`.

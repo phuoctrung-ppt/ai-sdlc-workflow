@@ -1,270 +1,142 @@
-# Cursor Agent Workflow
+# AI SDLC Workflow (Cursor)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/phuoctrung-ppt/ai-sdlc-workflow)](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/commits)
 [![Repo Stars](https://img.shields.io/github/stars/phuoctrung-ppt/ai-sdlc-workflow?style=social)](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/stargazers)
 
-> **A production-oriented AI Software Development Lifecycle (AI SDLC) for Cursor.**
->
-> Build production-ready software with AI by following a structured engineering workflow instead of relying on giant prompts.
+> **Production-oriented AI Software Development Lifecycle for [Cursor](https://cursor.com).**  
+> Structured engineering (plan → implement → review → learn) instead of giant one-shot prompts.
+
+**Branch note:** Workflow design on [`v2`](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/tree/v2). CLI + office UI on [`v2-cli-migrate-with-ui-workflow`](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/tree/v2-cli-migrate-with-ui-workflow).
+
+> ⚠️ **Status:** v2 wiring is in place; E2E product pilot is not claimed complete. CLI office UI is a **live board** for agent events (demo + hooks), not a full remote agent runtime.
 
 ---
 
-## Why?
+## CLI + office UI (`cli/`)
 
-Most AI coding workflows focus on improving prompts or providing more context.
+Initialize a work folder for **Cursor** or **Claude**, then watch the agent team on **http://localhost:9669**.
 
-This project takes a different approach.
+```bash
+git checkout v2-cli-migrate-with-ui-workflow
+cd cli && pip install -e .
 
-Instead of asking AI to "write better code", it guides AI through a structured software engineering lifecycle inspired by how experienced engineering teams build software.
+# from repo root (or any app folder)
+ai-sdlc --init cursor          # or: ai-sdlc --init claude
+ai-sdlc ui                     # http://127.0.0.1:9669
 
-The goal is simple:
-
-> **Turn vibe coding into production-quality software engineering.**
-
----
-
-## Philosophy
-
-AI shouldn't replace software engineering.
-
-It should follow it.
-
-This workflow assumes AI will make mistakes.
-
-Instead of relying on perfect prompts, it introduces engineering practices such as:
-
-- Architecture-first development
-- Specialized AI workers
-- Planning before implementation
-- Review before completion
-- Controlled repair loops
-- Governance and protected changes
-- Persistent workflow state
-- Scoped responsibilities
-
----
-
-## AI Software Development Lifecycle
-
-```text
-Requirement
-      │
-      ▼
-Architecture Planning
-      │
-      ▼
-Module Planning
-      │
-      ▼
-Implementation
-      │
-      ▼
-Code Review
-      │
-      ▼
-Fix
-      │
-      ▼
-Production Ready
+# other terminal — animate desks
+ai-sdlc demo
 ```
 
-Every feature follows the same engineering lifecycle instead of jumping directly into implementation.
+| Command | Purpose |
+|---------|---------|
+| `ai-sdlc --init cursor\|claude` | Copy `.cursor/`, `AGENTS.md`, `docs/memory/*`, create `.aisdlc/` |
+| `ai-sdlc ui` | Office floor UI (SSE event stream) |
+| `ai-sdlc event --agent … --status working --task …` | Push a desk update |
+| `ai-sdlc demo` | Sample multi-agent session into the feed |
+| `ai-sdlc status` | JSON snapshot |
+
+Details: [`cli/README.md`](./cli/README.md).
 
 ---
 
-# Core Principles
+## Walkthrough video
 
-## 🏗 Architecture First
-
-Every feature begins with architecture and planning.
-
-No implementation starts before a clear design exists.
+**[`docs/media/ai-sdlc-workflow-explained.mp4`](./docs/media/ai-sdlc-workflow-explained.mp4)** — layers, files, token hotspots (add binary if missing on checkout).
 
 ---
 
-## 👥 Specialized Workers
+## Why this exists
 
-Each AI Worker has a single responsibility.
+Most AI coding setups optimize **prompts**. This repo optimizes the **process**:
 
-- Frontend Worker builds UI.
-- Backend Worker implements APIs.
-- Database Worker manages schema changes.
-- Judge reviews changes.
-- Security Worker validates risks.
-
-Workers stay within their assigned scope.
-
----
-
-## 🧠 Skill-Driven Development
-
-Workers only load the skills required for the current task.
-
-Instead of loading every prompt and document, the workflow dynamically selects the relevant engineering knowledge.
-
-Benefits:
-
-- Lower token usage
-- Better focus
-- Less context pollution
-- Faster execution
+| Practice | What it means here |
+|----------|-------------------|
+| Architecture first | No implement before plan / approval gates |
+| Specialized workers | Narrow scopes in `worker-scopes.json` |
+| Skill-driven context | Load only relevant skills via context-builder |
+| Review before “done” | Judge + severity (Critical vs Minor) |
+| Durable memory | `docs/memory/*` — not chat history |
+| Self-improvement | Learning agent proposes skill patches (approval required) |
 
 ---
 
-## 🔒 Engineering Governance
-
-Quality is enforced, not suggested.
-
-The workflow includes:
-
-- Protected paths
-- Worker scopes
-- Review gates
-- Workflow policies
-- Safe execution hooks
-
-This reduces accidental changes outside a worker's responsibility.
-
----
-
-## 🔁 Controlled Repair
-
-AI is allowed to make mistakes.
-
-AI is **not** allowed to retry forever.
-
-Every repair loop has a bounded retry count, ensuring predictable execution while preventing endless token consumption.
-
----
-
-## 💾 Persistent State
-
-Long-running development sessions shouldn't restart from scratch.
-
-Workflow state allows interrupted tasks to resume safely with execution history preserved.
-
----
-
-# Workflow
+## Three layers (v2)
 
 ```text
-Idea
-      │
-      ▼
+┌─────────────────────────────────────────────────────────┐
+│  Tầng 3  LEARNING   retrospective → skill-updater       │
+│                      modulesSinceLastProposal (state)   │
+├─────────────────────────────────────────────────────────┤
+│  Tầng 2  MEMORY     docs/memory/{decisions,gotchas,     │
+│                      shortcuts}.md   ← primary SoT      │
+│                     .memory/* = generated AGENTS cache  │
+├─────────────────────────────────────────────────────────┤
+│  Tầng 1  EXECUTE    Planner → Workers → Judge → fix     │
+└─────────────────────────────────────────────────────────┘
+```
+
+| Layer | Primary paths |
+|-------|----------------|
+| Execute | `.cursor/agents/*`, `/dev-module`, `/architecture-plan` |
+| Memory | `docs/memory/*` (SoT) · `.memory/*` (cache via `memory-loader.py --sync`) |
+| Learning | `docs/retrospective.md`, `@learning-agent`, `skill-updater`, `.cursor/state/workflow-state.json` |
+
+Canonical rule: [`.cursor/rules/007-memory-learning.mdc`](./.cursor/rules/007-memory-learning.mdc).
+
+---
+
+## Quick start — how to run (Cursor commands)
+
+```bash
+git clone https://github.com/phuoctrung-ppt/ai-sdlc-workflow.git
+cd ai-sdlc-workflow
+git checkout v2   # or v2-cli-migrate-with-ui-workflow for CLI
+
+python3 .cursor/context/memory-loader.py --sync   # after filling AGENTS.md
+```
+
+```text
+/architecture-plan brainstorming <idea>
 /architecture-plan
-      │
-      ▼
-/plan-module
-      │
-      ▼
-/dev-module
-      │
-      ▼
-Judge Review
-      │
-      ▼
-Fix (if required)
-      │
-      ▼
-Done
+/dev-module <module_name>
 ```
 
-The workflow focuses on engineering discipline rather than prompt engineering.
+Context CLI (hyphen entry only): `python3 .cursor/context/context-builder.py --task "…" --agent <id>`
+
+More: [HOW_TO_USE.md](./HOW_TO_USE.md) · [v2 summary](./docs/plans/2026-08-02-v2-implementation-summary.md)
 
 ---
 
-# Repository Structure
+## Token optimization
 
-```text
-.cursor/
-├── agents/        # Specialized AI workers
-├── commands/      # Workflow entry points
-├── config/        # Workflow configuration
-├── docs/          # Documentation
-├── hooks/         # Governance & safety hooks
-├── rules/         # Development policies
-├── skills/        # Reusable engineering knowledge
-├── state/         # Workflow persistence
-└── AGENTS.md      # Project overview
-```
+v2 is typically **~25–40% more tokens per full module** than a thin execute-only path. Learning layer alone is ~3–5%.
 
----
+| Path | Approx. tokens |
+|------|----------------|
+| Brainstorm → breakdown | ~50–120k |
+| Module lite | ~100–130k |
+| Module typical | ~250–320k |
+| Heavy / fat skills | ~450k–1M+ |
 
-# Why This Workflow?
-
-Unlike traditional AI coding setups, this workflow emphasizes:
-
-- Architecture before implementation
-- Engineering process over prompt engineering
-- Role-based AI collaboration
-- Production-oriented governance
-- Quality review before completion
-- Scoped workers with minimal context
-- Resumable execution
-
-Instead of making AI "smarter", it makes AI follow a better engineering process.
+**Do:** context-builder only · product blocks not full taste-skill · skip plan if approved · Critical-only fix loops · memory ≤10 facts.  
+**Don’t:** mega-turns · chat as memory · `.memory/*` as peer to `docs/memory/*`.
 
 ---
 
-# What This Project Is NOT
+## Documentation map
 
-This project is **NOT**:
-
-- ❌ Another prompt collection
-- ❌ An AI Agent Framework
-- ❌ An LLM Runtime
-- ❌ A Cursor replacement
-
-Cursor already provides an excellent execution environment.
-
-This project provides the **engineering workflow** that runs on top of Cursor.
+| Doc | Purpose |
+|-----|---------|
+| [cli/README.md](./cli/README.md) | CLI + office UI |
+| [HOW_TO_USE.md](./HOW_TO_USE.md) | Operator detail |
+| [AGENTS.md](./AGENTS.md) | Domain template |
+| [.cursor/context/README.md](./.cursor/context/README.md) | context-builder CLI vs library |
+| [.cursor/rules/007-memory-learning.mdc](./.cursor/rules/007-memory-learning.mdc) | Memory + learning |
 
 ---
 
-# Vision
+## License
 
-The long-term vision is to build an opinionated AI Software Development Lifecycle that helps developers create maintainable, reviewable, and production-ready software with AI.
-
-Today the project targets **Cursor** and primarily focuses on **JavaScript / TypeScript** ecosystems.
-
-Future versions will expand to additional languages, engineering domains, and AI coding platforms.
-
----
-
-# Documentation
-
-For installation, setup, configuration, and usage guides, please refer to the existing documentation:
-
-- 🚀 [Getting Started](./HOW_TO_USE.md)
-
-> Existing documentation has been preserved. This README focuses on explaining **what the workflow is** and **why it exists**, while the detailed usage remains in the documentation.
-
----
-
-# Contributing
-
-Contributions, discussions, issues, and pull requests are always welcome.
-
-If you find this workflow useful, please consider giving the repository a ⭐ to support future development.
-
----
-
-## Acknowledgements
-
-This project was inspired by many great open-source projects and discussions from the AI engineering community.
-
-Special thanks to the creators of:
-
-- **Taste** – https://github.com/Leonxlnx/taste-skill
-- **Superpower** – https://github.com/obra/superpowers
-
-...and many other repositories, articles, and engineering discussions that helped shape the ideas behind this workflow.
-
-This repository does not copy a single project. Instead, it combines, adapts, and extends ideas from multiple sources into a production-oriented AI Software Development Lifecycle (AI SDLC).
-
-Thank you to everyone who shares knowledge with the community. ❤️
-
-# License
-
-MIT License
+MIT — see [LICENSE](./LICENSE).
