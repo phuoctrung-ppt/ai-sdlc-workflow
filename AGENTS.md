@@ -242,29 +242,6 @@ feat(billing): expose invoice history in settings
 
 In-product list only; plan changes stay on Stripe portal.
 ```
-
-**Ví dụ (tiếng Việt — subject vẫn giữ type/scope tiếng Anh chuẩn Conventional Commits; mô tả có thể Việt)**
-
-```
-feat(auth): thêm xoay vòng refresh token
-
-fix(api): áp dụng bộ lọc tenant cho danh sách khách hàng
-
-chore(skills): đăng ký saas-product-ui vào manifest
-
-docs(plans): thêm tóm tắt triển khai v2
-
-feat(billing): hiển thị lịch sử hóa đơn trong cài đặt
-
-Chỉ liệt kê hóa đơn trong sản phẩm; đổi gói vẫn qua cổng Stripe.
-```
-
-> **Lưu ý:** `type` và `scope` luôn ASCII/kebab-case (tooling, changelog). Phần subject/body có thể tiếng Việt nếu team thống nhất; ưu tiên **một ngôn ngữ trong cùng repo**.
-
-**Avoid / Tránh:** vague subjects (`fix: updates`, `sửa bug`), past tense (`added` / `đã thêm` dài dòng không rõ), file-only (`update SKILL.md`), trộn nhiều việc không liên quan.
-
-Agents: follow `.cursor/skills/incremental-commit/SKILL.md` (gates, size, anti-patterns).
-
 ### Branches & PRs
 
 - **Branches:** `feature/<ticket>-short-description` \| `fix/<ticket>-bug-name` \| `chore/update-deps`
