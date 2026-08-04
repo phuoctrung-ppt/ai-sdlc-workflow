@@ -17,6 +17,27 @@ This skill is **repo/domain agnostic**. Project-specific context (name, tech sta
 6. **Verify** — checks proportional to risk
 7. **Review** — protected → `docs/reviews/`; extract reusable patterns to `.cursor/patterns/`
 
+## Indie continuous ship (prefer these paths day-to-day)
+
+| Need | Command | Skips |
+|------|---------|-------|
+| Bug / failing test / small patch | `/fix` | Full plan, DESIGN-GATE, learning counter |
+| New idea / MVP shape | `/shape-lite` | Full ADR, worker dispatch, DESIGN-GATE |
+| New module / multi-file feature | `/plan-feature` or `/dev-module` | Nothing (full gates apply) |
+
+**Policy:** `.cursor/config/workflow-policy.json` → `loops.codeLoop` / `loops.shapeLite`.
+
+**High-signal portable skills to prefer** (do not load everything):
+
+- `error-recovery` — every code-loop
+- `agentic-workflow` — orchestration + handoff
+- `saas-product-ui` — in-app product UI only (not marketing)
+- `planning` — shape-lite / plan
+- `api-contract-first` — when API surface changes
+- Domain stack skills from `AGENTS.md §2` only when paths match
+
+Taste/marketing skills (`taste-design`) stay for marketing pages; product UI uses `saas-product-ui` + hard-rules.
+
 ## Context orchestration (what we actually ship)
 
 This repo is already a **context-prepared** workflow, not a prompt dump:
@@ -69,6 +90,8 @@ Gate: `.cursor/rules/009-design-gate.mdc`
 
 UI flow: Planning Overview → Design Specification → Design Judge → Breakdown → Execute.
 
+Code-loop does **not** re-run Design Gate for pure code fixes on existing UI.
+
 ## Handoff Packet
 
 Every worker task starts from a handoff packet. Fill this before dispatching:
@@ -86,13 +109,15 @@ Risk notes:
 Scope expansion path:
 ```
 
+For code-loop, Plan/ADR may be `N/A (code-loop)`.
+
 ## Agent Roster
 
 See `AGENTS.md §4` for the full agent table for this project. Standard agents available in `.cursor/agents/`:
 
 | Agent | Role |
 |---|---|
-| `architect-planner` | Plans, writes ADRs, dispatches handoff packets |
+| `architect-planner` | Plans, shape-lite, ADRs, dispatches handoff packets |
 | `scaffold-agent` | Bootstraps module/page shells before workers implement |
 | `designer-worker` | Design Contract (numeric), sketches, tokens |
 | `backend-worker` | API features, services, DTOs |
@@ -133,3 +158,4 @@ Agents use **context-builder.py** — not skill-loader.py directly.
 
 - [workflow-phases.md](references/workflow-phases.md)
 - `docs/vision/v4-critique-and-v3-direction.md`
+- Commands: `/fix`, `/shape-lite`, `/dev-module`, `/plan-feature`

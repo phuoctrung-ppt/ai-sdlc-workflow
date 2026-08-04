@@ -49,6 +49,10 @@ DOMAIN_KEYWORDS: dict[str, set[str]] = {
 
 PHASE_HINTS: dict[str, set[str]] = {
     "plan": {"plan", "architect", "adr", "roadmap", "breakdown", "scope"},
+    "shape-lite": {
+        "shape-lite", "shape", "idea", "mvp", "should-we", "quick-scope",
+        "brainstorm-lite", "shape note",
+    },
     "design": {
         "design", "mockup", "wireframe", "sketch", "brandkit", "imagegen",
         "design-contract", "design-specification", "visual-pipeline",
@@ -62,12 +66,18 @@ PHASE_HINTS: dict[str, set[str]] = {
     "database": {"migration", "schema", "postgres", "sql", "index", "entity"},
     "devops": {"docker", "compose", "ci", "cd", "deploy", "nginx"},
     "test": {"test", "jest", "playwright", "e2e", "coverage", "spec"},
-    "fix": {"fix", "bug", "broken", "error", "regression", "patch"},
+    "fix": {
+        "fix", "bug", "broken", "error", "regression", "patch", "typo",
+        "hotfix", "code-loop", "failing", "crash",
+    },
     "review": {"review", "judge", "audit", "compliance", "pr", "design-judge"},
     "scaffold": {"scaffold", "bootstrap", "stub", "skeleton", "shell"},
 }
 
-LOW_COMPLEXITY_HINTS = {"fix", "typo", "button", "label", "style", "css", "rename", "patch"}
+LOW_COMPLEXITY_HINTS = {
+    "fix", "typo", "button", "label", "style", "css", "rename", "patch",
+    "hotfix", "code-loop",
+}
 HIGH_COMPLEXITY_HINTS = {
     "architect", "migration", "auth", "multi-tenant", "refactor", "redesign",
     "genesis", "roadmap", "integration", "microservice", "design-specification",
@@ -91,6 +101,18 @@ def detect_phase(
 ) -> str:
     if explicit_phase:
         return explicit_phase
+
+    # Indie code-loop: fix keywords win early for low-ceremony path
+    if terms & PHASE_HINTS["fix"] and not (
+        terms & {"plan", "architect", "adr", "roadmap", "design-specification"}
+    ):
+        return "fix"
+
+    # Shape-lite before full plan when idea/mvp language is present
+    if terms & PHASE_HINTS["shape-lite"] and not (
+        terms & {"adr", "roadmap", "breakdown", "design-specification"}
+    ):
+        return "shape-lite"
 
     # Prefer design-specification when contract language is explicit
     if terms & PHASE_HINTS["design-specification"] and (
@@ -148,6 +170,11 @@ def detect_complexity(terms: set[str], path_hints: list[str]) -> str:
     if len(path_hints) > 3:
         return "high"
     if terms & LOW_COMPLEXITY_HINTS and len(path_hints) <= 1:
+        return "low"
+    # Explicit code-loop / fix without high hints → prefer low/medium for indie path
+    if terms & PHASE_HINTS["fix"] and not (terms & HIGH_COMPLEXITY_HINTS):
+        return "low" if len(path_hints) <= 2 else "medium"
+    if terms & PHASE_HINTS["shape-lite"]:
         return "low"
     return "medium"
 

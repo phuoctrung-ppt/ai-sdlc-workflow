@@ -34,20 +34,45 @@ brainstorm → plan ⏸️ → execute → test → verify
 
 For UI modules, expand `plan` into: overview → design-specification → design-judge → breakdown.
 
+## Indie continuous ship (domain-agnostic)
+
+Indie devs should **not** re-enter the full module loop for every bug or idea.
+
+### Code-loop (`/fix`)
+
+```text
+intent(fix) → context-packet → single worker → verify  (max 2 loops)
+```
+
+- **Skip:** full plan rewrite, DESIGN-GATE, learning-counter (unless user asks)
+- **Prefer skills:** `error-recovery`, `agentic-workflow`, then domain skill if paths match
+- **Escalate** when scope grows → `/shape-lite` or `/plan-feature`
+
+### Shape-lite (`/shape-lite`)
+
+```text
+intent(shape-lite) → context-packet → architect-planner → docs/plans/shape/*.md → NEXT recommendation
+```
+
+- **Skip:** full ADR stack, worker dispatch, DESIGN-GATE
+- **Output:** compact shape note + one of `NEXT: /fix | implement-small | /plan-feature | design-spec | drop`
+- **Prefer skills:** `planning`, `agentic-workflow`, `api-contract-first` (if API)
+
 ## Phase Routing
 
 | User intent | Loader phase | Typical owner |
 |---|---|---|
 | Explore options, prior art | `brainstorm` | architect-planner |
+| Compact idea shaping (indie) | `shape-lite` | architect-planner |
 | Create task breakdown, ADR | `plan` | architect-planner |
-| Design Contract + sketches | `design` | designer-worker |
+| Design Contract + sketches | `design` / `design-specification` | designer-worker |
 | Define contracts / schema | `design` | planner + specialist |
 | Implement backend / server | `implement-backend` | backend-worker |
 | Implement frontend / UI | `implement-frontend` | frontend-worker |
 | Database / storage change | `database` | database-worker |
 | Infrastructure / release | `devops` | devops-worker |
 | Run tests, write coverage | `test` | qa-worker |
-| Fix failing tests / issues | `fix` | responsible worker |
+| Fix failing tests / bugs (lite) | `fix` | responsible worker |
 | Quality gate / review | `review` | judge-agent / qa-worker / security-worker |
 | Full module from scratch | `dev-module` | orchestrator → all workers |
 
@@ -65,6 +90,8 @@ Per-module loop state: `.cursor/state/module-{name}-loop.json`
   "reviewPath": "docs/reviews/YYYY-MM-DD-feature-review.md"
 }
 ```
+
+Code-loop and shape-lite **do not require** this state file.
 
 ## Protected Change Rule
 
