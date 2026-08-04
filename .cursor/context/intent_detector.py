@@ -42,27 +42,35 @@ DOMAIN_KEYWORDS: dict[str, set[str]] = {
     },
     "design": {
         "design", "mockup", "wireframe", "sketch", "brandkit", "imagegen",
-        "typography", "hero", "landing", "redesign",
+        "typography", "hero", "landing", "redesign", "design-contract",
+        "design-specification", "visual-pipeline", "hard-rules",
     },
 }
 
 PHASE_HINTS: dict[str, set[str]] = {
     "plan": {"plan", "architect", "adr", "roadmap", "breakdown", "scope"},
-    "design": {"design", "mockup", "wireframe", "sketch", "brandkit", "imagegen"},
+    "design": {
+        "design", "mockup", "wireframe", "sketch", "brandkit", "imagegen",
+        "design-contract", "design-specification", "visual-pipeline",
+    },
+    "design-specification": {
+        "design-specification", "design-contract", "design-spec", "spec.md",
+        "visual-pipeline", "hard-rules", "sketch",
+    },
     "implement-frontend": {"react", "nextjs", "tsx", "component", "page", "ui", "frontend"},
     "implement-backend": {"nestjs", "backend", "api", "service", "controller", "module"},
     "database": {"migration", "schema", "postgres", "sql", "index", "entity"},
     "devops": {"docker", "compose", "ci", "cd", "deploy", "nginx"},
     "test": {"test", "jest", "playwright", "e2e", "coverage", "spec"},
     "fix": {"fix", "bug", "broken", "error", "regression", "patch"},
-    "review": {"review", "judge", "audit", "compliance", "pr"},
+    "review": {"review", "judge", "audit", "compliance", "pr", "design-judge"},
     "scaffold": {"scaffold", "bootstrap", "stub", "skeleton", "shell"},
 }
 
 LOW_COMPLEXITY_HINTS = {"fix", "typo", "button", "label", "style", "css", "rename", "patch"}
 HIGH_COMPLEXITY_HINTS = {
     "architect", "migration", "auth", "multi-tenant", "refactor", "redesign",
-    "genesis", "roadmap", "integration", "microservice",
+    "genesis", "roadmap", "integration", "microservice", "design-specification",
 }
 
 
@@ -83,6 +91,14 @@ def detect_phase(
 ) -> str:
     if explicit_phase:
         return explicit_phase
+
+    # Prefer design-specification when contract language is explicit
+    if terms & PHASE_HINTS["design-specification"] and (
+        "contract" in terms or "specification" in terms or "spec.md" in terms
+        or "design-contract" in terms or "design-specification" in terms
+    ):
+        if agent in {None, "", "designer-worker", "architect-planner", "judge-agent"}:
+            return "design-specification"
 
     if agent == "architect-planner":
         return "plan"
@@ -118,6 +134,7 @@ def detect_phase(
             phase_scores["devops"] = phase_scores.get("devops", 0) + 2
         if domain == "design":
             phase_scores["design"] = phase_scores.get("design", 0) + 2
+            phase_scores["design-specification"] = phase_scores.get("design-specification", 0) + 1
 
     if not phase_scores or max(phase_scores.values()) == 0:
         return "implement-backend"

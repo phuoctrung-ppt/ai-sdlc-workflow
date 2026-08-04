@@ -1,7 +1,29 @@
 {
   "schemaVersion": 1,
-  "description": "Dynamic agent activation rules for Workflow V2 context builder.",
+  "description": "Dynamic agent activation rules for Workflow V2 context builder. Extended for Design Specification phase.",
   "rules": [
+    {
+      "id": "design-specification",
+      "when": {
+        "domains": ["design", "frontend"],
+        "complexity": ["medium", "high"],
+        "keywords": [
+          "design-specification",
+          "design-contract",
+          "design spec",
+          "spec.md",
+          "sketch",
+          "wireframe",
+          "visual pipeline"
+        ]
+      },
+      "agents": ["designer-worker", "judge-agent"],
+      "sequence": ["designer-worker", "judge-agent"],
+      "reviewer": "judge-agent",
+      "reviewMode": "required",
+      "maxSkills": 3,
+      "notes": "Design Contract + sketches before Breakdown UI tasks"
+    },
     {
       "id": "react-button-fix",
       "when": {

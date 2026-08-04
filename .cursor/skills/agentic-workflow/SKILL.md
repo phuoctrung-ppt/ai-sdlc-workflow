@@ -7,18 +7,35 @@ description: Generic Planner-Worker-Judge workflow for scoped agentic execution.
 
 This skill is **repo/domain agnostic**. Project-specific context (name, tech stack, paths, compliance) lives in `AGENTS.md` and `.cursor/config/*.json`. This skill explains the workflow mechanics only.
 
-## Core Loop (V2)
+## Core Loop (V2 + Design Contract)
 
 1. **Classify** — `.cursor/config/protected-paths.json`
 2. **Context** — `python3 .cursor/context/context-builder.py --task "..." --agent <agent>`
 3. **Plan** — protected/multi-module → `docs/plans/YYYY-MM-DD-topic.md` (compact)
-4. **Execute** — narrowest worker; obey Context Packet tiers
-5. **Verify** — checks proportional to risk
-6. **Review** — protected → `docs/reviews/`; extract reusable patterns to `.cursor/patterns/`
+4. **Design Specification** (UI only) — Design Contract + sketches → Design Judge
+5. **Execute** — narrowest worker; obey Context Packet tiers **and** in-scope file reads
+6. **Verify** — checks proportional to risk
+7. **Review** — protected → `docs/reviews/`; extract reusable patterns to `.cursor/patterns/`
 
-## Context Builder (V2)
+## Context orchestration (what we actually ship)
 
-Primary entry (replaces direct skill-loader calls):
+This repo is already a **context-prepared** workflow, not a prompt dump:
+
+| Layer | Location |
+|-------|----------|
+| Intent | `.cursor/context/intent_detector.py` |
+| Builder | `.cursor/context/context-builder.py` |
+| Packet schema | `.cursor/context/schemas/context-packet.schema.json` |
+| Budget | `.cursor/config/context-budget.json` |
+| Heuristic score | `.cursor/config/context-score.json` |
+| Agent routing | `.cursor/config/agent-matrix.json` |
+| Skills registry | `.cursor/skills/skills-manifest.v2.json` |
+
+**Packet is primary.** Agents still **may read repository files** inside `worker-scopes.json`. Do not interpret orchestration as a ban on `Read`/`grep` of application code.
+
+**Not P0:** vendor-neutral runtime for Claude Code / Codex / Gemini, ML context rankers, analytics product, non-SDLC modules. See `docs/vision/v4-critique-and-v3-direction.md`.
+
+## Context Builder
 
 ```bash
 python3 .cursor/context/context-builder.py \
@@ -44,6 +61,14 @@ python3 .cursor/context/memory-loader.py --sync
 
 Legacy: `--use-legacy-loader` delegates to `skill-loader.py`.
 
+## Design Contract (UI modules)
+
+Template: `docs/design/_templates/design-contract.v1.md`  
+Phase: `.cursor/skills/planning/references/design-specification-phase.md`  
+Gate: `.cursor/rules/009-design-gate.mdc`
+
+UI flow: Planning Overview → Design Specification → Design Judge → Breakdown → Execute.
+
 ## Handoff Packet
 
 Every worker task starts from a handoff packet. Fill this before dispatching:
@@ -53,6 +78,7 @@ Objective:
 In-scope paths:
 Out-of-scope paths:
 Plan/ADR:
+Design Contract (if UI):
 Required skills:
 Acceptance criteria:
 Required verification:
@@ -68,16 +94,18 @@ See `AGENTS.md §4` for the full agent table for this project. Standard agents a
 |---|---|
 | `architect-planner` | Plans, writes ADRs, dispatches handoff packets |
 | `scaffold-agent` | Bootstraps module/page shells before workers implement |
-| `designer-worker` | UI/UX design, component specs, design systems |
+| `designer-worker` | Design Contract (numeric), sketches, tokens |
 | `backend-worker` | API features, services, DTOs |
-| `frontend-worker` | UI components, pages, data fetching |
+| `frontend-worker` | UI from Design Contract numbers only |
 | `database-worker` | Migrations, schema design, query optimization |
 | `ai-worker` | LLM integration, embeddings, cost tracking |
 | `devops-worker` | Docker, CI/CD, infra |
 | `security-worker` | Auth, RBAC, encryption, compliance |
 | `qa-worker` | Tests: unit, integration, E2E |
-| `judge-agent` | Read-only review gate |
+| `judge-agent` | Read-only review gate (incl. Design Contract Review) |
 | `admin-worker` | Admin/control-plane (elevated privilege) |
+
+Thin I/O schema (optional): `.cursor/context/schemas/agent-contract.schema.json`.
 
 ## Porting to Another Repo
 
@@ -89,28 +117,19 @@ Copy the workflow files, then update only configuration — do not modify hook c
 - `.cursor/config/` (all files — update content, not structure)
 - `.cursor/skills/agentic-workflow/`
 - `.cursor/skills/scripts/skill-loader.py` (legacy fallback only)
-- `.cursor/rules/000-core.mdc`, `001-workflow-v2.mdc`, `006-agentic-workflow.mdc`
+- `.cursor/rules/000-core.mdc`, `001-workflow-v2.mdc`, `006-agentic-workflow.mdc`, `009-design-gate.mdc`
 
 ### Files to Update for Your Project
 1. **`AGENTS.md`** (project root) — fill in project name, tech stack, structure, agent scopes, compliance
-2. **`.cursor/config/workflow-policy.json`** — no changes needed (already domain-agnostic)
-3. **`.cursor/config/protected-paths.json`** — update `projectProtectedGlobs` with your sensitive paths
-4. **`.cursor/config/worker-scopes.json`** — update `agents` section with your concrete folder paths
-5. **`.cursor/skills/skills-manifest.v2.json`** — add domain skills for your tech stack
+2. **`.cursor/config/workflow-policy.json`** — no structural changes needed
+3. **`.cursor/config/protected-paths.json`** — update `projectProtectedGlobs`
+4. **`.cursor/config/worker-scopes.json`** — concrete folder paths
+5. **`.cursor/skills/skills-manifest.v2.json`** — domain skills for your stack
 
 After porting, run `python3 .cursor/context/memory-loader.py --sync`.
 Agents use **context-builder.py** — not skill-loader.py directly.
 
-### Files to Copy Selectively (bring the skills your project needs)
-- `.cursor/skills/databases/` — if using a SQL/NoSQL database
-- `.cursor/skills/docker-devops/` — if using Docker
-- `.cursor/skills/testing-qa/` — always useful
-- `.cursor/skills/frontend-skills/` — if building a React/Next.js frontend
-- `.cursor/skills/taste-design/` — if building any user-facing UI
-- Domain skills (nestjs-skills, bullmq-worker, etc.) — only if your stack uses them
-
-Keep hook code generic unless the hook payload format changes.
-
 ## References
 
 - [workflow-phases.md](references/workflow-phases.md)
+- `docs/vision/v4-critique-and-v3-direction.md`

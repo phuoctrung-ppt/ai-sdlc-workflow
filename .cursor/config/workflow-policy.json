@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "Domain-agnostic agentic workflow with deterministic context orchestration. Durable memory: docs/memory/*; AGENTS.md identity; .memory/* generated cache only.",
+  "description": "Domain-agnostic agentic workflow with deterministic context orchestration. Durable memory: docs/memory/*; AGENTS.md identity; .memory/* generated cache only. Design Contract is tier-1 for UI.",
   "projectIdentity": "AGENTS.md",
   "durableMemory": [
     "docs/memory/decisions.md",
@@ -12,13 +12,27 @@
     ".memory/architecture.md",
     ".memory/coding-style.md"
   ],
+  "designArtifacts": {
+    "contractGlob": "docs/design/**/*.spec.md",
+    "sketchGlob": "docs/design/sketches/**",
+    "template": "docs/design/_templates/design-contract.v1.md",
+    "note": "UI tasks: Design Contract is primary context for designer/frontend/judge. Does not replace scoped repo reads."
+  },
   "context": {
     "entrypoint": ".cursor/context/context-builder.py",
     "intentDetector": ".cursor/context/intent-detector.py",
     "memoryLoader": ".cursor/context/memory-loader.py",
     "patternMatcher": ".cursor/context/pattern-matcher.py",
-    "note": "Hyphen paths are CLI entrypoints. Underscore modules (context_builder.py, etc.) are internal libraries — do not invoke as scripts."
+    "contextScore": ".cursor/config/context-score.json",
+    "note": "Hyphen paths are CLI entrypoints. Underscore modules are internal libraries. Context Packet is primary; agents may still read in-scope repo files."
   },
+  "orchestrationPrinciples": [
+    "Context Packet first — prefer packet tiers over dumping folders",
+    "Scoped repo read allowed — worker-scopes.json bounds editable paths",
+    "Never ban application source reads required to implement or fix",
+    "Cursor-first runtime — multi-tool adapters are non-goals for this policy",
+    "Heuristic scores only — no ML ranker required"
+  ],
   "learning": {
     "stateFile": ".cursor/state/workflow-state.json",
     "fullPassAfterModules": 5,
@@ -28,6 +42,8 @@
     "1. Copy .cursor/ folder, .memory/, docs/memory/, and AGENTS.md.",
     "2. Fill AGENTS.md; run: python3 .cursor/context/memory-loader.py --sync",
     "3. Treat docs/memory/* as durable SoT; regenerate .memory/* after AGENTS changes.",
-    "4. Use context-builder.py (hyphen) before every agent task."
-  ]
+    "4. Use context-builder.py (hyphen) before every agent task.",
+    "5. UI modules: Design Contract template under docs/design/_templates/."
+  ],
+  "visionDoc": "docs/vision/v4-critique-and-v3-direction.md"
 }
