@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ai_sdlc_cli.events import CONFIG_FILE, ensure_aisdlc
 
-PROVIDERS = ("cursor", "claude")
+PROVIDERS = ("cursor", "claude", "grok")
 
 # Paths copied from the workflow repo into the work root
 COPY_PATHS = [
