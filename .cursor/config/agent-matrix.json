@@ -1,7 +1,51 @@
 {
   "schemaVersion": 1,
-  "description": "Dynamic agent activation rules for Workflow V2 context builder. Extended for Design Specification phase.",
+  "description": "Dynamic agent activation rules for Workflow V2 context builder. Extended for Design Specification, code-loop, and shape-lite.",
   "rules": [
+    {
+      "id": "code-loop-fix",
+      "when": {
+        "domains": [],
+        "complexity": ["low", "medium"],
+        "keywords": [
+          "fix",
+          "bug",
+          "broken",
+          "error",
+          "regression",
+          "patch",
+          "typo",
+          "code-loop",
+          "hotfix"
+        ]
+      },
+      "agents": ["frontend-worker", "backend-worker", "database-worker", "qa-worker"],
+      "reviewer": null,
+      "reviewMode": "optional",
+      "maxSkills": 2,
+      "notes": "Lightweight fix path. Prefer error-recovery. No full plan. Narrow to single worker by domain."
+    },
+    {
+      "id": "shape-lite",
+      "when": {
+        "domains": [],
+        "complexity": ["low", "medium"],
+        "keywords": [
+          "shape-lite",
+          "shape",
+          "idea",
+          "mvp",
+          "should we",
+          "quick scope",
+          "brainstorm-lite"
+        ]
+      },
+      "agents": ["architect-planner"],
+      "reviewer": null,
+      "reviewMode": "optional",
+      "maxSkills": 2,
+      "notes": "Compact shaping only. Output docs/plans/shape/*.md. Do not dispatch implement workers."
+    },
     {
       "id": "design-specification",
       "when": {
@@ -29,7 +73,7 @@
       "when": {
         "domains": ["frontend"],
         "complexity": ["low", "medium"],
-        "keywords": ["button", "fix", "disabled", "click", "submit"]
+        "keywords": ["button", "form", "disabled", "click", "submit"]
       },
       "agents": ["frontend-worker"],
       "reviewer": null,

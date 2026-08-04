@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "Domain-agnostic agentic workflow with deterministic context orchestration. Durable memory: docs/memory/*; AGENTS.md identity; .memory/* generated cache only. Design Contract is tier-1 for UI.",
+  "description": "Domain-agnostic agentic workflow with deterministic context orchestration. Durable memory: docs/memory/*; AGENTS.md identity; .memory/* generated cache only. Design Contract is tier-1 for UI. Indie ship: code-loop and shape-lite skip full plan re-run.",
   "projectIdentity": "AGENTS.md",
   "durableMemory": [
     "docs/memory/decisions.md",
@@ -18,6 +18,31 @@
     "template": "docs/design/_templates/design-contract.v1.md",
     "note": "UI tasks: Design Contract is primary context for designer/frontend/judge. Does not replace scoped repo reads."
   },
+  "loops": {
+    "codeLoop": {
+      "command": "fix",
+      "phases": ["fix"],
+      "skipFullPlan": true,
+      "skipDesignGate": true,
+      "maxIterations": 2,
+      "preferredSkills": ["error-recovery", "agentic-workflow", "saas-product-ui"],
+      "note": "Bug/fix/small implement only. No plan rewrite, no DESIGN-GATE re-run. Escalate to shape-lite or plan-feature when scope grows."
+    },
+    "shapeLite": {
+      "command": "shape-lite",
+      "phases": ["plan"],
+      "template": "docs/plans/_templates/shape-lite.md",
+      "outputDir": "docs/plans/shape",
+      "skipFullPlan": true,
+      "skipDesignGate": true,
+      "preferredSkills": ["planning", "agentic-workflow", "api-contract-first"],
+      "note": "Compact idea shaping for indie continuous ship. Produces NEXT recommendation; does not dispatch workers."
+    },
+    "fullModule": {
+      "command": "dev-module",
+      "note": "Full brainstorm → plan → (design-spec if UI) → execute → test → learn. Use for new modules."
+    }
+  },
   "context": {
     "entrypoint": ".cursor/context/context-builder.py",
     "intentDetector": ".cursor/context/intent-detector.py",
@@ -31,7 +56,9 @@
     "Scoped repo read allowed — worker-scopes.json bounds editable paths",
     "Never ban application source reads required to implement or fix",
     "Cursor-first runtime — multi-tool adapters are non-goals for this policy",
-    "Heuristic scores only — no ML ranker required"
+    "Heuristic scores only — no ML ranker required",
+    "Indie continuous ship — code-loop and shape-lite must not force full workflow re-entry",
+    "Domain-agnostic — no product lock-in (e.g. AI Workspace); skills selected by intent + AGENTS.md"
   ],
   "learning": {
     "stateFile": ".cursor/state/workflow-state.json",
@@ -43,7 +70,8 @@
     "2. Fill AGENTS.md; run: python3 .cursor/context/memory-loader.py --sync",
     "3. Treat docs/memory/* as durable SoT; regenerate .memory/* after AGENTS changes.",
     "4. Use context-builder.py (hyphen) before every agent task.",
-    "5. UI modules: Design Contract template under docs/design/_templates/."
+    "5. UI modules: Design Contract template under docs/design/_templates/.",
+    "6. Indie day-to-day: /fix for bugs, /shape-lite for new ideas, /dev-module only for new modules."
   ],
   "visionDoc": "docs/vision/v4-critique-and-v3-direction.md"
 }
