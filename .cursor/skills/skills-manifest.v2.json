@@ -1,11 +1,12 @@
 {
   "manifestSchema": "2.0",
-  "version": "4.0",
-  "description": "Phase-based skill manifest. Legacy landing/parallax/3d phases removed.",
+  "version": "4.1",
+  "description": "Phase-based skill manifest. Code-loop + shape-lite for indie continuous ship. Prefer high-signal portable skills.",
   "skillsRoot": ".cursor/skills",
   "phases": [
     "brainstorm",
     "plan",
+    "shape-lite",
     "design",
     "implement-frontend",
     "implement-backend",
@@ -42,12 +43,12 @@
       "portable": true,
       "entry": "agentic-workflow/SKILL.md",
       "referencesDir": "agentic-workflow/references",
-      "phases": ["brainstorm", "plan", "design", "dev-module", "review"],
+      "phases": ["brainstorm", "plan", "shape-lite", "design", "dev-module", "review", "fix"],
       "agents": ["architect-planner", "judge-agent", "scaffold-agent"],
-      "keywords": ["orchestrator", "workflow", "planner", "worker", "judge", "multi-agent", "phase", "adr", "plan", "portable", "generic", "handoff", "protected-change"],
+      "keywords": ["orchestrator", "workflow", "planner", "worker", "judge", "multi-agent", "phase", "adr", "plan", "portable", "generic", "handoff", "protected-change", "code-loop", "shape-lite"],
       "manifestSchema": "2.0",
       "priority": 20,
-      "estimatedTokens": 1096
+      "estimatedTokens": 1200
     },
     {
       "id": "security",
@@ -66,10 +67,10 @@
     {
       "id": "saas-product-ui",
       "portable": true,
-      "note": "In-app SaaS product UI. Not marketing.",
+      "note": "In-app SaaS product UI. Not marketing. Prefer for product track.",
       "entry": "saas-product-ui/SKILL.md",
       "referencesDir": "saas-product-ui/references",
-      "phases": ["design", "implement-frontend", "plan", "brainstorm"],
+      "phases": ["design", "implement-frontend", "plan", "brainstorm", "fix"],
       "agents": ["designer-worker", "frontend-worker", "architect-planner"],
       "keywords": ["saas", "product-ui", "app-shell", "sidebar", "dashboard", "data-table", "settings", "empty-state", "onboarding", "billing", "admin", "console", "fintech", "devtools", "marketplace", "health", "b2b", "ops", "tenant"],
       "manifestSchema": "2.0",
@@ -92,9 +93,9 @@
       "id": "planning",
       "portable": true,
       "entry": "planning/SKILL.md",
-      "phases": ["plan", "brainstorm", "dev-module"],
+      "phases": ["plan", "brainstorm", "shape-lite", "dev-module"],
       "agents": ["architect-planner"],
-      "keywords": ["plan", "planning", "architect", "adr", "breakdown"],
+      "keywords": ["plan", "planning", "architect", "adr", "breakdown", "shape-lite", "mvp", "scope"],
       "manifestSchema": "2.0",
       "priority": 15,
       "estimatedTokens": 1265
@@ -102,19 +103,20 @@
     {
       "id": "error-recovery",
       "portable": true,
+      "note": "Primary skill for /fix code-loop.",
       "entry": "error-recovery/SKILL.md",
-      "phases": ["fix", "implement-backend", "implement-frontend"],
-      "agents": ["backend-worker", "frontend-worker", "qa-worker"],
-      "keywords": ["error", "fix", "debug"],
+      "phases": ["fix", "implement-backend", "implement-frontend", "test"],
+      "agents": ["backend-worker", "frontend-worker", "qa-worker", "database-worker"],
+      "keywords": ["error", "fix", "debug", "bug", "regression", "patch", "hotfix", "code-loop"],
       "manifestSchema": "2.0",
-      "priority": 14,
+      "priority": 19,
       "estimatedTokens": 450
     },
     {
       "id": "api-contract-first",
       "portable": true,
       "entry": "api-contract-first/SKILL.md",
-      "phases": ["plan", "implement-backend", "implement-frontend", "design"],
+      "phases": ["plan", "shape-lite", "implement-backend", "implement-frontend", "design"],
       "agents": ["architect-planner", "contract-agent", "backend-worker", "frontend-worker"],
       "keywords": ["contract", "api", "openapi", "zod"],
       "manifestSchema": "2.0",
@@ -125,7 +127,7 @@
       "id": "incremental-commit",
       "portable": true,
       "entry": "incremental-commit/SKILL.md",
-      "phases": ["implement-backend", "implement-frontend", "database", "devops"],
+      "phases": ["implement-backend", "implement-frontend", "database", "devops", "fix"],
       "agents": ["backend-worker", "frontend-worker", "database-worker", "devops-worker"],
       "keywords": ["commit", "git", "conventional"],
       "manifestSchema": "2.0",
@@ -136,7 +138,7 @@
       "id": "frontend-skills",
       "portable": true,
       "entry": "frontend-skills/SKILL.md",
-      "phases": ["implement-frontend", "design"],
+      "phases": ["implement-frontend", "design", "fix"],
       "agents": ["designer-worker", "frontend-worker"],
       "keywords": ["dashboard", "data-table", "frontend", "nextjs", "product-ui", "react", "saas", "settings", "sidebar", "ui"],
       "manifestSchema": "2.0",
@@ -147,7 +149,7 @@
       "id": "databases",
       "portable": true,
       "entry": "databases/SKILL.md",
-      "phases": ["database", "design", "implement-backend"],
+      "phases": ["database", "design", "implement-backend", "fix"],
       "agents": ["database-worker", "backend-worker", "architect-planner"],
       "keywords": ["database", "postgres", "migration", "sql"],
       "manifestSchema": "2.0",
@@ -169,7 +171,7 @@
       "id": "docker-devops",
       "portable": true,
       "entry": "docker-devops/SKILL.md",
-      "phases": ["devops"],
+      "phases": ["devops", "fix"],
       "agents": ["devops-worker"],
       "keywords": ["docker", "compose", "ci", "cd"],
       "manifestSchema": "2.0",
@@ -179,6 +181,7 @@
     {
       "id": "taste-design",
       "portable": true,
+      "note": "Marketing / landing taste. Not for in-app product UI — use saas-product-ui.",
       "entry": "taste-design/taste-skill/SKILL.md",
       "phases": ["brainstorm", "plan", "design", "implement-frontend"],
       "agents": ["designer-worker", "frontend-worker"],
@@ -188,5 +191,5 @@
       "estimatedTokens": 2000
     }
   ],
-  "_note": "Legacy phases create-landing-page/parallax/interactive-3d removed. ai-career-orchestrator removed."
+  "_note": "v4.1: shape-lite phase; error-recovery priority raised for code-loop; domain-agnostic indie ship."
 }

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent-contract.v1",
+  "title": "Thin agent I/O contract",
+  "description": "Optional structured contract. Agent markdown remains source of truth; this schema is for validation and routing docs.",
+  "type": "object",
+  "required": ["id", "responsibilities", "acceptedInputs", "expectedOutputs", "editableScope"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "responsibilities": {
+      "type": "array",
+      "items": { "type": "string", "maxLength": 120 },
+      "minItems": 1,
+      "maxItems": 8
+    },
+    "acceptedInputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "context-packet",
+          "handoff-packet",
+          "design-contract",
+          "plan",
+          "adr",
+          "openapi",
+          "code-paths",
+          "test-report",
+          "retrospective"
+        ]
+      }
+    },
+    "expectedOutputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "design-contract",
+          "plan",
+          "adr",
+          "code",
+          "migration",
+          "tests",
+          "review",
+          "skill-proposal",
+          "handoff-packet"
+        ]
+      }
+    },
+    "editableScope": {
+      "type": "string",
+      "description": "Pointer into worker-scopes.json agent key or explicit globs"
+    },
+    "escalation": {
+      "type": "object",
+      "properties": {
+        "onScopeExpansion": { "type": "string" },
+        "onMissingDesignContract": { "type": "string" },
+        "onProtectedPath": { "type": "string" }
+      }
+    },
+    "collaboratesWith": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

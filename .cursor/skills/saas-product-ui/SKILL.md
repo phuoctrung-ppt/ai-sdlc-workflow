@@ -1,16 +1,18 @@
 ---
 name: saas-product-ui
-description: In-app SaaS product UI — app shell, tables, ranked lists, settings, AI summary. Knowledge-hub / VN SME domain packs included. Not marketing (use taste-design).
+description: In-app SaaS product UI — app shell, tables, ranked lists, settings, AI summary. Knowledge-hub / VN SME domain packs included. Not marketing (use taste-design). Requires Design Contract.
 ---
 
 # SaaS Product UI
 
 Portable skill for **authenticated product surfaces**. Complements `taste-design` (marketing only).
 
-**Hard rules (always):** `references/hard-rules-product.md` — paste into every product design spec.
+**Hard rules (always):** `references/hard-rules-product.md` — paste into every product Design Contract.
 
+**Design Contract template:** `docs/design/_templates/design-contract.v1.md`  
 Benchmarks: `references/benchmarks-2026.md`  
-Visual pipeline (Grok imagegen / MCP): `../taste-design/ui-visual-pipeline.md`
+Visual pipeline: `../taste-design/ui-visual-pipeline.md`  
+Phase: `../planning/references/design-specification-phase.md`
 
 ## When to use
 
@@ -23,7 +25,7 @@ Visual pipeline (Grok imagegen / MCP): `../taste-design/ui-visual-pipeline.md`
 | Settings, billing, onboarding | Yes |
 | Marketing landing / pricing | **No → taste-design** (+ `references/sme-marketing-vn.md` for VN SME copy) |
 
-## Step 0 — Surface, domain, tokens, benchmark
+## Step 0 — Surface, domain, tokens, benchmark, contract
 
 1. Surface = `product`.
 2. Domain pack:
@@ -31,7 +33,8 @@ Visual pipeline (Grok imagegen / MCP): `../taste-design/ui-visual-pipeline.md`
    - Else: `fintech` | `ai-devtools` | `marketplace` | `health-care` | `b2b-ops` | generic
 3. Lock `references/tokens.md` → `docs/design/tokens.md`.
 4. Declare home pattern (calm list-first default for knowledge products).
-5. Paste **hard-rules-product** into the design spec.
+5. Author **Design Contract** (numeric) from template; paste **hard-rules-product**.
+6. Sketches under `docs/design/sketches/{feature}/`.
 
 ## Product dials
 
@@ -52,27 +55,30 @@ Visual pipeline (Grok imagegen / MCP): `../taste-design/ui-visual-pipeline.md`
 
 ## Block library
 
-`blocks/README.md` — prefer compositions `dashboard-home`, `customers-page`.
+`blocks/README.md` — prefer compositions `dashboard-home`, `customers-page`.  
+When listing `blocks_used` in the contract, prefer ids that exist under `blocks/`.
 
 ## Anti-patterns
 
 - Chart wallpaper / 12 equal KPIs
 - Marketing bento inside app
 - AI-purple gradients, sparkle spam
-- Skipping design sketch (violates DESIGN-GATE)
+- Skipping Design Contract / sketch (violates DESIGN-GATE)
+- Soft guideline-only specs without layout/type numbers
 
-## Design spec must include
+## Design Contract must include
 
 1. Track product + domain pack id  
 2. Hard-rules checklist (copied)  
 3. Benchmark pattern  
 4. Tokens pointer  
 5. Blocks + composition ids  
-6. States: loading, empty×2, error  
-7. Sketch path under `docs/design/sketches/{feature}/`
+6. Numeric layout + typography + component enums  
+7. States: loading, empty×2, error  
+8. Sketch path under `docs/design/sketches/{feature}/`
 
 ## Handoff keywords
 
 ```
-saas,product-ui,app-shell,knowledge-hub,sidebar,dashboard,data-table,ranked-list,ai-summary,settings,empty-state,command-palette
+saas,product-ui,app-shell,knowledge-hub,sidebar,dashboard,data-table,ranked-list,ai-summary,settings,empty-state,command-palette,design-contract
 ```
