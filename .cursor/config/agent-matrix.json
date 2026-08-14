@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "Dynamic agent activation rules for Workflow V2 context builder. Extended for Design Specification, code-loop, and shape-lite.",
+  "description": "Dynamic agent activation. Candidates are further filtered by active-layers.json (profile-sync). Do not list database-worker on pure UI rules.",
   "rules": [
     {
       "id": "code-loop-fix",
@@ -19,11 +19,11 @@
           "hotfix"
         ]
       },
-      "agents": ["frontend-worker", "backend-worker", "database-worker", "qa-worker"],
+      "agents": ["frontend-worker", "backend-worker", "qa-worker"],
       "reviewer": null,
       "reviewMode": "optional",
       "maxSkills": 2,
-      "notes": "Lightweight fix path. Prefer error-recovery. No full plan. Narrow to single worker by domain."
+      "notes": "Lightweight fix path. Layer filter drops workers whose layer is off. Prefer error-recovery."
     },
     {
       "id": "shape-lite",
@@ -66,7 +66,7 @@
       "reviewer": "judge-agent",
       "reviewMode": "required",
       "maxSkills": 3,
-      "notes": "Design Contract + sketches before Breakdown UI tasks"
+      "notes": "Only when frontend layer is on"
     },
     {
       "id": "react-button-fix",
@@ -115,16 +115,17 @@
       "maxSkills": 2
     },
     {
-      "id": "nestjs-auth",
+      "id": "auth-security",
       "when": {
         "domains": ["backend", "security"],
-        "keywords": ["auth", "jwt", "login", "guard", "token"]
+        "keywords": ["auth", "jwt", "login", "guard", "token", "rbac"]
       },
-      "agents": ["architect-planner", "database-worker", "backend-worker", "security-worker"],
-      "sequence": ["architect-planner", "database-worker", "backend-worker", "security-worker"],
+      "agents": ["architect-planner", "backend-worker", "security-worker"],
+      "sequence": ["architect-planner", "backend-worker", "security-worker"],
       "reviewer": "judge-agent",
       "reviewMode": "required",
-      "maxSkills": 3
+      "maxSkills": 3,
+      "notes": "database-worker added only if database layer on (via active-layers filter + planner)"
     },
     {
       "id": "database-migration",
@@ -135,7 +136,8 @@
       "agents": ["database-worker"],
       "reviewer": "judge-agent",
       "reviewMode": "required",
-      "maxSkills": 2
+      "maxSkills": 2,
+      "notes": "Inactive when database layer off"
     },
     {
       "id": "devops-infra",
