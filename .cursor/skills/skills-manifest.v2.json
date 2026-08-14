@@ -35,17 +35,54 @@
     "learning-agent"
   ],
   "defaultTokenBudget": 8000,
-  "tierCeilings": {"tier1": 1200, "tier2": 4000, "tier3": 800, "tier4": 2000},
-  "maxSkillsByComplexity": {"low": 1, "medium": 2, "high": 4},
+  "tierCeilings": {
+    "tier1": 1200,
+    "tier2": 4000,
+    "tier3": 800,
+    "tier4": 2000
+  },
+  "maxSkillsByComplexity": {
+    "low": 1,
+    "medium": 2,
+    "high": 4
+  },
   "portableSkills": [
     {
       "id": "agentic-workflow",
       "portable": true,
       "entry": "agentic-workflow/SKILL.md",
       "referencesDir": "agentic-workflow/references",
-      "phases": ["brainstorm", "plan", "shape-lite", "design", "dev-module", "review", "fix"],
-      "agents": ["architect-planner", "judge-agent", "scaffold-agent"],
-      "keywords": ["orchestrator", "workflow", "planner", "worker", "judge", "multi-agent", "phase", "adr", "plan", "portable", "generic", "handoff", "protected-change", "code-loop", "shape-lite"],
+      "phases": [
+        "brainstorm",
+        "plan",
+        "shape-lite",
+        "design",
+        "dev-module",
+        "review",
+        "fix"
+      ],
+      "agents": [
+        "architect-planner",
+        "judge-agent",
+        "scaffold-agent"
+      ],
+      "keywords": [
+        "orchestrator",
+        "workflow",
+        "planner",
+        "worker",
+        "judge",
+        "multi-agent",
+        "phase",
+        "adr",
+        "plan",
+        "portable",
+        "generic",
+        "handoff",
+        "protected-change",
+        "code-loop",
+        "shape-lite"
+      ],
       "manifestSchema": "2.0",
       "priority": 20,
       "estimatedTokens": 1200
@@ -55,9 +92,29 @@
       "portable": true,
       "entry": "security/SKILL.md",
       "referencesDir": "security/references",
-      "phases": ["implement-backend", "implement-frontend", "review", "fix", "test", "design"],
-      "agents": ["security-worker", "judge-agent", "backend-worker", "architect-planner"],
-      "keywords": ["security", "auth", "jwt", "owasp", "rbac", "guard", "secret"],
+      "phases": [
+        "implement-backend",
+        "implement-frontend",
+        "review",
+        "fix",
+        "test",
+        "design"
+      ],
+      "agents": [
+        "security-worker",
+        "judge-agent",
+        "backend-worker",
+        "architect-planner"
+      ],
+      "keywords": [
+        "security",
+        "auth",
+        "jwt",
+        "owasp",
+        "rbac",
+        "guard",
+        "secret"
+      ],
       "manifestSchema": "2.0",
       "priority": 12,
       "estimatedTokens": 1542
@@ -67,11 +124,26 @@
     {
       "id": "skill-scout",
       "portable": true,
-      "note": "Optional external best-practice scout. Authoring only — not day-path. Apply via /skill-scout-apply after APPROVE.",
+      "note": "Optional external best-practice scout. Authoring only \u2014 not day-path. Apply via /skill-scout-apply after APPROVE.",
       "entry": "skill-scout/SKILL.md",
-      "phases": ["skill-authoring", "review"],
-      "agents": ["learning-agent", "judge-agent"],
-      "keywords": ["skill-scout", "best-practices", "research", "repo-trust", "rubric", "ingest", "external-skill", "skill-authoring"],
+      "phases": [
+        "skill-authoring",
+        "review"
+      ],
+      "agents": [
+        "learning-agent",
+        "judge-agent"
+      ],
+      "keywords": [
+        "skill-scout",
+        "best-practices",
+        "research",
+        "repo-trust",
+        "rubric",
+        "ingest",
+        "external-skill",
+        "skill-authoring"
+      ],
       "manifestSchema": "2.0",
       "priority": 7,
       "estimatedTokens": 700
@@ -82,9 +154,39 @@
       "note": "In-app SaaS product UI. Not marketing. Prefer for product track.",
       "entry": "saas-product-ui/SKILL.md",
       "referencesDir": "saas-product-ui/references",
-      "phases": ["design", "implement-frontend", "plan", "brainstorm", "fix"],
-      "agents": ["designer-worker", "frontend-worker", "architect-planner"],
-      "keywords": ["saas", "product-ui", "app-shell", "sidebar", "dashboard", "data-table", "settings", "empty-state", "onboarding", "billing", "admin", "console", "fintech", "devtools", "marketplace", "health", "b2b", "ops", "tenant"],
+      "phases": [
+        "design",
+        "implement-frontend",
+        "plan",
+        "brainstorm",
+        "fix"
+      ],
+      "agents": [
+        "designer-worker",
+        "frontend-worker",
+        "architect-planner"
+      ],
+      "keywords": [
+        "saas",
+        "product-ui",
+        "app-shell",
+        "sidebar",
+        "dashboard",
+        "data-table",
+        "settings",
+        "empty-state",
+        "onboarding",
+        "billing",
+        "admin",
+        "console",
+        "fintech",
+        "devtools",
+        "marketplace",
+        "health",
+        "b2b",
+        "ops",
+        "tenant"
+      ],
       "manifestSchema": "2.0",
       "priority": 17,
       "estimatedTokens": 2200
@@ -94,9 +196,25 @@
       "portable": true,
       "note": "Learning layer skill proposals.",
       "entry": "skill-updater/SKILL.md",
-      "phases": ["review", "dev-module"],
-      "agents": ["learning-agent", "judge-agent"],
-      "keywords": ["skill-update", "retrospective", "pattern", "learning", "gotcha", "shortcut", "self-improve", "distill", "skill-updater"],
+      "phases": [
+        "review",
+        "dev-module"
+      ],
+      "agents": [
+        "learning-agent",
+        "judge-agent"
+      ],
+      "keywords": [
+        "skill-update",
+        "retrospective",
+        "pattern",
+        "learning",
+        "gotcha",
+        "shortcut",
+        "self-improve",
+        "distill",
+        "skill-updater"
+      ],
       "manifestSchema": "2.0",
       "priority": 18,
       "estimatedTokens": 900
@@ -105,9 +223,25 @@
       "id": "planning",
       "portable": true,
       "entry": "planning/SKILL.md",
-      "phases": ["plan", "brainstorm", "shape-lite", "dev-module"],
-      "agents": ["architect-planner"],
-      "keywords": ["plan", "planning", "architect", "adr", "breakdown", "shape-lite", "mvp", "scope"],
+      "phases": [
+        "plan",
+        "brainstorm",
+        "shape-lite",
+        "dev-module"
+      ],
+      "agents": [
+        "architect-planner"
+      ],
+      "keywords": [
+        "plan",
+        "planning",
+        "architect",
+        "adr",
+        "breakdown",
+        "shape-lite",
+        "mvp",
+        "scope"
+      ],
       "manifestSchema": "2.0",
       "priority": 15,
       "estimatedTokens": 1265
@@ -117,9 +251,28 @@
       "portable": true,
       "note": "Primary skill for /fix code-loop.",
       "entry": "error-recovery/SKILL.md",
-      "phases": ["fix", "implement-backend", "implement-frontend", "test"],
-      "agents": ["backend-worker", "frontend-worker", "qa-worker", "database-worker"],
-      "keywords": ["error", "fix", "debug", "bug", "regression", "patch", "hotfix", "code-loop"],
+      "phases": [
+        "fix",
+        "implement-backend",
+        "implement-frontend",
+        "test"
+      ],
+      "agents": [
+        "backend-worker",
+        "frontend-worker",
+        "qa-worker",
+        "database-worker"
+      ],
+      "keywords": [
+        "error",
+        "fix",
+        "debug",
+        "bug",
+        "regression",
+        "patch",
+        "hotfix",
+        "code-loop"
+      ],
       "manifestSchema": "2.0",
       "priority": 19,
       "estimatedTokens": 450
@@ -128,9 +281,25 @@
       "id": "api-contract-first",
       "portable": true,
       "entry": "api-contract-first/SKILL.md",
-      "phases": ["plan", "shape-lite", "implement-backend", "implement-frontend", "design"],
-      "agents": ["architect-planner", "contract-agent", "backend-worker", "frontend-worker"],
-      "keywords": ["contract", "api", "openapi", "zod"],
+      "phases": [
+        "plan",
+        "shape-lite",
+        "implement-backend",
+        "implement-frontend",
+        "design"
+      ],
+      "agents": [
+        "architect-planner",
+        "contract-agent",
+        "backend-worker",
+        "frontend-worker"
+      ],
+      "keywords": [
+        "contract",
+        "api",
+        "openapi",
+        "zod"
+      ],
       "manifestSchema": "2.0",
       "priority": 16,
       "estimatedTokens": 350
@@ -139,9 +308,24 @@
       "id": "incremental-commit",
       "portable": true,
       "entry": "incremental-commit/SKILL.md",
-      "phases": ["implement-backend", "implement-frontend", "database", "devops", "fix"],
-      "agents": ["backend-worker", "frontend-worker", "database-worker", "devops-worker"],
-      "keywords": ["commit", "git", "conventional"],
+      "phases": [
+        "implement-backend",
+        "implement-frontend",
+        "database",
+        "devops",
+        "fix"
+      ],
+      "agents": [
+        "backend-worker",
+        "frontend-worker",
+        "database-worker",
+        "devops-worker"
+      ],
+      "keywords": [
+        "commit",
+        "git",
+        "conventional"
+      ],
       "manifestSchema": "2.0",
       "priority": 9,
       "estimatedTokens": 300
@@ -150,9 +334,27 @@
       "id": "frontend-skills",
       "portable": true,
       "entry": "frontend-skills/SKILL.md",
-      "phases": ["implement-frontend", "design", "fix"],
-      "agents": ["designer-worker", "frontend-worker"],
-      "keywords": ["dashboard", "data-table", "frontend", "nextjs", "product-ui", "react", "saas", "settings", "sidebar", "ui"],
+      "phases": [
+        "implement-frontend",
+        "design",
+        "fix"
+      ],
+      "agents": [
+        "designer-worker",
+        "frontend-worker"
+      ],
+      "keywords": [
+        "dashboard",
+        "data-table",
+        "frontend",
+        "nextjs",
+        "product-ui",
+        "react",
+        "saas",
+        "settings",
+        "sidebar",
+        "ui"
+      ],
       "manifestSchema": "2.0",
       "priority": 10,
       "estimatedTokens": 1160
@@ -161,9 +363,23 @@
       "id": "databases",
       "portable": true,
       "entry": "databases/SKILL.md",
-      "phases": ["database", "design", "implement-backend", "fix"],
-      "agents": ["database-worker", "backend-worker", "architect-planner"],
-      "keywords": ["database", "postgres", "migration", "sql"],
+      "phases": [
+        "database",
+        "design",
+        "implement-backend",
+        "fix"
+      ],
+      "agents": [
+        "database-worker",
+        "backend-worker",
+        "architect-planner"
+      ],
+      "keywords": [
+        "database",
+        "postgres",
+        "migration",
+        "sql"
+      ],
       "manifestSchema": "2.0",
       "priority": 10,
       "estimatedTokens": 974
@@ -172,9 +388,21 @@
       "id": "testing-qa",
       "portable": true,
       "entry": "testing-qa/SKILL.md",
-      "phases": ["test", "fix", "review"],
-      "agents": ["qa-worker", "judge-agent"],
-      "keywords": ["test", "jest", "playwright", "e2e"],
+      "phases": [
+        "test",
+        "fix",
+        "review"
+      ],
+      "agents": [
+        "qa-worker",
+        "judge-agent"
+      ],
+      "keywords": [
+        "test",
+        "jest",
+        "playwright",
+        "e2e"
+      ],
       "manifestSchema": "2.0",
       "priority": 8,
       "estimatedTokens": 319
@@ -183,9 +411,19 @@
       "id": "docker-devops",
       "portable": true,
       "entry": "docker-devops/SKILL.md",
-      "phases": ["devops", "fix"],
-      "agents": ["devops-worker"],
-      "keywords": ["docker", "compose", "ci", "cd"],
+      "phases": [
+        "devops",
+        "fix"
+      ],
+      "agents": [
+        "devops-worker"
+      ],
+      "keywords": [
+        "docker",
+        "compose",
+        "ci",
+        "cd"
+      ],
       "manifestSchema": "2.0",
       "priority": 6,
       "estimatedTokens": 262
@@ -193,14 +431,69 @@
     {
       "id": "taste-design",
       "portable": true,
-      "note": "Marketing / landing taste. Not for in-app product UI — use saas-product-ui.",
+      "note": "Marketing / landing taste. Not for in-app product UI \u2014 use saas-product-ui.",
       "entry": "taste-design/taste-skill/SKILL.md",
-      "phases": ["brainstorm", "plan", "design", "implement-frontend"],
-      "agents": ["designer-worker", "frontend-worker"],
-      "keywords": ["anti-slop", "brand", "brandkit", "design", "hero", "imagegen", "landing", "marketing", "portfolio", "taste", "ui", "ux"],
+      "phases": [
+        "brainstorm",
+        "plan",
+        "design",
+        "implement-frontend"
+      ],
+      "agents": [
+        "designer-worker",
+        "frontend-worker"
+      ],
+      "keywords": [
+        "anti-slop",
+        "brand",
+        "brandkit",
+        "design",
+        "hero",
+        "imagegen",
+        "landing",
+        "marketing",
+        "portfolio",
+        "taste",
+        "ui",
+        "ux"
+      ],
       "manifestSchema": "2.0",
       "priority": 8,
       "estimatedTokens": 2000
+    },
+    {
+      "id": "web-app-ui-ux",
+      "portable": true,
+      "note": "Ingested via skill-scout; source: w3c/wcag, alphagov/govuk-design-system, adobe/react-spectrum",
+      "entry": "web-app-ui-ux/SKILL.md",
+      "phases": [
+        "design",
+        "implement-frontend",
+        "review",
+        "fix"
+      ],
+      "agents": [
+        "designer-worker",
+        "frontend-worker",
+        "judge-agent"
+      ],
+      "keywords": [
+        "web-app-ui",
+        "ux",
+        "a11y",
+        "wcag",
+        "keyboard",
+        "empty-state",
+        "feedback",
+        "loading",
+        "form",
+        "navigation",
+        "progressive-disclosure",
+        "density"
+      ],
+      "manifestSchema": "2.0",
+      "priority": 8,
+      "estimatedTokens": 1200
     }
   ],
   "_note": "v4.1.1-scout: skill-scout optional (skill-authoring/review only). Ingested skills must set phases+agents+keywords for auto-load."

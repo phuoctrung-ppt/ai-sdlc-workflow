@@ -12,7 +12,7 @@
   ADR: docs/adr/0001-zod-contracts.md
 -->
 
-- No locked decisions yet. Populate after first modules ship.
+- **2026-08-14** — New portable skill `web-app-ui-ux` (priority 8) for foundational product UI/UX (a11y, keyboard, states, forms). Complements `saas-product-ui` (compositions) and `frontend-skills` (React). Sources: WCAG 2.2, GOV.UK DS, React Spectrum. Proposal: `docs/reviews/2026-08-14-skill-scout-proposal.md`.
 
 ## Archive
 
