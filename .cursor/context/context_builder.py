@@ -56,6 +56,7 @@ DEFAULT_SKILL_TOKENS = {
     "bullmq-worker": 600,
     "planning": 700,
     "nestjs-scaffold": 2500,
+    "web-app-ui-ux": 1200,
 }
 
 
@@ -251,6 +252,7 @@ def pack_tier4_refs(
     complexity: str,
     tier4_ceiling: int,
 ) -> tuple[list[dict], list[dict]]:
+    """Paths only. Preload at most a few on high complexity; else all lazy."""
     lazy = []
     preloaded = []
     if complexity != "high":
@@ -305,7 +307,6 @@ def build_context_packet(
     activation = activate_agents(matrix, intent, agent, active_layers)
     primary_agent = agent or (activation["agents"][0]["id"] if activation["agents"] else "architect-planner")
     if active_layers and primary_agent not in set(active_layers.get("activeAgents") or []):
-        # explicit agent outside profile — still allow but note
         activation["profileWarning"] = f"agent {primary_agent} not in activeAgents for profile"
 
     manifest_path = resolve_manifest_path(root, use_v2=not use_legacy)
@@ -317,6 +318,10 @@ def build_context_packet(
         intent["complexity"], 2
     )
 
+    # Always request matched reference PATHS (lazy). Content still not inlined.
+    # high → up to 8 paths; low/medium → up to 6 paths for expand-ref hints.
+    ref_limit = 8 if intent["complexity"] == "high" else 6
+
     loader_result = run_skill_loader(
         root,
         intent["phase"],
@@ -325,7 +330,7 @@ def build_context_packet(
         keyword_str,
         manifest_path,
         limit=max(skill_limit, 4),
-        ref_limit=0 if intent["complexity"] != "high" else 3,
+        ref_limit=ref_limit,
     )
 
     memory = load_memory(root, intent["domains"], intent["phase"])
@@ -414,7 +419,7 @@ def build_context_packet(
             "Respect projectProfile.layersOff — do not plan those layers.",
             "Read tier2 skill entries (SKILL.md) — max 1-2 for low complexity.",
             "Read tier3 patterns when listed.",
-            "Load tier4 references ONLY via --expand-ref or when listed in tier4.references.",
+            "tier4.lazyReferences are PATH hints only — read via --expand-ref when needed.",
             "Never bulk-read docs/reviews/ or entire references/ folders.",
         ],
     }
