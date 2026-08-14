@@ -1,7 +1,7 @@
 {
   "manifestSchema": "2.0",
-  "version": "4.1",
-  "description": "Phase-based skill manifest. Code-loop + shape-lite for indie continuous ship. Prefer high-signal portable skills.",
+  "version": "4.1.1-scout",
+  "description": "Phase-based skill manifest. Code-loop + shape-lite for indie continuous ship. Prefer high-signal portable skills. skill-scout is optional authoring only.",
   "skillsRoot": ".cursor/skills",
   "phases": [
     "brainstorm",
@@ -64,6 +64,18 @@
     }
   ],
   "skills": [
+    {
+      "id": "skill-scout",
+      "portable": true,
+      "note": "Optional external best-practice scout. Authoring only — not day-path. Apply via /skill-scout-apply after APPROVE.",
+      "entry": "skill-scout/SKILL.md",
+      "phases": ["skill-authoring", "review"],
+      "agents": ["learning-agent", "judge-agent"],
+      "keywords": ["skill-scout", "best-practices", "research", "repo-trust", "rubric", "ingest", "external-skill", "skill-authoring"],
+      "manifestSchema": "2.0",
+      "priority": 7,
+      "estimatedTokens": 700
+    },
     {
       "id": "saas-product-ui",
       "portable": true,
@@ -191,5 +203,5 @@
       "estimatedTokens": 2000
     }
   ],
-  "_note": "v4.1: shape-lite phase; error-recovery priority raised for code-loop; domain-agnostic indie ship."
+  "_note": "v4.1.1-scout: skill-scout optional (skill-authoring/review only). Ingested skills must set phases+agents+keywords for auto-load."
 }
