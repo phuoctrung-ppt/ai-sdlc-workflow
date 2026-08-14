@@ -1,52 +1,60 @@
 ---
 name: skill-scout-apply
-description: After human APPROVE on a skill-scout proposal — write thin skill files, register skills-manifest.v2.json load map, verify match. Refuse if not approved.
+description: After human APPROVE on a skill-scout proposal — write thin skill, register manifest load map (manifest-register.py), positive+negative verify. Refuse if not approved.
 ---
 
 # Skill Scout Apply
 
-Act as **Orchestrator**. Runs **only** when the user explicitly approved a scout proposal.
+Act as **Orchestrator**. **Only** after explicit APPROVE on a scout proposal.
 
 ## Preconditions
 
-- Proposal path given (e.g. `docs/reviews/2026-08-14-skill-scout-proposal.md`)
-- Proposal contains **`APPROVED`** (or task text says `approve` / `APPROVE` for that file)
-- If status is still `PENDING_APPROVAL` only → **refuse** and ask for explicit approve
+- Proposal path provided
+- Frontmatter `status: APPROVED` **or** task explicitly approves that file
+- Else **refuse**
 
 ## Steps
 
-1. Read proposal + `docs/vision/skill-scout-apply.md`.
+1. Read proposal, `docs/vision/skill-scout-apply.md`, `docs/vision/skill-scout-best-practices.md`.
 
-2. Write thin skill:
-   - `.cursor/skills/{id}/SKILL.md` (entry only; portable rules)
-   - Optional `references/` for long material
-   - Attribution + license from proposal
+2. Write thin skill files under `.cursor/skills/{id}/` (entry + optional references + attribution).
 
-3. Update `.cursor/skills/skills-manifest.v2.json`:
-   - Append skill object with **phases**, **agents**, **keywords**, **priority**, **entry**, **estimatedTokens**
-   - These four filters are what make `context-builder` / loaders auto-select the skill
-   - Default priority **6–10** unless proposal says otherwise and human agreed
+3. Register load map with validation:
 
-4. Mark proposal `APPLIED` + date. Optional 1–3 lines in `docs/memory/decisions.md`.
+```bash
+python3 .cursor/skills/scripts/manifest-register.py --dry-run \
+  --id "{id}" \
+  --entry "{id}/SKILL.md" \
+  --phases "{comma phases}" \
+  --agents "{comma agents}" \
+  --keywords "{comma keywords}" \
+  --priority {6-10} \
+  --estimated-tokens {n} \
+  --note "Ingested via skill-scout; source: …"
+```
 
-5. Verify:
+On OK, re-run **without** `--dry-run` (add `--replace` only when merging/updating same id).
+
+4. Mark proposal `status: APPLIED` + `applied_at`. Optional 1–3 lines in `docs/memory/decisions.md`.
+
+5. **Positive verify** — expect skill id in matches:
 
 ```bash
 python3 .cursor/context/context-builder.py \
-  --phase <proposed-phase> \
-  --task "<sample task using new keywords>" \
-  --agent <proposed-agent> \
-  --keywords "<keywords from manifest entry>" \
+  --phase {phase} \
+  --task "{sample task}" \
+  --agent {agent} \
+  --keywords "{keywords}" \
   --budget 4000
 ```
 
-Confirm new `id` appears in matched skills.
+6. **Negative verify** — wrong phase/agent should **not** rank this skill on top (tighten keywords if it does).
 
-6. Report: paths written, manifest fields, verify result.
+7. Report paths, manifest fields, verify results.
 
 ## Forbidden
 
 - Apply without APPROVE
-- Always-on / matrix changes unless human asked for a new agent
-- Inflating priority above planning/error-recovery without ask
-- Bulk-copy upstream repo into skills tree
+- `--force-priority` unless human asked
+- Day-path / matrix changes
+- Upstream tree copy into skills
