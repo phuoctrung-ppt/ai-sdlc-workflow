@@ -38,7 +38,7 @@ LAYER_AGENTS = {
 }
 
 LAYER_SKILLS = {
-    "frontend": ["frontend-skills", "saas-product-ui", "taste-design"],
+    "frontend": ["frontend-skills", "saas-product-ui", "taste-design", "web-app-ui-ux"],
     "backend": ["api-contract-first"],
     "database": ["databases"],
     "multi-tenancy": [],
