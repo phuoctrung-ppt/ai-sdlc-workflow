@@ -307,6 +307,7 @@ def build_context_packet(
     activation = activate_agents(matrix, intent, agent, active_layers)
     primary_agent = agent or (activation["agents"][0]["id"] if activation["agents"] else "architect-planner")
     if active_layers and primary_agent not in set(active_layers.get("activeAgents") or []):
+        # explicit agent outside profile — still allow but note
         activation["profileWarning"] = f"agent {primary_agent} not in activeAgents for profile"
 
     manifest_path = resolve_manifest_path(root, use_v2=not use_legacy)

@@ -42,6 +42,8 @@ python3 .cursor/context/context-builder.py \
 | Marketing / landing | `landing,taste,anti-slop,hero,brandkit,imagegen,design-contract` |
 | Knowledge hub / app | `saas,product-ui,knowledge-hub,app-shell,sidebar,design-contract` |
 | Tables / settings | `saas,product-ui,data-table,settings,empty-state,design-contract` |
+| Native / Expo screens | `mobile,react-native,expo,expo-router,safe-area,touch-target,flatlist` |
+| Mobile product UX | `mobile,mobile-app-ui,safe-area,bottom-nav,touch-target,gesture` |
 
 ## Step 2–4 — Implement
 

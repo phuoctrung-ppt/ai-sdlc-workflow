@@ -297,7 +297,75 @@
       "manifestSchema": "2.0",
       "priority": 8,
       "estimatedTokens": 1200
+    },
+    {
+      "id": "mobile-app-ui-ux",
+      "portable": true,
+      "note": "Ingested via skill-scout; source: w3c/wcag, expo safe-areas/system-bars",
+      "entry": "mobile-app-ui-ux/SKILL.md",
+      "phases": [
+        "design",
+        "implement-frontend",
+        "review",
+        "fix"
+      ],
+      "agents": [
+        "designer-worker",
+        "frontend-worker",
+        "judge-agent"
+      ],
+      "keywords": [
+        "mobile",
+        "mobile-app-ui",
+        "ios",
+        "android",
+        "touch-target",
+        "safe-area",
+        "system-bar",
+        "bottom-nav",
+        "stack-nav",
+        "gesture",
+        "haptic"
+      ],
+      "manifestSchema": "2.0",
+      "priority": 8,
+      "estimatedTokens": 1100,
+      "referencesDir": "mobile-app-ui-ux/references"
+    },
+    {
+      "id": "react-native-expo",
+      "portable": true,
+      "note": "Ingested via skill-scout; source: reactnative.dev performance/security, expo router",
+      "entry": "react-native-expo/SKILL.md",
+      "phases": [
+        "implement-frontend",
+        "fix",
+        "review",
+        "test"
+      ],
+      "agents": [
+        "frontend-worker",
+        "qa-worker",
+        "security-worker",
+        "judge-agent"
+      ],
+      "keywords": [
+        "react-native",
+        "expo",
+        "expo-router",
+        "flatlist",
+        "flashlist",
+        "secure-store",
+        "keychain",
+        "useNativeDriver",
+        "new-architecture",
+        "turbo-module"
+      ],
+      "manifestSchema": "2.0",
+      "priority": 8,
+      "estimatedTokens": 1200,
+      "referencesDir": "react-native-expo/references"
     }
   ],
-  "_note": "v4.1.2-refkeywords: every skill with references/ has refKeywords filename→triggers. Optional skills under optional/ not in default manifest."
+  "_note": "v4.1.1-scout: skill-scout optional (skill-authoring/review only). Ingested skills must set phases+agents+keywords for auto-load."
 }
