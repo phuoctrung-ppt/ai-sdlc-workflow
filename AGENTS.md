@@ -6,14 +6,55 @@
 
 > **How to use this file:** This is the canonical domain-config hub for the agentic workflow.
 > Every agent reads this file at task start. Generic workflow rules, hooks, and skills live in `.cursor/` and do not need editing when you port this setup to a new repo.
-> Only this file and the config JSONs below need updating when adding new features:
+>
+> **Porting (required):**
+> 1. Fill **§0 Project Profile** (profile + layers on/off).
+> 2. Fill §1–§3 for layers that are on.
+> 3. Run `python3 .cursor/context/profile-sync.py --from-agents`
+> 4. Run `python3 .cursor/context/memory-loader.py --sync`
+> 5. Optional sections (§4, §9, §14, …): write `N/A — layer off` when the layer is off — do not invent multi-tenant/DB/queue content.
+>
+> Config JSONs to touch only when paths change:
 > - `.cursor/config/protected-paths.json` → `projectProtectedGlobs`
-> - `.cursor/config/worker-scopes.json` → `agents` section
-> - `.cursor/skills/skills-manifest.v2.json` → add/remove domain skills
+> - `.cursor/config/worker-scopes.json` → tighten globs to §3 (optional)
+> - `.cursor/config/active-layers.json` → **generated** by profile-sync (do not hand-edit)
 
 ---
 
-**IMPORTANT** : Always follow the development rules during the coding phase. See `./docs/development-rules.md`.
+**IMPORTANT** : Always follow the development rules during the coding phase. See `./docs/development-rules.md` when present.
+
+## 0. Project Profile
+
+> **Source of truth for which layers exist.** Planners, context-builder, and workers must treat layer **off** as absent (no plan sections, no workers, no skills for that layer).
+
+| Field | Value |
+|---|---|
+| **profile** | `<frontend \| backend \| fullstack \| library \| cli>` |
+| **layout** | `<single-package \| monorepo>` |
+
+### Layers
+
+| Layer | Status | Notes |
+|---|---|---|
+| frontend | `<on \| off>` | UI / app shell / pages |
+| backend | `<on \| off>` | API / services |
+| database | `<on \| off>` | migrations, entities |
+| multi-tenancy | `<on \| off>` | if off → §4 = N/A |
+| queue | `<on \| off>` | if off → §14 = N/A |
+| auth | `<on \| off>` | auth/RBAC surface |
+| devops | `<on \| off>` | Docker/CI/infra |
+| ai-llm | `<on \| off>` | LLM features |
+
+> _EXAMPLE_ frontend-only: profile=`frontend`, layout=`single-package`, frontend=on, auth=on|off as needed, **all other layers off**.
+> _EXAMPLE_ API-only: profile=`backend`, backend=on, database=on|off, auth=on, frontend=off, multi-tenancy=off unless real.
+
+After editing this section:
+
+```bash
+python3 .cursor/context/profile-sync.py --from-agents
+```
+
+---
 
 ## 1. Project Overview
 
@@ -22,53 +63,54 @@
 | **Project Name** | `<name>` |
 | **Domain** | `<domain / industry>` |
 | **Description** | `<one-sentence description of what the product does>` |
-| **Monorepo** | `<yes (tool: nx / turbo / pnpm-workspaces) | no>` |
-| **Multi-Tenancy** | `<none | soft (tenant column) | hard (schema/RLS per tenant)>` |
+
+> Layout and tenancy are declared in **§0**, not duplicated here.
 
 ---
 
 ## 2. Tech Stack (Locked — ADR required to change)
 
-> Fill one row per layer your project uses; delete rows that don't apply. State a version only when it is actually pinned. Once filled, changing a locked choice requires an ADR in `docs/adr/`.
+> Fill **only rows for layers that are on** in §0. Delete or mark `N/A` rows for off layers. Once filled, changing a locked choice requires an ADR in `docs/adr/`.
 
 | Layer | Technology | Notes |
 |---|---|---|
 | Language | `<e.g. TypeScript (strict)>` | |
-| Backend framework | `<...>` | |
-| Frontend framework | `<...>` | |
-| Shared contracts | `<schema/validation lib, e.g. Zod>` | source of truth for API types |
-| Database | `<...>` | |
-| ORM / Migrations | `<...>` | migrations only — no auto-sync |
-| Cache / Queue | `<...>` | |
-| AI / LLM | `<provider(s) | none>` | |
-| Object storage | `<...>` | |
-| Auth | `<...>` | |
-| Email / Notifications | `<...>` | |
-| Payments | `<... | none>` | |
-| Infra / Deploy | `<...>` | |
+| Backend framework | `<... \| N/A>` | only if backend=on |
+| Frontend framework | `<... \| N/A>` | only if frontend=on |
+| Shared contracts | `<schema lib \| N/A>` | |
+| Database | `<... \| N/A>` | only if database=on |
+| ORM / Migrations | `<... \| N/A>` | only if database=on |
+| Cache / Queue | `<... \| N/A>` | only if queue=on |
+| AI / LLM | `<provider(s) \| none>` | only if ai-llm=on |
+| Object storage | `<... \| N/A>` | |
+| Auth | `<... \| N/A>` | only if auth=on |
+| Email / Notifications | `<... \| N/A>` | |
+| Payments | `<... \| none>` | |
+| Infra / Deploy | `<... \| N/A>` | only if devops=on |
 | Testing | `<unit / integration / e2e frameworks>` | |
 
 ---
 
 ## 3. Repository Structure
 
-> Describe the actual layout of THIS repo. Keep it in sync with `.cursor/config/worker-scopes.json` (agent path scopes must match real folders).
+> Describe the actual layout of THIS repo. Keep in sync with `.cursor/config/worker-scopes.json` when you tighten scopes.
 
 ```
 <root>/
 ├── <app-or-package-1>/        # <role>
-├── <app-or-package-2>/        # <role>
+├── <app-or-package-2>/        # <role>  (omit if single-package)
 ├── docs/                      # plans, adr, reviews, architecture
 └── .cursor/                   # workflow: agents, skills, hooks, config
 ```
 
-> _EXAMPLE_ (delete when porting): a monorepo might use `apps/api`, `apps/web`, `apps/worker`, `packages/shared-types`. Whatever you choose, mirror it exactly in `worker-scopes.json`.
+> _EXAMPLE_ single-package frontend: `app/`, `components/`, `public/` — no `packages/**` required.
+> _EXAMPLE_ monorepo: `apps/api`, `apps/web`, `packages/shared-types` — mirror in worker-scopes when tightening.
 
 ---
 
 ## 4. Multi-Tenancy Rules
 
-> **Applies only if §1 Multi-Tenancy ≠ `none`.** If single-tenant, write "N/A — single-tenant" and skip the guard requirements below.
+> **Only if §0 multi-tenancy = on.** Otherwise write exactly: `N/A — layer multi-tenancy off` and skip the rest of this section.
 
 ### Tenant Isolation Pattern
 
@@ -82,11 +124,10 @@ Choose and document your tenant column name (e.g. `tenant_id`, `workspace_id`, `
 > _EXAMPLE_ pattern — adapt to your framework/ORM:
 
 ```typescript
-// Every tenant-scoped read MUST filter by the tenant column and select explicit columns:
 async findRecords(tenantId: string): Promise<Record[]> {
   return this.repo.find({
-    where: { tenantId },            // ALWAYS filter by tenant
-    select: ['id', 'name', 'status', 'createdAt'], // NEVER select *
+    where: { tenantId },
+    select: ['id', 'name', 'status', 'createdAt'],
   });
 }
 ```
@@ -97,98 +138,87 @@ async findRecords(tenantId: string): Promise<Record[]> {
 
 ## 5. Agent Roster & Scopes
 
-> Roles below are the portable defaults shipped in `.cursor/agents/`. **Path scopes and skills are defined in `.cursor/config/worker-scopes.json` and `.cursor/skills/skills-manifest.v2.json`** — keep those two files as the source of truth and update this table to match. Remove agents you don't use.
+> Portable defaults live in `.cursor/agents/`. **Dispatch is filtered by active-layers.json** (from §0). Path scopes: `.cursor/config/worker-scopes.json`. Skills: `.cursor/skills/skills-manifest.v2.json`.
+> List agents you use; layer-off agents simply are not dispatched.
 
 | Agent | Role | Scope source | Skills source |
 |---|---|---|---|
-| `architect-planner` | Plan, ADR, task breakdown, scope definition | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `spike-agent` | PoC for `[UNCERTAIN]` tasks before formal plan detail; writes `docs/spikes/` only | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `contract-agent` | Draft/lock API schema contracts; `docs/contracts/` + shared types `packages/**` | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `scaffold-agent` | Bootstrap new module/page shells; update §3 paths | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `designer-worker` | UI/UX design, component specs, design tokens | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `backend-worker` | API features, services, DTOs, guards | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `frontend-worker` | Pages, forms, data fetching, client state | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `database-worker` | Migrations, entities, query optimization | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `devops-worker` | Docker, CI/CD, infra | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `security-worker` | Auth, RBAC, encryption, rate limiting | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `qa-worker` | Unit / integration / E2E tests | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `judge-agent` | Read-only review gate for protected changes | `docs/reviews/**` | `skills-manifest.v2.json` |
-
-> Add/remove domain worker agents (e.g. a queue/worker-process agent) to match your stack. Every agent you list here must have a matching entry in `worker-scopes.json`.
->
-> Optional domain agents (`ai-worker`, `admin-worker`) and stack-gated skills: enable by restoring agent files under `.cursor/agents/` (and `worker-scopes.json`) and/or copying or activating skills from `.cursor/skills/optional/` when `AGENTS.md §2` requires them.
+| `architect-planner` | Plan, ADR, task breakdown | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `spike-agent` | PoC for `[UNCERTAIN]` tasks | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `contract-agent` | API schema contracts (backend on) | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `scaffold-agent` | Module/page shells | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `designer-worker` | Design Contract + sketches (frontend on) | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `backend-worker` | API features (backend on) | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `frontend-worker` | Pages/UI (frontend on) | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `database-worker` | Migrations (database on) | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `devops-worker` | Docker/CI (devops on) | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `security-worker` | Auth/RBAC (auth on) | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `qa-worker` | Tests | `worker-scopes.json` | `skills-manifest.v2.json` |
+| `judge-agent` | Read-only review | `docs/reviews/**` | `skills-manifest.v2.json` |
 
 ---
 
 ## 6. Domain-Specific Compliance Requirements
 
-> Fill each subsection with YOUR project's rules. The categories are generic; the values below are placeholders. Delete subsections that don't apply.
+> Fill subsections that apply. Delete or N/A when the related layer is off.
 
 ### Authentication & Authorization
 
-- Every endpoint is **explicitly** public or protected — no ambiguity. Public routes use an explicit `<@Public()>`-equivalent marker.
-- Token strategy: `<e.g. JWT access + rotating refresh; describe TTLs, storage, rotation>`.
-- RBAC roles: `<list your roles>`. Authorization enforced via `<guard/middleware mechanism>`.
+> Only if auth=on; else `N/A — layer auth off`.
+
+- Every endpoint is **explicitly** public or protected.
+- Token strategy: `<...>`.
+- RBAC roles: `<list>`. Enforcement: `<guard/middleware>`.
 
 ### Multi-Tenancy (if applicable)
 
-- Tenant filter is **required** on every tenant-scoped query (see §4).
-- Never expose another tenant's data — even in debug/admin code — without a logged override.
+> Only if multi-tenancy=on.
+
+- Tenant filter required on every tenant-scoped query (see §4).
 
 ### Data Privacy & Compliance
 
-- Applicable regimes: `<e.g. GDPR / CCPA / HIPAA / none>`.
-- PII handling: `<what is PII here; never log it in raw form>`.
-- Data retention / deletion: `<policy>`.
+- Applicable regimes: `<e.g. GDPR / none>`.
+- PII handling: `<...>`.
 - Never log: passwords, tokens, API keys, payment data, or PII.
 
-### AI / LLM Rules (only if §2 AI/LLM ≠ none)
+### AI / LLM Rules
 
-- Log every LLM call to `<your usage/audit table>`; enforce cost budget where required.
-- Never pass raw user input into a prompt — sanitize and wrap it in a structured template; escape template delimiters.
-- Ground responses ("answer only from provided context"); validate/sanitize model output before returning it.
+> Only if ai-llm=on; else `N/A — layer ai-llm off`.
+
+- Log every LLM call; enforce cost budget where required.
+- Never pass raw user input into a prompt without sanitizing/wrapping.
 
 ### Rate Limiting
-
-> _EXAMPLE_ table — replace categories and limits with yours:
 
 | Endpoint Category | Limit | Scope |
 |---|---|---|
 | `<auth>` | `<n req/min>` | `<per IP>` |
-| `<expensive/AI op>` | `<n req/min>` | `<per user>` |
-| `<upload>` | `<n req/min>` | `<per user>` |
 
 ---
 
 ## 7. Critical Paths (E2E flow targets)
 
-> List the end-to-end user flows that MUST have an E2E test before a feature is "Done". These are your Playwright/E2E targets.
-
-- `<Flow 1: e.g. sign up → verify → first core action>`
+- `<Flow 1>`
 - `<Flow 2>`
-- `<Flow 3>`
 
 ---
 
 ## 8. External Services & Mocking Rules
 
-> List every third-party service and how tests mock it. Delete the example rows.
-
 | Service | Purpose | Mock in tests? | Mock Strategy |
 |---|---|---|---|
-| `<service>` | `<purpose>` | `<yes/no>` | `<how it is mocked>` |
-
-> _EXAMPLE_: `Payments provider → checkout → yes → provider test mode + webhook test events`.
+| `<service>` | `<purpose>` | `<yes/no>` | `<how>` |
 
 ---
 
 ## 9. Database Entities Reference
 
-> List core entities/tables with their tenant scoping. Keep names generic to your domain.
+> **Only if database=on.** Otherwise: `N/A — layer database off`.
 
 | Entity | Tenant-scoped? | Notes |
 |---|---|---|
-| `<entity>` | `<yes/no>` | `<key fields, relationships>` |
+| `<entity>` | `<yes/no>` | `<notes>` |
 
 ---
 
@@ -196,14 +226,13 @@ async findRecords(tenantId: string): Promise<Record[]> {
 
 | Artifact Type | Path Pattern | Required For |
 |---|---|---|
-| Feature plans | `docs/plans/YYYY-MM-DD-feature-name.md` | Any change touching > 1 file or > 50 lines |
-| ADRs | `docs/adr/NNNN-short-title.md` | Tech stack changes, architecture patterns, infra decisions |
-| Design specs | `docs/design/YYYY-MM-DD-{feature}.md` | Any new/changed UI (design-first gate); must include **Asset Mapping** for branding UI |
-| Design sketches | `docs/design/sketches/{feature}/` | UI section comps (layout reference; generated via taste-design/imagegen) |
-| Design assets | `docs/design/assets/{feature}/` | Shippable asset pack: `backgrounds/` (raster), `logos/` + `icons/` (SVG) — mapped in the design spec |
-| Judge reviews | `docs/reviews/YYYY-MM-DD-description.md` | Protected-path changes (auth, billing, DB migrations, config) |
-| Review overrides | `docs/reviews/review-overrides.log` | Manual bypass of the judge gate (reason must be logged) |
-| User Stories | `docs/user-stories/` | Source of truth for acceptance criteria |
+| Feature plans | `docs/plans/YYYY-MM-DD-feature-name.md` | Structural changes |
+| Shape-lite notes | `docs/plans/shape/` | Idea shaping |
+| ADRs | `docs/adr/NNNN-short-title.md` | Stack/architecture decisions |
+| Design specs | `docs/design/YYYY-MM-DD-{feature}.md` | New/changed UI when frontend=on |
+| Design sketches | `docs/design/sketches/{feature}/` | UI reference-only |
+| Judge reviews | `docs/reviews/YYYY-MM-DD-description.md` | Protected-path changes |
+| Active layers | `.cursor/config/active-layers.json` | Generated from §0 |
 
 ---
 
@@ -213,120 +242,76 @@ async findRecords(tenantId: string): Promise<Record[]> {
 
 ```
 <type>(<scope>): <subject>
-
-[body — optional]
-
-[footer — optional]
 ```
 
 | Part | Rules |
 |------|--------|
-| **Subject** | `type(scope): imperative summary` · ≤72 chars preferred · no trailing period · lowercase after `:` |
 | **type** | `feat` \| `fix` \| `refactor` \| `docs` \| `test` \| `chore` \| `perf` \| `style` \| `ci` |
-| **scope** | Short area: module / package / workflow (`auth`, `web`, `api`, `db`, `skills`, `workflow`). Omit only if truly repo-wide |
-| **body** | Blank line after subject · wrap ~72 · **why** / tradeoffs when not obvious |
-| **footer** | `BREAKING CHANGE: …` · `Refs:` · `Closes: #n` when needed |
+| **scope** | module / package / workflow area |
 
-**Examples (English)**
-
-```
-feat(auth): add refresh token rotation
-
-fix(api): apply tenant filter on customer list
-
-chore(skills): register saas-product-ui in manifest
-
-docs(plans): add v2 implementation summary
-
-feat(billing): expose invoice history in settings
-
-In-product list only; plan changes stay on Stripe portal.
-```
 ### Branches & PRs
 
-- **Branches:** `feature/<ticket>-short-description` \| `fix/<ticket>-bug-name` \| `chore/update-deps`
-- **PR size:** target ≤ ~400 lines. Split large features by layer: DB → API → Frontend.
-- **PR template:** story/ticket reference, test plan, screenshot/video if UI changed.
-- **Protected branches:** `<main / develop>` — require PR + at least 1 review.
-- **Deploy order:** `<staging> → verify → <production>`. Never deploy straight to production.
+- **Branches:** `feature/...` \| `fix/...` \| `chore/...`
+- **PR size:** target ≤ ~400 lines when practical.
+- **Protected branches:** `<main / develop>`.
 
 ---
 
 ## 12. Forbidden Patterns (Agents must NEVER do)
 
-> Generic defaults below apply to most stacks. Items in _(stack-specific)_ are examples — adjust to §2.
+> Apply blocks that match **on** layers. Skip database block if database=off, etc.
 
-### Database
-- ❌ Auto-sync/auto-migrate schemas in staging or production — migrations only.
-- ❌ `DROP TABLE`/destructive migration without a matching `down()` rollback.
-- ❌ Query tenant-scoped data without the tenant filter (see §4).
-- ❌ `SELECT *` in production queries — use explicit column lists.
-- ❌ N+1 queries — use eager loading / batching.
+### Database (database=on only)
+- ❌ Auto-sync schemas in staging/production — migrations only.
+- ❌ Destructive migration without rollback.
+- ❌ Tenant-scoped query without tenant filter (if multi-tenancy=on).
+- ❌ `SELECT *` in production queries.
 
 ### Security
-- ❌ Log secrets, tokens, passwords, API keys, or PII in any sink (console, APM, error tracker).
-- ❌ Commit `.env` files or put real values in `.env.example`.
-- ❌ Return password hashes or secrets in API responses.
-- ❌ String-interpolate user input into queries — use parameterized queries / the ORM.
-- ❌ Pass raw user content into LLM prompts without sanitizing and wrapping it.
+- ❌ Log secrets, tokens, passwords, API keys, or PII.
+- ❌ Commit `.env` with real values.
+- ❌ String-interpolate user input into queries.
 
 ### Code Quality
-- ❌ Ad-hoc `console.log` in production code — use the project's structured logger _(stack-specific)_.
-- ❌ `any` in TypeScript without an eslint-disable + justification — prefer `unknown` + guards.
-- ❌ Hardcode URLs, endpoints, or secrets — use the config layer _(stack-specific)_.
-- ❌ Business logic in controllers/route handlers — logic belongs in services.
-- ❌ Silent catches — always re-throw or log.
+- ❌ Ad-hoc `console.log` in production code — use project logger.
+- ❌ Business logic in controllers/route handlers when architecture separates services.
+- ❌ Silent catches.
 
-### AI / LLM (if applicable)
-- ❌ Call an LLM without try/catch and a fallback path.
-- ❌ Skip logging AI usage to your usage table.
-- ❌ Omit the grounding constraint from prompts.
-- ❌ Return raw model output without validation/sanitization.
+### AI / LLM (ai-llm=on only)
+- ❌ Call LLM without try/catch and fallback.
+- ❌ Skip usage logging when required by §6.
 
-### Infrastructure
-- ❌ Deploy to production without passing staging first.
-- ❌ Change SSL/domain config without testing on staging first.
-
-### Maintainability
-- ❌ Magic numbers or hardcoded strings in implementation code — use named constants or config values.
-- ❌ Async operation without an explicit timeout — every LLM call, external API call, and queue job must have a timeout.
-- ❌ AI/LLM feature without a feature flag — each AI capability must be disableable without redeploy.
-
-### Test Data
-- ❌ Test fixtures that use production-like IDs (real tenant IDs, real user emails).
-- ❌ Seeding test data into a production database — even accidentally.
+### Infrastructure (devops=on only)
+- ❌ Deploy to production without passing staging when staging exists.
 
 ---
 
 ## 13. Environment Variables (Required)
 
-> ⚠️ Never commit `.env` files. Use a secret manager for production. List NAMES only here — never values.
+> Names only — never values.
 
 ```env
-# <VAR_NAME>=            # <what it is; required by which service>
-# Example categories: database URL, cache/queue URL, auth secrets,
-# third-party API keys, storage credentials, app base URLs.
+# <VAR_NAME>=            # <what it is>
 ```
 
 ---
 
 ## 14. Queue / Background Jobs
 
-> Only if your stack uses a job queue. Otherwise write "N/A".
+> **Only if queue=on.** Otherwise: `N/A — layer queue off`.
 
 | Queue Name | Processor | Concurrency | Priority | Notes |
 |---|---|---|---|---|
-| `<queue>` | `<processor>` | `<n>` | `<High/Normal/Low>` | `<what it does>` |
+| `<queue>` | `<processor>` | `<n>` | `<High/Normal/Low>` | `<what>` |
 
 ---
 
 ## 15. API Naming Convention
 
-> Define your API surface conventions so all workers stay consistent.
+> Only if backend=on or you expose an API surface. Otherwise N/A.
 
-- **Style:** `<REST | GraphQL | RPC>`
-- **Resource paths:** `<e.g. /api/v1/<plural-nouns>; kebab-case>`
-- **Versioning:** `<e.g. URL prefix /v1>`
-- **Response envelope:** `<e.g. { data, meta, error }>`
-- **Status codes:** `<the set you standardize on>`
-- **Pagination:** `<cursor | offset; params>`
+- **Style:** `<REST | GraphQL | RPC | N/A>`
+- **Resource paths:** `<...>`
+- **Versioning:** `<...>`
+- **Response envelope:** `<...>`
+- **Pagination:** `<...>`

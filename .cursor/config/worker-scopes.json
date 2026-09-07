@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "Worker edit scopes. genericRoles are portable defaults reusable by any project. The 'agents' section ships PORTABLE, layout-independent globs (mirrors genericRoles) so enforcement works on any folder structure out of the box; tighten them to your real paths from AGENTS.md \u00a73 when porting (see portingNote).",
+  "description": "Worker edit scopes. Portable globs work on single-package and monorepo. profile-sync does not delete agent entries; layer-off agents simply are not dispatched. Tighten globs to AGENTS.md §3 when porting if needed.",
   "genericRoles": {
     "planner": [
       "docs/**",
@@ -12,19 +12,32 @@
       "**/api/**",
       "**/server/**",
       "**/backend/**",
+      "**/services/**",
+      "src/**",
+      "lib/**",
       "packages/**"
     ],
     "frontend": [
+      "app/**",
+      "src/**",
+      "pages/**",
+      "components/**",
+      "public/**",
       "**/web/**",
       "**/frontend/**",
       "**/ui/**",
       "packages/**"
     ],
     "designer": [
+      "app/**",
+      "src/**",
+      "pages/**",
+      "components/**",
       "**/web/**",
       "**/frontend/**",
       "**/ui/**",
       "**/design/**",
+      "docs/design/**",
       "packages/**",
       "docs/**"
     ],
@@ -32,6 +45,8 @@
       "**/database/**",
       "**/migrations/**",
       "**/db/**",
+      "**/prisma/**",
+      "**/drizzle/**",
       "docs/adr/**"
     ],
     "ai": [
@@ -42,6 +57,7 @@
     ],
     "devops": [
       "docker/**",
+      "infra/**",
       ".github/workflows/**",
       "**/Dockerfile*",
       "**/*.yml",
@@ -76,7 +92,7 @@
   "default": [
     "**/*"
   ],
-  "portingNote": "The 'agents' section below uses PORTABLE, layout-independent globs (mirrors 'genericRoles') so scope enforcement works on any folder structure with no domain assumptions. When porting, GENESIS Step 2 (/architecture-plan) or a manual edit should TIGHTEN these to your project's exact paths from AGENTS.md \u00a73 (Repository Structure) and \u00a75 (Agent Roster & Scopes). Do NOT delete an agent's entry (it would fall back to allow-all 'default'); replace globs instead. Do NOT use literal placeholders like 'apps/<x>/**' (they match nothing and block all edits).",
+  "portingNote": "Fill AGENTS.md §0 then run profile-sync.py. Optional: tighten agent globs to exact §3 paths. Do NOT delete an agent entry (falls back to allow-all). Layer-off agents are filtered at dispatch, not by deleting scopes.",
   "agents": {
     "architect-planner": [
       "docs/**",
@@ -88,6 +104,8 @@
       "**/modules/**",
       "**/migrations/**",
       "**/app/**",
+      "app/**",
+      "src/**",
       "**/processors/**",
       "packages/**",
       "AGENTS.md",
@@ -97,15 +115,27 @@
       "**/api/**",
       "**/server/**",
       "**/backend/**",
+      "**/services/**",
+      "src/**",
+      "lib/**",
       "packages/**"
     ],
     "frontend-worker": [
+      "app/**",
+      "src/**",
+      "pages/**",
+      "components/**",
+      "public/**",
       "**/web/**",
       "**/frontend/**",
       "**/ui/**",
       "packages/**"
     ],
     "designer-worker": [
+      "app/**",
+      "src/**",
+      "pages/**",
+      "components/**",
       "**/web/**",
       "**/frontend/**",
       "**/ui/**",
@@ -118,6 +148,8 @@
       "**/database/**",
       "**/migrations/**",
       "**/db/**",
+      "**/prisma/**",
+      "**/drizzle/**",
       "docs/adr/**"
     ],
     "devops-worker": [
@@ -151,7 +183,9 @@
     ],
     "contract-agent": [
       "docs/contracts/**",
-      "packages/**"
+      "packages/**",
+      "src/**",
+      "lib/**"
     ],
     "learning-agent": [
       "docs/retrospective.md",

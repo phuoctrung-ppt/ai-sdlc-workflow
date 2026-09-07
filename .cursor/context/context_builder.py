@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Workflow V2 context orchestration — deterministic context assembly.
 
-Replaces ad-hoc skill-loader calls with tiered Context Packets.
+Filters agent/skill candidates by .cursor/config/active-layers.json when present.
 
 Usage:
   python3 .cursor/context/context-builder.py \\
@@ -14,10 +14,6 @@ Usage:
       [--handoff docs/plans/.active-plan] \\
       [--use-legacy-loader] \\
       [--dry-run]
-
-  python3 .cursor/context/context-builder.py \\
-      --expand-ref ".cursor/skills/frontend-skills/references/hooks-pattern.md" \\
-      --reason "implementing custom hook"
 """
 
 from __future__ import annotations
@@ -32,6 +28,7 @@ from _lib import detect_root, estimate_tokens, load_json
 from intent_detector import detect_intent
 from memory_loader import load_memory
 from pattern_matcher import match_patterns
+from profile_sync import filter_agents, filter_skill_ids, load_active_layers
 
 TIER1_RULES = [
     ".cursor/rules/000-core.mdc",
@@ -44,7 +41,6 @@ DEFAULT_DO_NOT_LOAD = [
     ".cursor/skills/**/references/**",
 ]
 
-# Default token estimates when manifest v2 metadata missing
 DEFAULT_SKILL_TOKENS = {
     "agentic-workflow": 600,
     "security": 800,
@@ -60,6 +56,7 @@ DEFAULT_SKILL_TOKENS = {
     "bullmq-worker": 600,
     "planning": 700,
     "nestjs-scaffold": 2500,
+    "web-app-ui-ux": 1200,
 }
 
 
@@ -71,10 +68,6 @@ def load_config(root: Path, name: str) -> dict:
 
 
 def resolve_manifest_path(root: Path, use_v2: bool = True) -> Path:
-    """Return the canonical skills manifest (v2 only).
-
-    ``use_v2`` is retained for call-site compatibility; v1 has been retired.
-    """
     v2 = root / ".cursor" / "skills" / "skills-manifest.v2.json"
     if not v2.exists():
         raise FileNotFoundError(
@@ -114,13 +107,17 @@ def activate_agents(
     matrix: dict,
     intent: dict,
     explicit_agent: str | None,
+    active_layers: dict | None,
 ) -> dict:
     if explicit_agent:
+        allowed = filter_agents([explicit_agent], active_layers)
+        agent_id = allowed[0] if allowed else explicit_agent
         return {
-            "agents": [{"id": explicit_agent, "role": "implement"}],
+            "agents": [{"id": agent_id, "role": "implement"}],
             "reviewer": "judge-agent" if intent.get("protected") else None,
             "reviewMode": "required" if intent.get("protected") else "optional",
             "ruleId": "explicit-agent",
+            "layerFilter": bool(active_layers),
         }
 
     terms = set(intent.get("terms", []))
@@ -174,21 +171,34 @@ def activate_agents(
             best = rule
 
     if not best:
-        fallback_agent = explicit_agent or "backend-worker"
+        fallback_candidates = ["frontend-worker", "backend-worker", "architect-planner"]
+        filtered = filter_agents(fallback_candidates, active_layers)
+        fallback_agent = filtered[0] if filtered else (explicit_agent or "architect-planner")
         return {
             "agents": [{"id": fallback_agent, "role": "implement"}],
             "reviewer": "judge-agent" if protected else None,
             "reviewMode": "required" if protected else "optional",
             "ruleId": "fallback",
+            "layerFilter": bool(active_layers),
         }
 
+    raw_agents = best.get("agents", [])
+    filtered_ids = filter_agents(raw_agents, active_layers)
+    if not filtered_ids:
+        filtered_ids = filter_agents(["architect-planner"], active_layers) or ["architect-planner"]
+
+    seq = best.get("sequence", raw_agents)
+    filtered_seq = filter_agents(seq, active_layers) or filtered_ids
+
     return {
-        "agents": [{"id": a, "role": "implement"} for a in best.get("agents", [])],
-        "sequence": best.get("sequence", best.get("agents", [])),
+        "agents": [{"id": a, "role": "implement"} for a in filtered_ids],
+        "sequence": filtered_seq,
         "reviewer": best.get("reviewer"),
         "reviewMode": best.get("reviewMode", "optional"),
         "maxSkills": best.get("maxSkills"),
         "ruleId": best.get("id"),
+        "layerFilter": bool(active_layers),
+        "agentsBeforeFilter": raw_agents,
     }
 
 
@@ -197,14 +207,20 @@ def enrich_skills(
     manifest: dict,
     max_skills: int | None,
     complexity: str,
+    active_layers: dict | None,
 ) -> tuple[list[dict], int]:
     budget_cfg = manifest.get("maxSkillsByComplexity", {})
     if max_skills is None:
         max_skills = budget_cfg.get(complexity, budget_cfg.get("medium", 2))
 
+    matched = loader_result.get("matchedSkills", [])
+    if active_layers:
+        allowed_ids = set(filter_skill_ids([s["id"] for s in matched], active_layers))
+        matched = [s for s in matched if s["id"] in allowed_ids]
+
     skills = []
     total = 0
-    for skill in loader_result.get("matchedSkills", [])[:max_skills]:
+    for skill in matched[:max_skills]:
         meta = _find_skill_meta(manifest, skill["id"])
         est = meta.get("estimatedTokens", DEFAULT_SKILL_TOKENS.get(skill["id"], 800))
         priority = meta.get("priority", 5)
@@ -236,7 +252,7 @@ def pack_tier4_refs(
     complexity: str,
     tier4_ceiling: int,
 ) -> tuple[list[dict], list[dict]]:
-    """Tier 4 refs are lazy by default; preload only for high complexity."""
+    """Paths only. Preload at most a few on high complexity; else all lazy."""
     lazy = []
     preloaded = []
     if complexity != "high":
@@ -280,6 +296,7 @@ def build_context_packet(
 
     matrix = load_config(root, "agent-matrix.json")
     budget_cfg = load_config(root, "context-budget.json")
+    active_layers = load_active_layers(root)
     tier_ceilings = budget_cfg.get("tierCeilings", {
         "tier1": 1200,
         "tier2": 4000,
@@ -287,8 +304,11 @@ def build_context_packet(
         "tier4": 2000,
     })
 
-    activation = activate_agents(matrix, intent, agent)
-    primary_agent = agent or (activation["agents"][0]["id"] if activation["agents"] else "backend-worker")
+    activation = activate_agents(matrix, intent, agent, active_layers)
+    primary_agent = agent or (activation["agents"][0]["id"] if activation["agents"] else "architect-planner")
+    if active_layers and primary_agent not in set(active_layers.get("activeAgents") or []):
+        # explicit agent outside profile — still allow but note
+        activation["profileWarning"] = f"agent {primary_agent} not in activeAgents for profile"
 
     manifest_path = resolve_manifest_path(root, use_v2=not use_legacy)
     manifest = load_json(manifest_path) if manifest_path.exists() else {}
@@ -299,6 +319,10 @@ def build_context_packet(
         intent["complexity"], 2
     )
 
+    # Always request matched reference PATHS (lazy). Content still not inlined.
+    # high → up to 8 paths; low/medium → up to 6 paths for expand-ref hints.
+    ref_limit = 8 if intent["complexity"] == "high" else 6
+
     loader_result = run_skill_loader(
         root,
         intent["phase"],
@@ -307,7 +331,7 @@ def build_context_packet(
         keyword_str,
         manifest_path,
         limit=max(skill_limit, 4),
-        ref_limit=0 if intent["complexity"] != "high" else 3,
+        ref_limit=ref_limit,
     )
 
     memory = load_memory(root, intent["domains"], intent["phase"])
@@ -320,7 +344,7 @@ def build_context_packet(
     ) + memory.get("estimatedTokens", 0)
 
     skills, tier2_tokens = enrich_skills(
-        loader_result, manifest, activation.get("maxSkills"), intent["complexity"]
+        loader_result, manifest, activation.get("maxSkills"), intent["complexity"], active_layers
     )
 
     tier3_tokens = sum(p.get("estimatedTokens", 150) for p in patterns)
@@ -344,9 +368,20 @@ def build_context_packet(
                 "note": "Read plan summary only unless task requires full plan",
             }
 
+    profile_meta = None
+    if active_layers:
+        profile_meta = {
+            "profile": active_layers.get("profile"),
+            "layout": active_layers.get("layout"),
+            "layersOn": [k for k, v in (active_layers.get("layers") or {}).items() if v],
+            "layersOff": [k for k, v in (active_layers.get("layers") or {}).items() if not v],
+            "source": active_layers.get("source"),
+        }
+
     return {
-        "version": "2.0",
+        "version": "2.1",
         "intent": intent,
+        "projectProfile": profile_meta,
         "tokenBudget": {
             "maxTotal": budget,
             "allocated": allocated,
@@ -382,9 +417,10 @@ def build_context_packet(
         },
         "usage": [
             "Read tier1 rules + memory files only (not full AGENTS.md).",
+            "Respect projectProfile.layersOff — do not plan those layers.",
             "Read tier2 skill entries (SKILL.md) — max 1-2 for low complexity.",
             "Read tier3 patterns when listed.",
-            "Load tier4 references ONLY via --expand-ref or when listed in tier4.references.",
+            "tier4.lazyReferences are PATH hints only — read via --expand-ref when needed.",
             "Never bulk-read docs/reviews/ or entire references/ folders.",
         ],
     }
@@ -396,7 +432,7 @@ def expand_reference(root: Path, ref_path: str, reason: str) -> dict:
         sys.exit(f"error: reference not found: {ref_path}")
     text = full.read_text(encoding="utf-8")
     return {
-        "version": "2.0",
+        "version": "2.1",
         "expandRef": {
             "path": ref_path,
             "absolutePath": str(full),

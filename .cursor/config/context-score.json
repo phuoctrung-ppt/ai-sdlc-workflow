@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "description": "Heuristic relevance weights for Context Builder. Not ML. Higher = load earlier within tier budget.",
+  "notes": [
+    "Scores are additives used to order candidates inside a tier.",
+    "They do not replace worker-scopes or DESIGN-GATE.",
+    "doNotLoad patterns always win over score."
+  ],
+  "sourceWeights": {
+    "durableMemory": 100,
+    "designContract": 95,
+    "activePlan": 90,
+    "agentDefinition": 85,
+    "hardRules": 80,
+    "skillEntry": 70,
+    "domainPack": 65,
+    "pattern": 55,
+    "architectureDoc": 50,
+    "optionalReference": 30,
+    "sketchAsset": 25
+  },
+  "phaseBoosts": {
+    "design": { "designContract": 20, "hardRules": 15, "domainPack": 10, "sketchAsset": 10 },
+    "design-specification": { "designContract": 25, "hardRules": 15, "sketchAsset": 15 },
+    "implement-frontend": { "designContract": 20, "skillEntry": 10, "pattern": 5 },
+    "implement-backend": { "skillEntry": 10, "pattern": 10, "architectureDoc": 5 },
+    "plan": { "activePlan": 15, "architectureDoc": 10, "durableMemory": 10 },
+    "review": { "hardRules": 10, "pattern": 10, "designContract": 5 }
+  },
+  "pathBoosts": [
+    { "match": "docs/design/**/*.spec.md", "boost": 25 },
+    { "match": "docs/design/sketches/**", "boost": 10 },
+    { "match": "docs/memory/**", "boost": 15 },
+    { "match": "docs/plans/**", "boost": 12 },
+    { "match": ".cursor/patterns/**", "boost": 8 },
+    { "match": "**/node_modules/**", "boost": -100 },
+    { "match": "**/pnpm-lock.yaml", "boost": -50 },
+    { "match": ".cursor/state/**", "boost": -80 },
+    { "match": ".aisdlc/**", "boost": -40 }
+  ],
+  "keywordBoosts": [
+    { "terms": ["design-contract", "design-specification", "spec.md"], "boost": 15 },
+    { "terms": ["sketch", "imagegen", "wireframe"], "boost": 8 },
+    { "terms": ["migration", "schema"], "boost": 8 }
+  ],
+  "doNotLoadGlobs": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.next/**",
+    "**/coverage/**",
+    "**/pnpm-lock.yaml",
+    "**/.cursor/state/**",
+    "**/.aisdlc/events.jsonl"
+  ]
+}

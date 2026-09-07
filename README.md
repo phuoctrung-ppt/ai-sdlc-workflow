@@ -5,123 +5,53 @@
 [![Repo Stars](https://img.shields.io/github/stars/phuoctrung-ppt/ai-sdlc-workflow?style=social)](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/stargazers)
 
 > **Production-oriented AI Software Development Lifecycle for [Cursor](https://cursor.com).**  
-> Structured engineering (plan → implement → review → learn) instead of giant one-shot prompts.
+> Structured engineering instead of giant one-shot prompts — **without forcing a full plan loop for every bug.**
 
-**Branch note:** Workflow design on [`v2`](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/tree/v2). CLI + office UI on [`v2-cli-migrate-with-ui-workflow`](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/tree/v2-cli-migrate-with-ui-workflow).
+**Domain-agnostic + profile-aware.** Port to FE-only, BE-only, or fullstack by filling `AGENTS.md §0` (layers) — no hand-trimming of plan commands per repo.
 
-> ⚠️ **Status:** v2 wiring is in place; E2E product pilot is not claimed complete. CLI office UI is a **live board** for agent events (demo + hooks), not a full remote agent runtime.
+**Branch note:** Project profile + layers on [`enhance/project-profile-layers`](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/tree/enhance/project-profile-layers) (from `v2`). Indie ship loops on [`enhance/code-loop-shape-lite`](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/tree/enhance/code-loop-shape-lite). Core v2 on [`v2`](https://github.com/phuoctrung-ppt/ai-sdlc-workflow/tree/v2).
 
----
-
-## CLI + office UI (`cli/`)
-
-Initialize a work folder for **Cursor** or **Claude**, then watch the agent team on **http://localhost:9669**.
-
-```bash
-git checkout v2-cli-migrate-with-ui-workflow
-cd cli && pip install -e .
-
-# from repo root (or any app folder)
-ai-sdlc --init cursor          # or: ai-sdlc --init claude
-ai-sdlc ui                     # http://127.0.0.1:9669
-
-# other terminal — animate desks
-ai-sdlc demo
-```
-
-| Command | Purpose |
-|---------|---------|
-| `ai-sdlc --init cursor\|claude` | Copy `.cursor/`, `AGENTS.md`, `docs/memory/*`, create `.aisdlc/` |
-| `ai-sdlc ui` | Office floor UI (SSE event stream) |
-| `ai-sdlc event --agent … --status working --task …` | Push a desk update |
-| `ai-sdlc demo` | Sample multi-agent session into the feed |
-| `ai-sdlc status` | JSON snapshot |
-
-Details: [`cli/README.md`](./cli/README.md).
+> ⚠️ **Status:** Profile/layer filtering is implemented on the enhance branch; validate on a real FE-only and BE-only port before treating as production-default.
 
 ---
 
-## Walkthrough video
+## Day-to-day (indie continuous ship)
 
-**[`docs/media/ai-sdlc-workflow-explained.mp4`](./docs/media/ai-sdlc-workflow-explained.mp4)** — layers, files, token hotspots (add binary if missing on checkout).
-
----
-
-## Why this exists
-
-Most AI coding setups optimize **prompts**. This repo optimizes the **process**:
-
-| Practice | What it means here |
-|----------|-------------------|
-| Architecture first | No implement before plan / approval gates |
-| Specialized workers | Narrow scopes in `worker-scopes.json` |
-| Skill-driven context | Load only relevant skills via context-builder |
-| Review before “done” | Judge + severity (Critical vs Minor) |
-| Durable memory | `docs/memory/*` — not chat history |
-| Self-improvement | Learning agent proposes skill patches (approval required) |
+| Need | Command | Skips |
+|------|---------|-------|
+| Bug, failing test, small patch | **`/fix`** | Full plan, DESIGN-GATE |
+| New idea / “should we build X?” | **`/shape-lite`** | GENESIS, full ADR |
+| Structural feature | `/plan-feature` | (layer-conditional checklist) |
+| Idea → whole system | `/architecture-plan brainstorming …` | (genesis; §0 first) |
 
 ---
 
-## Three layers (v2)
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│  Tầng 3  LEARNING   retrospective → skill-updater       │
-│                      modulesSinceLastProposal (state)   │
-├─────────────────────────────────────────────────────────┤
-│  Tầng 2  MEMORY     docs/memory/{decisions,gotchas,     │
-│                      shortcuts}.md   ← primary SoT      │
-│                     .memory/* = generated AGENTS cache  │
-├─────────────────────────────────────────────────────────┤
-│  Tầng 1  EXECUTE    Planner → Workers → Judge → fix     │
-└─────────────────────────────────────────────────────────┘
-```
-
-| Layer | Primary paths |
-|-------|----------------|
-| Execute | `.cursor/agents/*`, `/dev-module`, `/architecture-plan` |
-| Memory | `docs/memory/*` (SoT) · `.memory/*` (cache via `memory-loader.py --sync`) |
-| Learning | `docs/retrospective.md`, `@learning-agent`, `skill-updater`, `.cursor/state/workflow-state.json` |
-
-Canonical rule: [`.cursor/rules/007-memory-learning.mdc`](./.cursor/rules/007-memory-learning.mdc).
-
----
-
-## Quick start — how to run (Cursor commands)
+## Quick start (portable port)
 
 ```bash
 git clone https://github.com/phuoctrung-ppt/ai-sdlc-workflow.git
 cd ai-sdlc-workflow
-git checkout v2   # or v2-cli-migrate-with-ui-workflow for CLI
+git checkout enhance/project-profile-layers
 
-python3 .cursor/context/memory-loader.py --sync   # after filling AGENTS.md
+# In your app repo: copy .cursor/ + AGENTS.md, then:
+# 1) Fill AGENTS.md §0 profile + layers
+python3 .cursor/context/profile-sync.py --from-agents
+python3 .cursor/context/memory-loader.py --sync
 ```
 
 ```text
-/architecture-plan brainstorming <idea>
-/architecture-plan
-/dev-module <module_name>
+/fix <bug>
+/shape-lite <idea>
+/plan-feature <desc>          # no forced DB/tenancy if layers off
 ```
 
-Context CLI (hyphen entry only): `python3 .cursor/context/context-builder.py --task "…" --agent <id>`
-
-More: [HOW_TO_USE.md](./HOW_TO_USE.md) · [v2 summary](./docs/plans/2026-08-02-v2-implementation-summary.md)
+Details: [HOW_TO_USE.md](./HOW_TO_USE.md) · [docs/vision/project-profile-layers.md](./docs/vision/project-profile-layers.md)
 
 ---
 
-## Token optimization
+## Why profile + layers
 
-v2 is typically **~25–40% more tokens per full module** than a thin execute-only path. Learning layer alone is ~3–5%.
-
-| Path | Approx. tokens |
-|------|----------------|
-| Brainstorm → breakdown | ~50–120k |
-| Module lite | ~100–130k |
-| Module typical | ~250–320k |
-| Heavy / fat skills | ~450k–1M+ |
-
-**Do:** context-builder only · product blocks not full taste-skill · skip plan if approved · Critical-only fix loops · memory ≤10 facts.  
-**Don’t:** mega-turns · chat as memory · `.memory/*` as peer to `docs/memory/*`.
+v2 still injected full-stack plan sections (migrations, multi-tenant, queues) into FE-only or BE-only projects. **§0 + `profile-sync` + conditional plan commands** fix that so one workflow tree serves many repo shapes.
 
 ---
 
@@ -129,11 +59,10 @@ v2 is typically **~25–40% more tokens per full module** than a thin execute-on
 
 | Doc | Purpose |
 |-----|---------|
-| [cli/README.md](./cli/README.md) | CLI + office UI |
 | [HOW_TO_USE.md](./HOW_TO_USE.md) | Operator detail |
-| [AGENTS.md](./AGENTS.md) | Domain template |
-| [.cursor/context/README.md](./.cursor/context/README.md) | context-builder CLI vs library |
-| [.cursor/rules/007-memory-learning.mdc](./.cursor/rules/007-memory-learning.mdc) | Memory + learning |
+| [docs/vision/project-profile-layers.md](./docs/vision/project-profile-layers.md) | Profile/layer design |
+| [AGENTS.md](./AGENTS.md) | Template — fill §0 first |
+| [.cursor/context/README.md](./.cursor/context/README.md) | context-builder + profile-sync CLI |
 
 ---
 
