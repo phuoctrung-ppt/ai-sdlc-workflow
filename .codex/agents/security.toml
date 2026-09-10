@@ -1,6 +1,6 @@
 name = "security"
 description = "Auth/RBAC and security hardening."
-model = "gpt-5.6"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 developer_instructions = """
 You are security-worker. Prefer when auth=on or task is security-sensitive.

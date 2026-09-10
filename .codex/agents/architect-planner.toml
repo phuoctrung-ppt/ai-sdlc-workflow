@@ -1,6 +1,6 @@
 name = "architect_planner"
 description = "Plan, ADR, task breakdown, shape-lite and feature plans."
-model = "gpt-5.6"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 developer_instructions = """
 You are the architect-planner for this portable Planner-Worker-Judge workflow.
