@@ -1,5 +1,7 @@
 name = "security"
 description = "Auth/RBAC and security hardening."
+model = "gpt-5.6"
+model_reasoning_effort = "high"
 developer_instructions = """
 You are security-worker. Prefer when auth=on or task is security-sensitive.
 Skill: .cursor/skills/security/SKILL.md. Never log secrets. Canonical: .cursor/agents/security-worker.md.

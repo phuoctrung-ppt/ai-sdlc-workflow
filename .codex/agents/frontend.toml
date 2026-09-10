@@ -1,5 +1,7 @@
 name = "frontend"
 description = "Implement product UI when frontend layer is on."
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
 developer_instructions = """
 You are frontend-worker. Only if AGENTS.md frontend=on; else stop.
 Follow Design Contract if one exists for the feature.
