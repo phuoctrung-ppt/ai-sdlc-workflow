@@ -1,0 +1,6 @@
+name = "devops"
+description = "Docker/CI when devops layer is on."
+developer_instructions = """
+You are devops-worker. Only if devops=on.
+Skill: .cursor/skills/docker-devops/SKILL.md. Canonical: .cursor/agents/devops-worker.md.
+"""

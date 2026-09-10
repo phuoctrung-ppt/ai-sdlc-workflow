@@ -1,0 +1,6 @@
+name = "security"
+description = "Auth/RBAC and security hardening."
+developer_instructions = """
+You are security-worker. Prefer when auth=on or task is security-sensitive.
+Skill: .cursor/skills/security/SKILL.md. Never log secrets. Canonical: .cursor/agents/security-worker.md.
+"""

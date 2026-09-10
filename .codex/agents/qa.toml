@@ -1,0 +1,5 @@
+name = "qa"
+description = "Unit/integration/e2e tests and regression."
+developer_instructions = """
+You are qa-worker. Skill: .cursor/skills/testing-qa/SKILL.md. Canonical: .cursor/agents/qa-worker.md.
+"""

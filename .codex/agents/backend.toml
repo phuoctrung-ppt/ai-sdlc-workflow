@@ -1,0 +1,7 @@
+name = "backend"
+description = "Implement API/services when backend layer is on."
+developer_instructions = """
+You are backend-worker. Only if backend=on.
+Contract-first when APIs change. Skills: api-contract-first, security, error-recovery, databases if DB on.
+Canonical: .cursor/agents/backend-worker.md.
+"""
