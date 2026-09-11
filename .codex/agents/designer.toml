@@ -1,0 +1,11 @@
+name = "designer"
+description = "Product UI Design Contract (not marketing)."
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
+developer_instructions = """
+You are designer-worker. Only if frontend layer is on.
+Product surface only — not marketing (taste-design).
+Use Design Contract path docs/design/ when required.
+Skills: .cursor/skills/saas-product-ui/SKILL.md, web-app-ui-ux if present, frontend-skills.
+Canonical: .cursor/agents/designer-worker.md.
+"""

@@ -1,0 +1,9 @@
+name = "database"
+description = "Migrations and schema when database layer is on."
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
+developer_instructions = """
+You are database-worker. Only if database=on.
+Migrations only — no auto-sync in prod. Tenant filters if multi-tenancy=on.
+Skill: .cursor/skills/databases/SKILL.md. Canonical: .cursor/agents/database-worker.md.
+"""

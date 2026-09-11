@@ -1,0 +1,71 @@
+# Project Codex config — multi-agent roster + explicit Sol/Terra/Luna pins.
+# Do NOT use bare "gpt-5.6" — prefer family ids so spawn is deterministic.
+#
+#   gpt-5.6-sol   — deepest: plan, judge, security, main orchestrator
+#   gpt-5.6-terra — everyday implement / design / contracts / spike
+#   gpt-5.6-luna  — fast narrow: scaffold, devops, qa, learning
+#
+# Reasoning: high for sol roles; medium for terra; low for luna.
+
+model = "gpt-5.6-sol"
+model_reasoning_effort = "high"
+
+[agents]
+max_threads = 8
+max_depth = 1
+default_subagent_model = "gpt-5.6-terra"
+default_subagent_reasoning_effort = "medium"
+
+# --- Planner / gate (sol) ---
+[agents.architect_planner]
+description = "Plan, ADR, task breakdown, shape-lite and feature plans. Use for planning, scoping, architecture decisions."
+config_file = "agents/architect-planner.toml"
+
+[agents.judge]
+description = "Read-only review on protected paths, correctness, security, and missing tests. Use after protected changes or for PR review."
+config_file = "agents/judge.toml"
+
+[agents.spike]
+description = "Short PoC for [UNCERTAIN] tasks before committing to a plan."
+config_file = "agents/spike.toml"
+
+[agents.contract]
+description = "API schema / OpenAPI / Zod contracts when backend layer is on."
+config_file = "agents/contract.toml"
+
+[agents.scaffold]
+description = "Module or page shells only; no deep business logic."
+config_file = "agents/scaffold.toml"
+
+# --- Workers ---
+[agents.designer]
+description = "Design Contract and UI sketches when frontend layer is on. Not marketing."
+config_file = "agents/designer.toml"
+
+[agents.frontend]
+description = "Implement product UI pages and components when frontend layer is on."
+config_file = "agents/frontend.toml"
+
+[agents.backend]
+description = "Implement API/services when backend layer is on."
+config_file = "agents/backend.toml"
+
+[agents.database]
+description = "Migrations and schema when database layer is on."
+config_file = "agents/database.toml"
+
+[agents.devops]
+description = "Docker/CI/infra when devops layer is on."
+config_file = "agents/devops.toml"
+
+[agents.security]
+description = "Auth/RBAC/security review when auth layer is on or task is security-sensitive."
+config_file = "agents/security.toml"
+
+[agents.qa]
+description = "Tests, Jest/Playwright, regression checks."
+config_file = "agents/qa.toml"
+
+[agents.learning]
+description = "Retrospective skill updates and skill-scout proposals only; not day-path coding."
+config_file = "agents/learning.toml"

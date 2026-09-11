@@ -5,19 +5,51 @@
 > **Agents:** if a section below is still a `<PLACEHOLDER>`, treat that fact as *unknown* — gather it from the codebase or ask the orchestrator. **Never invent stack, structure, or compliance facts from an example block.**
 
 > **How to use this file:** This is the canonical domain-config hub for the agentic workflow.
-> Every agent reads this file at task start. Generic workflow rules, hooks, and skills live in `.cursor/` and do not need editing when you port this setup to a new repo.
+> Every agent reads this file at task start. Generic workflow rules and skills live under `.cursor/` (Cursor) and are mirrored for Codex under `.agents/skills/` + `.codex/`.
 >
 > **Porting (required):**
 > 1. Fill **§0 Project Profile** (profile + layers on/off).
 > 2. Fill §1–§3 for layers that are on.
-> 3. Run `python3 .cursor/context/profile-sync.py --from-agents`
-> 4. Run `python3 .cursor/context/memory-loader.py --sync`
+> 3. Cursor: `python3 .cursor/context/profile-sync.py --from-agents` then memory-loader `--sync`.
+> 4. Codex: no profile-sync required; honor §0 directly. Optional JSON artifacts still generated only if you run the scripts.
 > 5. Optional sections (§4, §9, §14, …): write `N/A — layer off` when the layer is off — do not invent multi-tenant/DB/queue content.
->
-> Config JSONs to touch only when paths change:
-> - `.cursor/config/protected-paths.json` → `projectProtectedGlobs`
-> - `.cursor/config/worker-scopes.json` → tighten globs to §3 (optional)
-> - `.cursor/config/active-layers.json` → **generated** by profile-sync (do not hand-edit)
+
+---
+
+## Codex runtime (force design)
+
+> **Read this section when running under OpenAI Codex CLI / IDE / app.**
+
+### Surfaces
+
+| Need | Path |
+|------|------|
+| Domain config (this file) | `AGENTS.md` |
+| Skills (Codex discovery) | `.agents/skills/*/SKILL.md` → bodies in `.cursor/skills/` |
+| Multi-agent roles | `.codex/config.toml` + `.codex/agents/*.toml` |
+| Setup notes | `docs/codex/SETUP.md` |
+| Cursor-only hooks/matrix/loader | `.cursor/**` — optional; do not assume they run inside Codex |
+
+### Operating rules on Codex
+
+1. **Layers first** — §0 is law. Off layer → no plan section, no code, no skill for that layer.
+2. **Day path** — prefer skills `$wf-fix` and `$wf-shape-lite`; full `$wf-plan-feature` only for structural change.
+3. **Single source of truth for craft** — when a skill activates, **read** the linked `.cursor/skills/.../SKILL.md` (adapters are thin).
+4. **Lazy references** — never bulk-read `**/references/**` or `docs/reviews/**`.
+5. **Subagents** — do not spawn unless the user asks for parallel agents or the task is clearly multi-track; use roles from `.codex/config.toml`.
+6. **Protected changes** — recommend judge role + `docs/reviews/` for protected paths (see `.cursor/config/protected-paths.json` when present).
+7. **Forbidden patterns** — §12 always applies.
+
+### Suggested skill triggers
+
+| User intent | Skill |
+|-------------|--------|
+| Bug / regression | `$wf-fix` + `$error-recovery` |
+| Unclear idea | `$wf-shape-lite` |
+| Structural feature | `$wf-plan-feature` + `$planning` |
+| Product UI | `$saas-product-ui` + `$web-app-ui-ux` |
+| API | `$api-contract-first` |
+| Security | `$security` |
 
 ---
 
@@ -25,7 +57,7 @@
 
 ## 0. Project Profile
 
-> **Source of truth for which layers exist.** Planners, context-builder, and workers must treat layer **off** as absent (no plan sections, no workers, no skills for that layer).
+> **Source of truth for which layers exist.** Planners and workers must treat layer **off** as absent (no plan sections, no workers, no skills for that layer).
 
 | Field | Value |
 |---|---|
@@ -48,7 +80,7 @@
 > _EXAMPLE_ frontend-only: profile=`frontend`, layout=`single-package`, frontend=on, auth=on|off as needed, **all other layers off**.
 > _EXAMPLE_ API-only: profile=`backend`, backend=on, database=on|off, auth=on, frontend=off, multi-tenancy=off unless real.
 
-After editing this section:
+After editing this section (Cursor):
 
 ```bash
 python3 .cursor/context/profile-sync.py --from-agents
@@ -100,11 +132,10 @@ python3 .cursor/context/profile-sync.py --from-agents
 ├── <app-or-package-1>/        # <role>
 ├── <app-or-package-2>/        # <role>  (omit if single-package)
 ├── docs/                      # plans, adr, reviews, architecture
-└── .cursor/                   # workflow: agents, skills, hooks, config
+├── .cursor/                   # Cursor workflow: agents, skills, hooks, config
+├── .agents/skills/            # Codex skill discovery (adapters)
+└── .codex/                    # Codex multi-agent roles + config
 ```
-
-> _EXAMPLE_ single-package frontend: `app/`, `components/`, `public/` — no `packages/**` required.
-> _EXAMPLE_ monorepo: `apps/api`, `apps/web`, `packages/shared-types` — mirror in worker-scopes when tightening.
 
 ---
 
@@ -121,40 +152,31 @@ Choose and document your tenant column name (e.g. `tenant_id`, `workspace_id`, `
 
 ### Tenant Guard (mandatory on every tenant-scoped query)
 
-> _EXAMPLE_ pattern — adapt to your framework/ORM:
-
-```typescript
-async findRecords(tenantId: string): Promise<Record[]> {
-  return this.repo.find({
-    where: { tenantId },
-    select: ['id', 'name', 'status', 'createdAt'],
-  });
-}
-```
-
 > ❗ **NEVER write a tenant-scoped query without a tenant filter — no exceptions, not even in admin convenience methods, unless an explicit, logged override flag is used.**
 
 ---
 
 ## 5. Agent Roster & Scopes
 
-> Portable defaults live in `.cursor/agents/`. **Dispatch is filtered by active-layers.json** (from §0). Path scopes: `.cursor/config/worker-scopes.json`. Skills: `.cursor/skills/skills-manifest.v2.json`.
-> List agents you use; layer-off agents simply are not dispatched.
+> **Cursor:** `.cursor/agents/` + matrix + `active-layers.json`.
+> **Codex:** `.codex/agents/*.toml` roles registered in `.codex/config.toml`.
+> Dispatch is always filtered by §0 layers.
 
-| Agent | Role | Scope source | Skills source |
+| Agent | Role | Cursor source | Codex role |
 |---|---|---|---|
-| `architect-planner` | Plan, ADR, task breakdown | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `spike-agent` | PoC for `[UNCERTAIN]` tasks | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `contract-agent` | API schema contracts (backend on) | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `scaffold-agent` | Module/page shells | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `designer-worker` | Design Contract + sketches (frontend on) | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `backend-worker` | API features (backend on) | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `frontend-worker` | Pages/UI (frontend on) | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `database-worker` | Migrations (database on) | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `devops-worker` | Docker/CI (devops on) | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `security-worker` | Auth/RBAC (auth on) | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `qa-worker` | Tests | `worker-scopes.json` | `skills-manifest.v2.json` |
-| `judge-agent` | Read-only review | `docs/reviews/**` | `skills-manifest.v2.json` |
+| `architect-planner` | Plan, ADR, breakdown | `.cursor/agents/architect-planner.md` | `architect_planner` |
+| `spike-agent` | PoC for `[UNCERTAIN]` | spike-agent.md | `spike` |
+| `contract-agent` | API contracts | contract-agent.md | `contract` |
+| `scaffold-agent` | Shells only | scaffold-agent.md | `scaffold` |
+| `designer-worker` | Design Contract | designer-worker.md | `designer` |
+| `backend-worker` | API features | backend-worker.md | `backend` |
+| `frontend-worker` | Pages/UI | frontend-worker.md | `frontend` |
+| `database-worker` | Migrations | database-worker.md | `database` |
+| `devops-worker` | Docker/CI | devops-worker.md | `devops` |
+| `security-worker` | Auth/RBAC | security-worker.md | `security` |
+| `qa-worker` | Tests | qa-worker.md | `qa` |
+| `judge-agent` | Read-only review | judge-agent.md | `judge` |
+| `learning-agent` | Skill authoring | learning-agent.md | `learning` |
 
 ---
 
@@ -232,7 +254,8 @@ async findRecords(tenantId: string): Promise<Record[]> {
 | Design specs | `docs/design/YYYY-MM-DD-{feature}.md` | New/changed UI when frontend=on |
 | Design sketches | `docs/design/sketches/{feature}/` | UI reference-only |
 | Judge reviews | `docs/reviews/YYYY-MM-DD-description.md` | Protected-path changes |
-| Active layers | `.cursor/config/active-layers.json` | Generated from §0 |
+| Active layers (Cursor) | `.cursor/config/active-layers.json` | Generated from §0 |
+| Codex setup | `docs/codex/SETUP.md` | Codex adapter |
 
 ---
 
